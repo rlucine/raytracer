@@ -1,0 +1,16 @@
+#####################################
+######## C project gitignore ########
+#####################################
+
+# Ignore the build directory
+build/
+*.o
+*.d
+*.gch
+
+# Ignore compiled files
+*.exe
+*.dll
+
+# Ignore error logs
+*.log
