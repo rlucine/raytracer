@@ -63,6 +63,9 @@ int main(int argc, char **argv) {
             printf("Incorrect input file format\n");
             return -1;
         }
+    } else {
+        printf("Missing imsize keyword in input file\n");
+        return -1;
     }
     
     // Generate the PPM image
