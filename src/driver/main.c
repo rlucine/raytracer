@@ -121,6 +121,7 @@ int main(int argc, char **argv) {
     
     // Clean up
     ppm_Destroy(&ppm);
+    printf("Success!\n");
     return 0;
 }
 
