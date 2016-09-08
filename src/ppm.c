@@ -175,7 +175,7 @@ int ppm_Decode(PPM *ppm, const char *filename) {
 
     // Calculate the size of the PPM image in bytes
     struct stat stat_buf;
-    if (!stat(filename, &stat_buf)) {
+    if (stat(filename, &stat_buf)) {
 #ifdef DEBUG
         perror("stat");
 #endif
