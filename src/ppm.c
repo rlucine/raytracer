@@ -9,7 +9,7 @@
 
 // Standard library
 #include <stdlib.h>     // malloc, free, size_t
-#include <stdio.h>      // fopen, fclose, fprintf, getline
+#include <stdio.h>      // fopen, fclose, fprintf, getline ...
 #include <limits.h>     // USHRT_MAX
 #include <sys/stat.h>   // stat, struct stat
 #include <string.h>     // strcpy
@@ -109,7 +109,7 @@ int ppm_SetPixel(PPM *ppm, int x, int y, const RGB *color) {
     }
     
     // Set the color
-    int index = y*ppm->height + x;
+    int index = y*ppm->width + x;
     RGB *where = &ppm->data[index];
     where->r = color->r;
     where->g = color->g;
@@ -154,7 +154,7 @@ int ppm_Encode(const PPM *ppm, const char *filename) {
     const RGB *color;
     while (index < max) {
         color = &ppm->data[index];
-        fprintf(file, "%d %d %d\n", color->r, color->g, color->b);
+        fprintf(file, "%d %d %d\n", (int)color->r, (int)color->g, (int)color->b);
         index++;
     }
     
@@ -282,10 +282,10 @@ int ppm_Decode(PPM *ppm, const char *filename) {
         }
         
         // Scale max size to 255
-        if (maxsize != PPM_MAX_SIZE) {
-            first = (first * PPM_MAX_SIZE) / maxsize;
-            second = (second * PPM_MAX_SIZE) / maxsize;
-            third = (third * PPM_MAX_SIZE) / maxsize;
+        if (maxsize != PPM_MAX_COLOR) {
+            first = (first * PPM_MAX_COLOR) / maxsize;
+            second = (second * PPM_MAX_COLOR) / maxsize;
+            third = (third * PPM_MAX_COLOR) / maxsize;
         }
         
         // Set color
