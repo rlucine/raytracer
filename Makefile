@@ -5,7 +5,7 @@
 #===== Compiler / linker setup =====#
 CC := gcc
 DFLAGS := -MP -MMD
-CFLAGS := -s -O3 -Wall
+CFLAGS := -s -O3 -Wall -DDEBUG
 LFLAGS := -s
 INCLUDE := 
 LIBRARY := 
