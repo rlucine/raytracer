@@ -24,9 +24,9 @@
  * @brief Struct for RGB colors
  **************************************************************/
 typedef struct {
-    char r;     ///< The red part of the color 0 - 255
-    char g;     ///< The green part of the color 0 - 255
-    char b;     ///< The blue part of the color 0 - 255
+    unsigned char r;    ///< The red part of the color 0 - 255
+    unsigned char g;    ///< The green part of the color 0 - 255
+    unsigned char b;    ///< The blue part of the color 0 - 255
 } RGB;
 
 /**********************************************************//**
