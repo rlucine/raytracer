@@ -11,7 +11,7 @@ Doxyfile
 README.md
 test.ppm
 test.txt
-src/main.c
+src/driver/main.c
 src/ppm.h
 src/ppm.c
 ```
