@@ -14,3 +14,7 @@ build/
 
 # Ignore error logs
 *.log
+
+# Ignore handouts and turnins
+*.tar
+*.pdf
