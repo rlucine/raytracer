@@ -1,7 +1,7 @@
 PROJECT_NAME = "CSci 5607"
 PROJECT_BRIEF = "Projects for CSci 5607 Graphics 1"
 OUTPUT_DIRECTORY = "doc"
-INPUT = src/
+INPUT = src/ src/driver
 FILE_PATTERNS = *.h *.c
 RECURSIVE = NO
 GENERATE_LATEX = NO
