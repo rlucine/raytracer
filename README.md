@@ -31,6 +31,6 @@ In this format, `width` and `height` are positive integer values.
 ### Code
 The code is documented using Doxygen-compatible commenting. To create the documentation webpage, run `make doc` and launch `doc/html/index.html` in a web browser. You must have `doxygen` installed.
 
-Doxygen-style ocumentation is found in header files. The implementation files also contain comments, but not Doxygen comments.
+Doxygen-style documentation is found in header files. The implementation files also contain comments, but not Doxygen comments.
 
 In these files, I provide a suite of functions that deal with PPM structs. Correct usage of these functions can be found by reading the aforementioned documentation. The main module does not provide tests for every function; it simply implements the behavior described in the handout. There is no rigorous testing suite included.

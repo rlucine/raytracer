@@ -249,7 +249,7 @@ int ppm_Decode(PPM *ppm, const char *filename) {
     // Header check
     if (header[0] != PPM_MAGIC_NUMBER[0] || header[1] != PPM_MAGIC_NUMBER[1]) {
 #ifdef DEBUG
-        fprintf(stderr, "ppm_Decode failed: Midding PPM magic number\n");
+        fprintf(stderr, "ppm_Decode failed: Missing PPM magic number\n");
 #endif
         free(entire);
         return FAILURE;
