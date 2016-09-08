@@ -18,8 +18,7 @@ CFILES := $(wildcard $(SRC_DIR)/*.c)
 
 #=========== Build setup ===========#
 # Executable
-EXECUTABLE_DIR := .
-EXECUTABLE := $(EXECUTABLE_DIR)/build.exe
+EXECUTABLE := build.exe
 
 # Build files
 BUILD_DIR := build
@@ -28,6 +27,9 @@ DFILES := $(OFILES:.o=.d)
 
 # Documentation files
 DOC_DIR := doc
+
+# Turnin file
+TURNIN := turnin.tar
 
 #============== Rules ==============#
 # Default - make the executable
@@ -56,9 +58,16 @@ $(DOC_DIR):
 # Clean up build files and executable
 .PHONY: clean
 clean:
-	rm -rf $(BUILD_DIR) $(EXECUTABLE)
+	rm -rf $(BUILD_DIR) $(EXECUTABLE) $(TURNIN)
 
 # Clean up absolutely everything
 .PHONY: spotless
 spotless: clean
 	rm -rf $(DOC_DIR)
+
+#============= Turnin ==============#
+.PHONY: turnin
+turnin: $(TURNIN)
+
+$(TURNIN): $(SRC_DIR) Makefile Doxyfile README.md test.txt test.ppm
+	tar -cvf $@ $^
