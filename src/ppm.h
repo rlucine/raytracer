@@ -7,6 +7,9 @@
 #ifndef _PPM_H_
 #define _PPM_H_
 
+// This project
+#include "rgb.h"
+
 /*============================================================*
  * Constants
  *============================================================*/
@@ -18,16 +21,6 @@
 /// @def FAILURE
 /// @brief Returned by PPM functions if the operation failed
 #define FAILURE -1
-
-/**********************************************************//**
- * @typedef RGB
- * @brief Struct for RGB colors
- **************************************************************/
-typedef struct {
-    unsigned char r;    ///< The red part of the color 0 - 255
-    unsigned char g;    ///< The green part of the color 0 - 255
-    unsigned char b;    ///< The blue part of the color 0 - 255
-} RGB;
 
 /**********************************************************//**
  * @typedef PPM

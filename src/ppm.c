@@ -16,6 +16,7 @@
 #include <assert.h>     // assert
 
 // This project
+#include "rgb.h"
 #include "ppm.h"
 
 /*============================================================*
