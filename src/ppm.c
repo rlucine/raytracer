@@ -13,6 +13,7 @@
 #include <limits.h>     // USHRT_MAX
 #include <sys/stat.h>   // stat, struct stat
 #include <string.h>     // strcpy
+#include <assert.h>     // assert
 
 // This project
 #include "ppm.h"
@@ -193,9 +194,11 @@ int ppm_Decode(PPM *ppm, const char *filename) {
     }
     
     // Mark the end of the buffer
-    char *canary = &entire[size];
     const char CANARY_VALUE = 127;
-    *canary = CANARY_VALUE;
+    entire[size] = CANARY_VALUE;
+#ifdef DEBUG
+    assert(entire[size] == CANARY_VALUE);
+#endif
     
     // File for decoding
     FILE *file = fopen(filename, "r");
@@ -210,11 +213,13 @@ int ppm_Decode(PPM *ppm, const char *filename) {
     
     // Excise comments as we load into memory
     char *where = entire;
+    size_t ncopy;
     while (fgets(buf, BUF_SIZE, file)) {
         if (buf[0] != '#') {
             // Not a comment line in the PPM so store it
-            strcpy(where, buf);
-            where += strlen(buf);
+            ncopy = strlen(buf);
+            memcpy(where, buf, ncopy);
+            where += ncopy;
         }
     }
     
@@ -222,9 +227,9 @@ int ppm_Decode(PPM *ppm, const char *filename) {
     fclose(file);
     
     // Check buffer overflow
-    if (*canary != CANARY_VALUE) {
+    if (entire[size] != CANARY_VALUE) {
 #ifdef DEBUG
-        fprintf(stderr, "ppm_Decode failed: Buffer overflow detected\n");
+        fprintf(stderr, "ppm_Decode failed: Buffer overflow detected (canary %d)\n", entire[size]);
 #endif
         free(entire);
         return FAILURE;
