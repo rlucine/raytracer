@@ -2,6 +2,16 @@
 ######## CSci 5607 Makefile #########
 #####################################
 
+#============ OS Setup =============#
+OS := $(shell uname)
+
+# Set up mkdir
+ifeq ($(OS), Linux)
+    MKDIR := mkdir -p
+else
+    MKDIR := mkdir
+endif
+
 #===== Compiler / linker setup =====#
 CC := gcc
 DFLAGS := -MP -MMD
@@ -46,11 +56,11 @@ all: $(DRIVER_BUILD_DIR) $(EXECUTABLES)
 
 # Put all the .o files in the build directory
 $(BUILD_DIR):
-	mkdir $@
+	$(MKDIR) $@
 
 # Also create subdirectory for driver files
 $(DRIVER_BUILD_DIR): $(BUILD_DIR)
-	mkdir $@
+	$(MKDIR) $@
 
 # Generate auto-dependency files (.d) instead
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c $(BUILD_DIR)
