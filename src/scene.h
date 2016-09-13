@@ -10,15 +10,11 @@
 // This project
 #include "rgb.h"
 #include "vector.h"
+#include "shape.h"
 
 /*============================================================*
  * Constants
  *============================================================*/
-
-// Shape keys
-#define SHAPE_NONE 0
-#define SHAPE_SPHERE 1
-#define SHAPE_ELLIPSOID 2
 
 /// @def SUCCESS
 /// @brief Returned by PPM functions if the operation succeeded
@@ -27,26 +23,6 @@
 /// @def FAILURE
 /// @brief Returned by PPM functions if the operation failed
 #define FAILURE -1
-
-/**********************************************************//**
- * @typedef SHAPE_DATA
- * @brief Union of shape-specific data
- **************************************************************/
-typedef union {
-    double radius;      ///< Radius of a sphere
-    VECTOR dimension;   ///< Dimensions of an ellipsoid
-} SHAPE_DATA;
-
-/**********************************************************//**
- * @typedef SHAPE
- * @brief Polymorphic struct for storing shape data
- **************************************************************/
-typedef struct {
-    int shape;          ///< Shape key for which field of the union is initialized
-    RGB color;          ///< Color of this shape
-    POINT center;       ///< Location of this shape
-    SHAPE_DATA data;    ///< Polymorphic shape data
-} SHAPE;
 
 /**********************************************************//**
  * @typedef SCENE
