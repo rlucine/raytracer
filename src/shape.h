@@ -35,7 +35,7 @@ typedef union {
  * @brief Polymorphic struct for storing shape data
  **************************************************************/
 typedef struct {
-    int shape;          ///< Shape key for which field of the union is initialized
+    SHAPE_KEY shape;    ///< Shape key for which field of the union is initialized
     RGB color;          ///< Color of this shape
     POINT center;       ///< Location of this shape
     SHAPE_DATA data;    ///< Polymorphic shape data
