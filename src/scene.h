@@ -49,6 +49,70 @@ typedef struct {
 extern int scene_Decode(SCENE *scene, const char *filename);
 
 /**********************************************************//**
+ * @brief Get the eye position in the scene
+ * @param scene: The scene to read
+ * @return Pointer to the eye position
+ **************************************************************/
+extern const POINT *scene_GetEyePosition(const SCENE *scene);
+
+/**********************************************************//**
+ * @brief Get the view direction in the scene
+ * @param scene: The scene to read
+ * @return Pointer to the view direction
+ **************************************************************/
+extern const VECTOR *scene_GetViewDirection(const SCENE *scene);
+
+/**********************************************************//**
+ * @brief Get the up direction in the scene
+ * @param scene: The scene to read
+ * @return Pointer to the up direction
+ **************************************************************/
+extern const VECTOR *scene_GetUpDirection(const SCENE *scene);
+
+/**********************************************************//**
+ * @brief Get the FOV in degrees
+ * @param scene: The scene to read
+ * @return The field of view in degrees
+ **************************************************************/
+extern double scene_GetFieldOfView(const SCENE *scene);
+
+/**********************************************************//**
+ * @brief Get the scene width in pixels
+ * @param scene: The scene to read
+ * @return The width of the scene
+ **************************************************************/
+extern int scene_GetWidth(const SCENE *scene);
+
+/**********************************************************//**
+ * @brief Get the scene height in pixels
+ * @param scene: The scene to read
+ * @return The height of the scene
+ **************************************************************/
+extern int scene_GetHeight(const SCENE *scene);
+
+/**********************************************************//**
+ * @brief Get the background RGB color of the scene
+ * @param scene: The scene to read
+ * @return Pointer to the background color
+ **************************************************************/
+extern const RGB *scene_GetBackgroundColor(const SCENE *scene);
+
+/**********************************************************//**
+ * @brief Get how many shapes are in the scene
+ * @param scene: The scene to read
+ * @return The number of shapes in the scene
+ **************************************************************/
+extern int scene_GetNumberOfShapes(const SCENE *scene);
+
+/**********************************************************//**
+ * @brief Get the shape from the scene
+ * @param scene: The scene to read
+ * @param index: Shape index from 0 to the number of shapes - 1
+ * @return Pointer to the shape
+ **************************************************************/
+extern const SHAPE *scene_GetShape(const SCENE *scene, int index);
+
+/**********************************************************//**
  * @brief Destroy the SCENE structure
  * @param scene: The sturcture to destroy
  **************************************************************/

@@ -385,6 +385,45 @@ int scene_Decode(SCENE *scene, const char *filename) {
 }
 
 /*============================================================*
+ * Scene getters
+ *============================================================*/
+const POINT *scene_GetEyePosition(const SCENE *scene) {
+    return &scene->eye;
+}
+
+const VECTOR *scene_GetViewDirection(const SCENE *scene) {
+    return &scene->view;
+}
+
+const VECTOR *scene_GetUpDirection(const SCENE *scene) {
+    return &scene->up;
+}
+
+double scene_GetFieldOfView(const SCENE *scene) {
+    return scene->fov;
+}
+
+int scene_GetWidth(const SCENE *scene) {
+    return scene->width;
+}
+
+int scene_GetHeight(const SCENE *scene) {
+    return scene->height;
+}
+
+const RGB *scene_GetBackgroundColor(const SCENE *scene) {
+    return &scene->background;
+}
+
+int scene_GetNumberOfShapes(const SCENE *scene) {
+    return scene->nshapes;
+}
+
+const SHAPE *scene_GetShape(const SCENE *scene, int index) {
+    return &scene->shapes[index];
+}
+
+/*============================================================*
  * Scene destructor
  *============================================================*/
 void scene_Destroy(SCENE *scene) {
