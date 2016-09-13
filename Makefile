@@ -56,11 +56,11 @@ all: $(DRIVER_BUILD_DIR) $(EXECUTABLES)
 
 # Put all the .o files in the build directory
 $(BUILD_DIR):
-	$(MKDIR) $@
+	-$(MKDIR) $@
 
 # Also create subdirectory for driver files
 $(DRIVER_BUILD_DIR): $(BUILD_DIR)
-	$(MKDIR) $@
+	-$(MKDIR) $@
 
 # Generate auto-dependency files (.d) instead
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c $(BUILD_DIR)
