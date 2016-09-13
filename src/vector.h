@@ -68,7 +68,7 @@ extern int vector_IsParalell(const VECTOR *a, const VECTOR *b);
  * @param b: The second vector
  * @return 1 if the vectors are orthogonal, otherwise 0
  **************************************************************/
-extern int vector_IsParalell(const VECTOR *a, const VECTOR *b);
+extern int vector_IsOrthogonal(const VECTOR *a, const VECTOR *b);
 
 /**********************************************************//**
  * @brief Check if two vectors are equal
