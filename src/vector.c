@@ -6,7 +6,7 @@
 
 // Standard library
 #include <float.h>      // DBL_EPSILON
-#include <math.h>       // sqrt, acos
+#include <math.h>       // sqrt, acos, fabs ...
 
 // This project
 #include "vector.h"
@@ -15,7 +15,7 @@
  * Zero Checking
  *============================================================*/
 static int double_IsZero(double what) {
-    return what < DBL_EPSILON;
+    return fabs(what) < DBL_EPSILON;
 }
 
 /*============================================================*
