@@ -9,17 +9,17 @@
 #include <stdio.h>      // fprintf, stderr, fopen, fclose ...
 #include <string.h>     // strcmp
 #include <ctype.h>      // isspace
-#include <float.h>      // DBL_EPSILON
 
 // This project
 #include "rgb.h"
 #include "vector.h"
+#include "shape.h"
 #include "scene.h"
 
 /*============================================================*
- * Decoder state
+ * Decoder flags
+ * We use these to keep track of what values the decoder saw
  *============================================================*/
-
 #define FLAG_EYE 1
 #define FLAG_VIEW 2
 #define FLAG_UP 4
@@ -30,7 +30,37 @@
 #define FLAG_ALL 127
 
 /*============================================================*
+ * Convert flag to keyword
+ *============================================================*/
+static const char *flag_GetKeyword(int flags) {
+    
+    // Get the name of the first flag present in
+    // the flags bitset.
+    
+    if (flags & FLAG_EYE) {
+        return "eye";
+    } else if (flags & FLAG_VIEW) {
+        return "viewdir";
+    } else if (flags & FLAG_UP) {
+        return "updir";
+    } else if (flags & FLAG_FOV) {
+        return "fovv";
+    } else if (flags & FLAG_SIZE) {
+        return "imsize";
+    } else if (flags & FLAG_BACKGROUND) {
+        return "bkgcolor";
+    } else if (flags & FLAG_MATERIEL) {
+        return "mtlcolor";
+    }
+    return NULL;
+}
+
+/*============================================================*
  * Add shapes to scene
+ * scene: The scene to mutate
+ * capacity: Pointer to the capacity of the scene->shapes
+ * arraylist. This can be mutated!
+ * shape: The shape to copy into the arraylist.
  *============================================================*/
 static int scene_AddShape(SCENE *scene, size_t *capacity, const SHAPE *shape) {
     
@@ -67,6 +97,7 @@ static int scene_AddShape(SCENE *scene, size_t *capacity, const SHAPE *shape) {
 
 /*============================================================*
  * Validation
+ * Check if the complete scene has valid data members
  *============================================================*/
 static int scene_Validate(const SCENE *scene) {
     
@@ -115,33 +146,6 @@ static int scene_Validate(const SCENE *scene) {
 }
 
 /*============================================================*
- * Check missing keywords
- *============================================================*/
-static const char *scene_GetFlagName(int flags) {
-    
-    // Get the name of the first flag present in
-    // the flags bitset.
-    
-    if (flags & FLAG_EYE) {
-        return "eye";
-    } else if (flags & FLAG_VIEW) {
-        return "viewdir";
-    } else if (flags & FLAG_UP) {
-        return "updir";
-    } else if (flags & FLAG_FOV) {
-        return "fovv";
-    } else if (flags & FLAG_SIZE) {
-        return "imsize";
-    } else if (flags & FLAG_BACKGROUND) {
-        return "bkgcolor";
-    } else if (flags & FLAG_MATERIEL) {
-        return "mtlcolor";
-    } else {
-        return NULL;
-    }
-}
-
-/*============================================================*
  * Whitespace checking
  *============================================================*/
 static int string_IsAllWhitespace(const char *str) {
@@ -150,6 +154,7 @@ static int string_IsAllWhitespace(const char *str) {
         if (!isspace(str[i])) {
             return 0;
         }
+        i++;
     }
     return 1;
 }
@@ -159,13 +164,16 @@ static int string_IsAllWhitespace(const char *str) {
  *============================================================*/
 int scene_Decode(SCENE *scene, const char *filename) {
 
-    // Load a scene from the file
+
+    /*---------------------------------------------*
+     * Loading the file
+     *---------------------------------------------*/
     FILE *file = fopen(filename, "r");
     if (!file) {
 #ifdef DEBUG
         fprintf(stderr, "scene_Decode failed: Cannot open %s\n", filename);
 #endif
-        return -1;
+        return FAILURE;
     }
 
     // Set up reading buffer
@@ -174,19 +182,30 @@ int scene_Decode(SCENE *scene, const char *filename) {
     char keyword[11];
     size_t delta;
     
-    // Decoder state initialization
-    RGB materiel;
+    /*---------------------------------------------*
+     * Initialize decoder state
+     *---------------------------------------------*/
     int flags = 0;
     int line = 0;
     size_t capacity = 1;
+    scene->shapes = (SHAPE *)malloc(sizeof(SHAPE) * capacity);
+    if (!scene->shapes) {
+#ifdef DEBUG
+        fprintf(stderr, "scene_Decode failed: Out of memory\n");
+#endif
+        return FAILURE;
+    }
     
     SHAPE shape;
-    shape.shape = 0;
+    shape.shape = SHAPE_NONE;
     
-    // Reading variables
+    /*---------------------------------------------*
+     * Parsing each line of the file
+     *---------------------------------------------*/
     char *where;
-    
-    // Read every line of input file
+    const char *format;
+    void *args[8];
+    int number;
     while (line++, fgets(buf, BUF_SIZE, file)) {
         
         // Skip comments or empty lines
@@ -202,15 +221,12 @@ int scene_Decode(SCENE *scene, const char *filename) {
             fclose(file);
             return FAILURE;
         }
-        // Read from here
+        // Location of the arguments to the keyword
         where = buf + delta;
         
         // Parse the keyword arguments
-        const char *format;
-        void *args[8];
-        int number;
+        // If shape.shape ends up set, we found a shape!
         shape.shape = SHAPE_NONE;
-        
         if (!strcmp(keyword, "eye")) {
             flags |= FLAG_EYE;
             format = "%lf %lf %lf%n";
@@ -265,9 +281,9 @@ int scene_Decode(SCENE *scene, const char *filename) {
         } else if (!strcmp(keyword, "mtlcolor")) {
             flags |= FLAG_MATERIEL;
             format = "%hhu %hhu %hhu%n";
-            args[0] = &materiel.r;
-            args[1] = &materiel.g;
-            args[2] = &materiel.b;
+            args[0] = &shape.color.r;
+            args[1] = &shape.color.g;
+            args[2] = &shape.color.b;
             args[3] = &delta;
             number = 3;
 
@@ -301,13 +317,15 @@ int scene_Decode(SCENE *scene, const char *filename) {
             return FAILURE;
         }
         
-        // Unload the data (ok to have too many pointers)
+        // Unload the data (ok to have too many pointers in sscanf)
         if (sscanf(where, format, &args[0], &args[1], &args[2], &args[3], &args[4], &args[5], &args[6], &args[7]) != number) {
 #ifdef DEBUG
             fprintf(stderr, "scene_Decode failed: Error parsing %s keyword on line %d\n", keyword, line);
 #endif
             return FAILURE;
         }
+        
+        // Check any data at the end of the line
         where += delta;
         if (!string_IsAllWhitespace(where)) {
 #ifdef DEBUG
@@ -325,7 +343,6 @@ int scene_Decode(SCENE *scene, const char *filename) {
 #endif
                 return FAILURE;
             }
-            memcpy(&shape.color, &materiel, sizeof(RGB));
             if (scene_AddShape(scene, &capacity, &shape) == FAILURE) {
 #ifdef DEBUG
                 fprintf(stderr, "scene_Decode failed: Failed to add shape\n");
@@ -335,11 +352,13 @@ int scene_Decode(SCENE *scene, const char *filename) {
         }
     }
     
-    // Clean up
+    /*---------------------------------------------*
+     * Clean up and validation
+     *---------------------------------------------*/
     fclose(file);
     
     // Check for missing keywords
-    const char *missing = scene_GetFlagName((~flags) & FLAG_ALL);
+    const char *missing = flag_GetKeyword((~flags) & FLAG_ALL);
     if (missing) {
 #ifdef DEBUG
         fprintf(stderr, "scene_Decode failed: Missing %s keyword\n", missing);
