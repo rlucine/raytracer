@@ -24,6 +24,13 @@ typedef struct {
 typedef VECTOR POINT;
 
 /**********************************************************//**
+ * @brief Copy the input vector to the output vector
+ * @param output: The vector to copy to.
+ * @param input: The vector to copy.
+ **************************************************************/
+extern void vector_Copy(VECTOR *output, const VECTOR *input);
+
+/**********************************************************//**
  * @brief Compute the dot product of the vectors
  * @param a: The first vector
  * @param b: The second vector

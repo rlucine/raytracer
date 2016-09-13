@@ -19,6 +19,15 @@ static int double_IsZero(double what) {
 }
 
 /*============================================================*
+ * Copy
+ *============================================================*/
+void vector_Copy(VECTOR *output, const VECTOR *input) {
+    output->x = input->x;
+    output->y = input->y;
+    output->z = input->z;
+}
+
+/*============================================================*
  * Dot product
  *============================================================*/
 double vector_Dot(const VECTOR *a, const VECTOR *b) {
