@@ -557,6 +557,14 @@ const SHAPE *scene_GetShape(const SCENE *scene, int index) {
  * Scene destructor
  *============================================================*/
 void scene_Destroy(SCENE *scene) {
+    int i;
+    
+    // Free all the allocated shape data (SHAPE not responsible)
+    for (i = 0; i < scene->nshapes; i++) {
+        free(scene->shapes[i].data);
+    }
+    
+    // Free allocated array
     if (scene->shapes) {
         free(scene->shapes);
     }
