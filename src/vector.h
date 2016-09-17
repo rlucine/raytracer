@@ -23,6 +23,27 @@ typedef struct {
  **************************************************************/
 typedef VECTOR POINT;
 
+// TODO maybe this belongs in another file?
+/**********************************************************//**
+ * @typedef LINE
+ * @brief Struct for an infinite line
+ **************************************************************/
+typedef struct {
+    POINT origin;       ///< Origin of the line
+    VECTOR direction;   ///< Direction of the line
+} LINE;
+
+// TODO maybe this belongs in another file?
+/**********************************************************//**
+ * @typedef PLANE
+ * @brief Struct for a flat plane
+ **************************************************************/
+typedef struct {
+    POINT origin;   ///< Upper left corner of the plane
+    VECTOR basis_u; ///< Step of width in the plane
+    VECTOR basis_v; ///< Step of height in the plane
+} PLANE;
+
 /**********************************************************//**
  * @brief Copy the input vector to the output vector
  * @param output: The vector to copy to.
