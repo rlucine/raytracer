@@ -1,0 +1,17 @@
+#####################################
+# Invalid scene file
+# * Draw a unit sphere at (0, 0, -4)
+# * Look directly at the sphere
+# It is missing updir
+#####################################
+
+# Header information
+eye			0	0	0
+viewdir	0	0	-1
+fovv		60
+imsize		64	48
+bkgcolor	16	16	16
+
+# Shape information
+mtlcolor	255	0	0
+sphere		0	0	-4	1

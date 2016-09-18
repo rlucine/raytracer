@@ -1,0 +1,36 @@
+#####################################
+# Confusing scene file
+# * Draw a unit sphere at (0, 0, -4)
+# * Look directly at the sphere
+# The file is formatted weird
+#####################################
+
+# Header information
+bkgcolor	0.0 0.5 16.7778
+imsize		64	48.50056
+
+
+eye	  	 0  	0    			0       		
+viewdir	0	0	-1.0
+
+
+fovv		58.5
+
+			
+				
+				
+				
+			
+updir		0	1.5		0
+
+# Shape information
+mtlcolor	255	0	0.8
+
+
+sphere		0		0	-4.0000000000		1.0002		
+
+
+
+
+
+

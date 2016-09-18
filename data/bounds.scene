@@ -1,0 +1,18 @@
+#####################################
+# Test scene file
+# * Draw a unit sphere at (0, 0, -4)
+# * Look directly at the sphere
+# Color is out of bounds
+#####################################
+
+# Header information
+eye			0	0	0
+viewdir	0	0	-1
+updir		0	1	0
+fovv		60
+imsize		-1 -1
+bkgcolor	16	-1	256
+
+# Shape information
+mtlcolor	255	0	0
+sphere		0	0	-4	-1
