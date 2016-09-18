@@ -78,6 +78,12 @@ int main(void) {
     assert(!vector_IsParalell(&j, &k));
     assert(!vector_IsParalell(&i, &k));
     
+    vector_Multiply(&copy, &i, 5);
+    assert(vector_IsParalell(&copy, &i));
+    
+    vector_Multiply(&copy, &i, -7.3);
+    assert(vector_IsParalell(&copy, &i));
+    
     // Test orthogonal
     assert(vector_IsOrthogonal(&i, &j));
     assert(vector_IsOrthogonal(&j, &k));
