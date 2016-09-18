@@ -8,19 +8,8 @@
 #define _PPM_H_
 
 // This project
+#include "macro.h"
 #include "rgb.h"
-
-/*============================================================*
- * Constants
- *============================================================*/
-
-/// @def SUCCESS
-/// @brief Returned by PPM functions if the operation succeeded
-#define SUCCESS 0
-
-/// @def FAILURE
-/// @brief Returned by PPM functions if the operation failed
-#define FAILURE -1
 
 /**********************************************************//**
  * @typedef PPM

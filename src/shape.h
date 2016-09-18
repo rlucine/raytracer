@@ -8,20 +8,9 @@
 #define _SHAPE_H_
 
 // This project
+#include "macro.h"
 #include "rgb.h"
 #include "vector.h"
-
-/*============================================================*
- * Constants
- *============================================================*/
-
-/// @def SUCCESS
-/// @brief Returned by decoder functions if the operation succeeded
-#define SUCCESS 0
-
-/// @def FAILURE
-/// @brief Returned by decoder functions if the operation failed
-#define FAILURE -1
 
 /**********************************************************//**
  * @typedef SHAPE_TYPE

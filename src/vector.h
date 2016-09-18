@@ -7,6 +7,9 @@
 #ifndef _VECTOR_H_
 #define _VECTOR_H_
 
+// This project
+#include "macro.h"
+
 /**********************************************************//**
  * @typedef VECTOR
  * @brief Struct for 3-dimensional vectors

@@ -8,6 +8,7 @@
 #define _SCENE_H_
 
 // This project
+#include "macro.h"
 #include "rgb.h"
 #include "vector.h"
 #include "shape.h"
@@ -15,14 +16,6 @@
 /*============================================================*
  * Constants
  *============================================================*/
-
-/// @def SUCCESS
-/// @brief Returned by decoder functions if the operation succeeded
-#define SUCCESS 0
-
-/// @def FAILURE
-/// @brief Returned by decoder functions if the operation failed
-#define FAILURE -1
 
 /// @def NO_MATCH
 /// @brief Returned by decoder functions if no patterns matched
