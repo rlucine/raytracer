@@ -104,7 +104,7 @@ extern int vector_IsOrthogonal(const VECTOR *a, const VECTOR *b);
  * @param b: The second vector
  * @return 1 if the vectors are equal, otherwise 0
  **************************************************************/
-extern int vector_IsParalell(const VECTOR *a, const VECTOR *b);
+extern int vector_IsEqual(const VECTOR *a, const VECTOR *b);
 
 /**********************************************************//**
  * @brief Check if a vector is of unit length
