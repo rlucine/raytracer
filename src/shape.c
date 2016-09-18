@@ -20,30 +20,50 @@
 #define FAILURE -1
 
 /*============================================================*
- * Accessors
+ * Shape accessors
  *============================================================*/
 const MATERIAL *shape_GetMaterial(const SHAPE *shape) {
     return &shape->material;
 }
 
+const SPHERE *shape_GetSphere(const SHAPE *shape) {
+    if (shape->shape == SHAPE_SPHERE) {
+        return (SPHERE *)shape->data;
+    }
+    return NULL;
+}
+
+const ELLIPSOID *shape_GetEllipsoid(const SHAPE *shape) {
+    if (shape->shape == SHAPE_ELLIPSOID) {
+        return (ELLIPSOID *)shape->data;
+    }
+    return NULL;
+}
+
+SHAPE_TYPE shape_GetGeometry(const SHAPE *shape) {
+    return shape->shape;
+}
+
+/*============================================================*
+ * Sphere accessors
+ *============================================================*/
 const POINT *sphere_GetCenter(const SPHERE *sphere) {
     return &sphere->center;
 }
 
-const double sphere_GetRadius(const SPHERE *sphere) {
+double sphere_GetRadius(const SPHERE *sphere) {
     return sphere->radius;
 }
 
+/*============================================================*
+ * Ellipsoid accessors
+ *============================================================*/
 const POINT *ellipsoid_GetCenter(const ELLIPSOID *ellipsoid) {
     return &ellipsoid->center;
 }
 
 const VECTOR *ellipsoid_GetDimension(const ELLIPSOID *ellipsoid) {
     return &ellipsoid->dimension;
-}
-
-int shape_IsShape(const SHAPE *shape, SHAPE_TYPE what) {
-    return shape->shape == what;
 }
 
 /*============================================================*
@@ -114,10 +134,9 @@ int sphere_Collide(const SPHERE *sphere, const LINE *ray, COLLISION *result) {
 /*============================================================*
  * Ellipsoid geometry
  *============================================================*/
-int ellipsoid_Collide(const ELLIPSOID *ellipsoid, const LINE *rar, COLLISION *result) {
+int ellipsoid_Collide(const ELLIPSOID *ellipsoid, const LINE *ray, COLLISION *result) {
     // TODO
-    result->how = COLLISION_NONE;
-    return SUCCESS;
+    return FAILURE;
 }
 
 /*============================================================*

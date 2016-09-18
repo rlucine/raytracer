@@ -11,6 +11,18 @@
 #include "rgb.h"
 #include "vector.h"
 
+/*============================================================*
+ * Constants
+ *============================================================*/
+
+/// @def SUCCESS
+/// @brief Returned by decoder functions if the operation succeeded
+#define SUCCESS 0
+
+/// @def FAILURE
+/// @brief Returned by decoder functions if the operation failed
+#define FAILURE -1
+
 /**********************************************************//**
  * @typedef SHAPE_TYPE
  * @brief Integer representing every kind of shape
@@ -78,6 +90,94 @@ typedef struct {
     VECTOR where;       ///< Point of collision on the surface
     double distance;    ///< How far away the point is
 } COLLISION;
+
+/**********************************************************//**
+ * @brief Get the material properties of the SHAPE
+ * @param shape: The shape to read
+ * @return Pointer to a MATERIAL struct
+ **************************************************************/
+extern const MATERIAL *shape_GetMaterial(const SHAPE *shape);
+
+/**********************************************************//**
+ * @brief Get the SPHERE data embedded in the shape.
+ * @param shape: The shape to read
+ * @return Pointer to a SPHERE struct on success, or NULL if
+ * the shape is not a sphere.
+ **************************************************************/
+extern const SPHERE *shape_GetSphere(const SHAPE *shape);
+
+/**********************************************************//**
+ * @brief Get the ELLIPSOID data embedded in the shape.
+ * @param shape: The shape to read
+ * @return Pointer to a ELLIPSOID struct on success, or NULL if
+ * the shape is not an ellipsoid.
+ **************************************************************/
+extern const ELLIPSOID *shape_GetEllipsoid(const SHAPE *shape);
+
+/**********************************************************//**
+ * @brief Determine the shape's geometry.
+ * @param shape: The shape to read
+ * @return The SHAPE_TYPE representing the geometry, or
+ * SHAPE_NONE on failure.
+ **************************************************************/
+extern SHAPE_TYPE shape_GetGeometry(const SHAPE *shape);
+
+/**********************************************************//**
+ * @brief Get the center of the sphere.
+ * @param sphere: Pointer to a SPHERE struct
+ * @return Pointer to the POINT of the center of the sphere
+ **************************************************************/
+extern const POINT *sphere_GetCenter(const SPHERE *sphere);
+
+/**********************************************************//**
+ * @brief Get the radius of the sphere.
+ * @param sphere: Pointer to a SPHERE struct
+ * @return The positive value of the radius
+ **************************************************************/
+extern double sphere_GetRadius(const SPHERE *sphere);
+
+/**********************************************************//**
+ * @brief Get the center of the ellipsoid.
+ * @param ellipsoid: Pointer to an ELLIPSOID struct
+ * @return Pointer to the POINT of the center of the ellipsoid
+ **************************************************************/
+extern const POINT *ellipsoid_GetCenter(const ELLIPSOID *ellipsoid);
+
+/**********************************************************//**
+ * @brief Get the dimensions of the ellipsoid as a vector.
+ * @param ellipsoid: Pointer to an ELLIPSOID struct
+ * @return Pointer to the VECTOR containing the dimensions
+ **************************************************************/
+extern const VECTOR *ellipsoid_GetDimension(const ELLIPSOID *ellipsoid);
+
+/**********************************************************//**
+ * @brief Collide the line with the sphere and generate
+ * collision data.
+ * @param sphere: The sphere to collide with
+ * @param ray: The line to intersect with the sphere
+ * @param result: Output location for collision data
+ * @return SUCCESS or FAILURE
+ **************************************************************/
+extern int sphere_Collide(const SPHERE *sphere, const LINE *ray, COLLISION *result);
+
+/**********************************************************//**
+ * @brief Collide the line with the ellipsoid and generate
+ * collision data.
+ * @param ellipsoid: The ellipsoid to collide with
+ * @param ray: The line to intersect with the ellipsoid
+ * @param result: Output location for collision data
+ * @return SUCCESS or FAILURE
+ **************************************************************/
+extern int ellipsoid_Collide(const ELLIPSOID *ellipsoid, const LINE *ray, COLLISION *result);
+
+/**********************************************************//**
+ * @brief Generalized collision function for all SHAPE_TYPE
+ * @param shape: The shape to collide with
+ * @param ray: The line to intersect with the shape
+ * @param result: Output location for collision data
+ * @return SUCCESS or FAILURE
+ **************************************************************/
+extern int shape_Collide(const SHAPE *shape, const LINE *ray, COLLISION *result);
 
 /*============================================================*/
 #endif // _SHAPE_H_
