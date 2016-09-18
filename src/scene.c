@@ -98,7 +98,7 @@ static int scene_DecodeData(SCENE *scene, const char *encoded) {
     /*---------------------------------------------*
      * view
      *---------------------------------------------*/
-    } else if (sscanf(encoded, "view %lf %lf %lf%n", &scene->view.x, &scene->view.y, &scene->view.z, &nread) == 3) {
+    } else if (sscanf(encoded, "viewdir %lf %lf %lf%n", &scene->view.x, &scene->view.y, &scene->view.z, &nread) == 3) {
         // Found valid view definition
         if (scene->flags & FLAG_VIEW) {
 #ifdef DEBUG
@@ -112,7 +112,7 @@ static int scene_DecodeData(SCENE *scene, const char *encoded) {
 #endif
             return FAILURE;
         }
-        if (scene->flags & FLAG_UP && vector_IsParalell(&scene->up, &scene->view)) {
+        if ((scene->flags & FLAG_UP) && vector_IsParalell(&scene->up, &scene->view)) {
 #ifdef DEBUG
             fprintf(stderr, "scene_DecodeData failed: Up vector parallel to view vector\n");
 #endif
@@ -123,7 +123,7 @@ static int scene_DecodeData(SCENE *scene, const char *encoded) {
     /*---------------------------------------------*
      * up
      *---------------------------------------------*/
-    } else if (sscanf(encoded, "up %lf %lf %lf%n", &scene->up.x, &scene->up.y, &scene->up.z, &nread) == 3) {
+    } else if (sscanf(encoded, "updir %lf %lf %lf%n", &scene->up.x, &scene->up.y, &scene->up.z, &nread) == 3) {
         // Found valid view definition
         if (scene->flags & FLAG_UP) {
 #ifdef DEBUG
@@ -137,13 +137,13 @@ static int scene_DecodeData(SCENE *scene, const char *encoded) {
 #endif
             return FAILURE;
         }
-        if (scene->flags & FLAG_VIEW && vector_IsParalell(&scene->up, &scene->view)) {
+        if ((scene->flags & FLAG_VIEW) && vector_IsParalell(&scene->up, &scene->view)) {
 #ifdef DEBUG
             fprintf(stderr, "scene_DecodeData failed: Up vector parallel to view vector\n");
 #endif
             return FAILURE;
         }
-        scene->flags |= FLAG_VIEW;
+        scene->flags |= FLAG_UP;
         
     /*---------------------------------------------*
      * fovv
@@ -217,7 +217,7 @@ static int scene_DecodeData(SCENE *scene, const char *encoded) {
     // Extra line check
     if (!string_IsAllWhitespace(encoded + nread)) {
 #ifdef DEBUG
-        fprintf(stderr, "scene_DecodeShape failed: Trailing \"%s\" on end of line\n", encoded + nread);
+        fprintf(stderr, "scene_DecodeData failed: Trailing \"%s\" on end of line\n", encoded + nread);
 #endif
         return FAILURE;
     }
@@ -263,7 +263,7 @@ static int scene_DecodeMaterial(MATERIAL *material, const char *encoded) {
     // Extra line check
     if (!string_IsAllWhitespace(encoded + nread)) {
 #ifdef DEBUG
-        fprintf(stderr, "scene_DecodeShape failed: Trailing \"%s\" on end of line\n", encoded + nread);
+        fprintf(stderr, "scene_DecodeMaterial failed: Trailing \"%s\" on end of line\n", encoded + nread);
 #endif
         return FAILURE;
     }
@@ -351,7 +351,7 @@ static int scene_DecodeShape(SHAPE *shape, const char *encoded) {
     void *data = malloc(size);
     if (!data) {
 #ifdef DEBUG
-        fprintf(stderr, "shape_Decode failed: Out of memory\n");
+        fprintf(stderr, "scene_DecodeShape failed: Out of memory\n");
 #endif
         return FAILURE;
     }
@@ -381,11 +381,13 @@ int scene_Decode(SCENE *scene, const char *filename) {
     char buf[BUF_SIZE + 1];
     
     // Decoder state initialize
+    scene->flags = 0;
     SHAPE shape;
     int line = 0;
     
     // Initialize shapes araylist
     size_t capacity = 1;
+    scene->nshapes = 0;
     scene->shapes = (SHAPE *)malloc(sizeof(SHAPE) * capacity);
     if (!scene->shapes) {
 #ifdef DEBUG
@@ -483,19 +485,22 @@ int scene_Decode(SCENE *scene, const char *filename) {
     fclose(file);
     
     // Check missing flags
-    const char *missing = NULL;
-    if (scene->flags & FLAG_EYE) {
+    int missing_flags = ~scene->flags;
+    const char *missing;
+    if (missing_flags & FLAG_EYE) {
         missing = "eye";
-    } else if (scene->flags & FLAG_VIEW) {
+    } else if (missing_flags & FLAG_VIEW) {
         missing = "viewdir";
-    } else if (scene->flags & FLAG_UP) {
+    } else if (missing_flags & FLAG_UP) {
         missing = "updir";
-    } else if (scene->flags & FLAG_FOV) {
+    } else if (missing_flags & FLAG_FOV) {
         missing = "fovv";
-    } else if (scene->flags & FLAG_SIZE) {
+    } else if (missing_flags & FLAG_SIZE) {
         missing = "imsize";
-    } else if (scene->flags & FLAG_BACKGROUND) {
+    } else if (missing_flags & FLAG_BACKGROUND) {
         missing = "bkgcolor";
+    } else {
+        missing = NULL;
     }
     if (missing) {
 #ifdef DEBUG
@@ -511,7 +516,7 @@ int scene_Decode(SCENE *scene, const char *filename) {
     }
 
     // Successfully parsed the whole scene
-    return 0;
+    return SUCCESS;
 }
 
 /*============================================================*
