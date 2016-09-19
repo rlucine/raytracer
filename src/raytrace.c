@@ -85,7 +85,7 @@ static int raytrace_Cast(RGB *color, const LINE *ray, const SCENE *scene) {
     closest.how = COLLISION_NONE;
     
     // Check every shape
-    const SHAPE *who = NULL;
+    int who = -1;
     const SHAPE *shape;
     int n = 0;
     int nshapes = scene_GetNumberOfShapes(scene);
@@ -109,9 +109,11 @@ static int raytrace_Cast(RGB *color, const LINE *ray, const SCENE *scene) {
         
         // Check distance - closest is either first shape or the current shape
         // if the current shape is closer (but not behind) us.
-        if (n == 0 || (current.distance >= 0.0 && current.distance < closest.distance)) {
-            memcpy(&closest, &current, sizeof(COLLISION));
-            who = shape;
+        if (current.how != COLLISION_NONE) {
+            if (n == 0 || (current.distance >= 0.0 && current.distance < closest.distance)) {
+                memcpy(&closest, &current, sizeof(COLLISION));
+                who = n;
+            }
         }
         n++;
     }
@@ -119,11 +121,11 @@ static int raytrace_Cast(RGB *color, const LINE *ray, const SCENE *scene) {
 #ifdef DEBUG
     switch (closest.how) {
     case COLLISION_SURFACE:
-        fprintf(stderr, "raytrace_Cast: Collided on surface at distance %lf\n", closest.distance);
+        fprintf(stderr, "raytrace_Cast: Collided with %d at distance %lf\n", who, closest.distance);
         break;
     
     case COLLISION_INSIDE:
-        fprintf(stderr, "raytrace_Cast: Point is inside object\n");
+        fprintf(stderr, "raytrace_Cast: Point is inside object %d\n", who);
         break;
     
     case COLLISION_NONE:
@@ -134,9 +136,10 @@ static int raytrace_Cast(RGB *color, const LINE *ray, const SCENE *scene) {
 #endif
     
     // Determine color
-    if (who && closest.how == COLLISION_SURFACE) {
+    if (who >= 0 && closest.how == COLLISION_SURFACE) {
         // Collided with the surface of the shape
-        const MATERIAL *material = shape_GetMaterial(who);
+        const SHAPE *target = scene_GetShape(scene, who);
+        const MATERIAL *material = shape_GetMaterial(target);
         memcpy(color, &material->color, sizeof(RGB));
         
     } else {
