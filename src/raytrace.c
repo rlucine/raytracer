@@ -176,6 +176,7 @@ int raytrace_Render(PPM *ppm, const SCENE *scene) {
     int y = 0;
     int x = 0;
     while (y < height) {
+        x = 0;
         while (x < width) {
             // Get the direction from the eye to the target
             vector_Subtract(&ray.direction, &target, scene_GetEyePosition(scene));
@@ -189,7 +190,18 @@ int raytrace_Render(PPM *ppm, const SCENE *scene) {
             }
             
             // Put the color
-            ppm_SetPixel(ppm, x, y, &color);
+            if (ppm_SetPixel(ppm, x, y, &color) != SUCCESS) {
+#ifdef DEBUG
+                fprintf(stderr, "raytrace_Render failed: Failed to set color at (%d, %d)\n", x, y);
+#endif
+                return FAILURE;
+            }
+#ifdef DEBUG
+            const RGB *what = ppm_GetPixel(ppm, x, y);
+            assert(what->r == color.r);
+            assert(what->g == color.g);
+            assert(what->b == color.b);
+#endif
             
             // Step forward in x
             vector_Add(&target, &target, &dx);
@@ -201,7 +213,6 @@ int raytrace_Render(PPM *ppm, const SCENE *scene) {
         vector_Add(&target, &view.origin, &ystep);
         y++;
     }
-
     return SUCCESS;
 }
 
