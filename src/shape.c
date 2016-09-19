@@ -6,7 +6,7 @@
 
 // Standard library
 #include <stdlib.h>     // free
-#include <math.h>       // sqrt, asin, M_PI, fabs ...
+#include <math.h>       // sqrt, asin, M_PI, fabs, sqrt ...
 #include <stdio.h>      // fprintf, stderr ...
 #include <assert.h>     // assert
 #include <float.h>      // DBL_EPSILON
@@ -84,50 +84,51 @@ int sphere_Collide(const SPHERE *sphere, const LINE *ray, COLLISION *result) {
 #endif
         return FAILURE;
     }
-    
-    // Check if the point resides in the sphere
-    register double radius = sphere_GetRadius(sphere);
-    register double dis_center;
-    VECTOR vec_center;
-    vector_Subtract(&vec_center, &ray->origin, sphere_GetCenter(sphere));
-    dis_center = vector_Magnitude(&vec_center);
-    if (dis_center <= radius) {
-        // The origin is inside of the sphere already
+
+    // Solve for sphere intersection with line
+    VECTOR unit_direction;
+    vector_Unit(&unit_direction, &ray->direction);
+    double a = 1.0;
+    VECTOR dis_center;
+    vector_Subtract(&dis_center, &ray->origin, &sphere->center);
+    double b = 2.0*vector_Dot(&unit_direction, &dis_center);
+    double c = vector_Dot(&dis_center, &dis_center) - (sphere->radius * sphere->radius);
+
+    // Is it inside the sphere
+    if (vector_Magnitude(&dis_center) <= sphere->radius) {
         result->how = COLLISION_INSIDE;
         return SUCCESS;
     }
-    
-    // Theta is the angle between the view direction and the direction to the sphere
-    double theta = vector_Angle(&ray->direction, &vec_center);
-    
-    // Get the distance from the sphere's center to the line
-    // of view from the origin.
-    double dis_line = dis_center * sin(theta);
-    double dis_temp = dis_center * cos(theta);
-    if (dis_line > radius || dis_temp < 0.0) {
-        // The line does not intersect the sphere
+
+    // Solve the quadratic att + bt + c = 0
+    double discriminant = b*b - 4.0*a*c;
+    if (discriminant < 0.0) {
+        // No solutions - missed the sphere
         result->how = COLLISION_NONE;
         return SUCCESS;
     }
-    
-    // Phi is the angle we need to rotate to find points on the
-    // surface of the sphere from where we determined the shortest
-    // distance to the line was.
-    double phi = (M_PI / 2) - asin(dis_line / radius);
-    
-    // Points of intersection at dis_temp plus or minus dis_delta
-    double dis_delta = radius * sin(phi);
-    double dis_intersect;
-    if (dis_delta > 0) {
-        dis_intersect = dis_temp - dis_delta;
+
+    // Two or one solution
+    double t1, t2;
+    t1 = (-b + sqrt(discriminant)) / (2.0 * a);
+    t2 = (-b - sqrt(discriminant)) / (2.0 * a);
+
+    // Determine closest collision
+    double tclosest = 0.0;
+    if (t1 < t2 && t1 >= 0) {
+        tclosest = t1;
+    } else if (t2 >= 0) {
+        tclosest = t2;
     } else {
-        dis_intersect = dis_temp + dis_delta;
+        // The sphere is behind the viewer - miss!
+        result->how = COLLISION_NONE;
+        return SUCCESS;
     }
-    
-    // Get the nearest point of intersection
+
+    // Get location of closest collision
     result->how = COLLISION_SURFACE;
-    result->distance = dis_intersect;
-    vector_Multiply(&result->where, &ray->direction, dis_intersect / vector_Magnitude(&ray->direction));
+    result->distance = tclosest;
+    vector_Multiply(&result->where, &unit_direction, tclosest);
     return SUCCESS;
 }
 
