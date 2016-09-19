@@ -66,10 +66,9 @@ int main(int argc, char **argv) {
     PPM ppm;
     if (raytrace_Render(&ppm, &scene) != SUCCESS) {
         printf("Failed to render the image\n");
+        scene_Destroy(&scene);
         return -1;
     }
-    
-    // Clean up scene
     scene_Destroy(&scene);
     
     // Encode the image
