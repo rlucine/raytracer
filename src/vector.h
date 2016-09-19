@@ -43,8 +43,8 @@ typedef struct {
  **************************************************************/
 typedef struct {
     POINT origin;   ///< Upper left corner of the plane
-    VECTOR basis_u; ///< Step of width in the plane
-    VECTOR basis_v; ///< Step of height in the plane
+    VECTOR u;       ///< Step of width in the plane
+    VECTOR v;       ///< Step of height in the plane
 } PLANE;
 
 /**********************************************************//**
