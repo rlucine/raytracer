@@ -19,9 +19,5 @@
 /// @brief Returned by functions if the operation failed
 #define FAILURE -1
 
-/// @def PI
-/// @brief The value of pi
-#define PI 3.1415926535897932384626433832795
-
 /*============================================================*/
 #endif // _MACRO_H_

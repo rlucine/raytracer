@@ -12,10 +12,12 @@
 #include <float.h>      // DBL_EPSILON
 
 // This project
-#include "macro.h"
 #include "rgb.h"
 #include "vector.h"
 #include "shape.h"
+
+#define SUCCESS 0
+#define FAILURE -1
 
 /*============================================================*
  * Shape accessors
@@ -111,7 +113,7 @@ int sphere_Collide(const SPHERE *sphere, const LINE *ray, COLLISION *result) {
     // Phi is the angle we need to rotate to find points on the
     // surface of the sphere from where we determined the shortest
     // distance to the line was.
-    double phi = (PI / 2) - asin(dis_line / radius);
+    double phi = (M_PI / 2) - asin(dis_line / radius);
     
     // Points of intersection at dis_temp plus or minus dis_delta
     double dis_delta = radius * sin(phi);

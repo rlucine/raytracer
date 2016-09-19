@@ -5,7 +5,7 @@
 #===== Compiler / linker setup =====#
 CC := gcc
 DFLAGS := -MP -MMD
-CFLAGS := -s -O3 -Wall -DDEBUG -DTRACE --std=gnu99
+CFLAGS := -s -O3 -Wall -DDEBUG -DTRACE
 LFLAGS := -s -lm
 INCLUDE := 
 LIBRARY := 
