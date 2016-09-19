@@ -109,6 +109,7 @@ static int raytrace_Cast(RGB *color, const LINE *ray, const SCENE *scene) {
             memcpy(&closest, &current, sizeof(COLLISION));
             who = shape;
         }
+        n++;
     }
     
     // Determine color
