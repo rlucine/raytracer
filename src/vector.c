@@ -9,6 +9,7 @@
 #include <math.h>       // sqrt, acos, fabs, fmod ...
 
 // This project
+#include "macro.h"
 #include "vector.h"
 
 /*============================================================*
@@ -56,7 +57,7 @@ int vector_IsZero(const VECTOR *vector) {
 }
 
 int vector_IsParalell(const VECTOR *a, const VECTOR *b) {
-    return double_IsZero(fmod(vector_Angle(a, b), M_PI));
+    return double_IsZero(fmod(vector_Angle(a, b), PI));
 }
 
 int vector_IsOrthogonal(const VECTOR *a, const VECTOR *b) {
