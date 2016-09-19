@@ -5,18 +5,19 @@
  **************************************************************/
 
 // Standard library
+#include <stdlib.h>     // malloc
 #include <stdio.h>      // printf, fopen, fclose ...
 #include <string.h>     // strcmp, strncmp, strlen ...
-
-#ifdef DEBUG
 #include <assert.h>     // assert
-#endif
 
 // This project
+#include "macro.h"
 #include "ppm.h"
+#include "scene.h"
+#include "raytrace.h"
 
 /**********************************************************//**
- * @brief Driver function for PPM tests
+ * @brief Driver function for raytracer
  **************************************************************/
 int main(int argc, char **argv) {
     
@@ -29,97 +30,62 @@ int main(int argc, char **argv) {
     // Check for invalid input or help token
     if (argc <= 1 || !strcmp(filename, "-h") || !strcmp(filename, "--help")) {
         printf("Usage: %s filename\n", argv[0]);
-        printf(" filename: The name of a file containing the image specification.\n");
-        printf(" The image is denoted by \"imsize width height\" where width and height\n");
-        printf(" are positive integer values.\n");
+        printf("\tfilename: The name of a file containing the image specification.\n");
         printf("The program will generate a .ppm file with the same base name.\n");
         return -1;
     }
     
-    // Open the file
-    FILE *file = fopen(filename, "r");
-    if (!file) {
-        printf("Failed to open the file \"%s\"\n", filename);
-        return -1;
-    }
-    
-    // Read the file data
-    const int BUF_SIZE = 255;
-    char buf[BUF_SIZE + 1];
-    if (!fgets(buf, BUF_SIZE, file)) {
-        printf("Failed to read from the file \"%s\"\n", filename);
-        fclose(file);
-        return -1;
-    }
-    fclose(file);
-    
-    // Search for the correct format and harvest input variables
-    int width;
-    int height;
-    const char *IMSIZE = "imsize";
-    if (!strncmp(buf, IMSIZE, strlen(IMSIZE))) {
-        // Found the correct token
-        if (sscanf(buf + strlen(IMSIZE), "%d %d", &width, &height) != 2) {
-            printf("Incorrect input file format\n");
-            return -1;
-        }
-    } else {
-        printf("Missing imsize keyword in input file\n");
-        return -1;
-    }
-    
-    // Generate the PPM image
-    PPM ppm;
-    if (ppm_Create(&ppm, width, height) == FAILURE) {
-        printf("Failed to create the ppm image\n");
-        return -1;
-    }
-    
-    // Fill the image with red
-    RGB color;
-    int x;
-    int y;
-    for (y = 0; y < height; y++) {
-        for (x = 0; x < width; x++) {
-            color.r = (x * 8) % 256;
-            color.g = (y * 8) % 256;
-            color.b = (x + y) % 256;
-            if (ppm_SetPixel(&ppm, x, y, &color) == FAILURE) {
-                printf("Failed to set every pixel to red\n");
-                return -1;
-            }
-#ifdef DEBUG
-            const RGB *test;
-            test = ppm_GetPixel(&ppm, x, y);
-            assert(test->r == color.r);
-            assert(test->g == color.g);
-            assert(test->b == color.b);
-#endif
-        }
-    }
-    
     // Determine the output filename
-    // buf padded with null bytes if smaller
-    const char *PPM_EXT = "ppm\0";
-    strncpy(buf, filename, BUF_SIZE);
-    int k = BUF_SIZE - strlen(PPM_EXT);
-    while (k >= 0 && buf[k] != '.') {
-        k--;
-    }
-    if (k < 0) {
-        printf("Failed to generate output filename\n");
+    const char *EXTENSION = "ppm\0";
+    char *buf = (char *)malloc(sizeof(char) * (strlen(filename) + strlen(EXTENSION) + 1));
+    if (!buf) {
+        printf("Out of memory\n");
         return -1;
-    } else {
-        strcpy(&buf[k+1], PPM_EXT);
     }
+    strcpy(buf, filename);
+    
+    // Look for the end or the . separator
+    int end = strlen(buf) - 1;
+    int index = end;
+    while (buf[index] != '.' && buf[index] != '/' && buf[index] != '\\' && index >= 0) {
+        index--;
+    }
+    if (index < 0 || buf[index] != '.') {
+        index = end;
+    }
+    strcpy(&buf[index], EXTENSION);
+
+    // Get the scene
+    SCENE scene;
+    if (scene_Decode(&scene, filename) != SUCCESS) {
+        printf("Failed to decode the scene file \"%s\"\n", filename);
+        return -1;
+    }
+    
+    // Render the image
+    PPM ppm;
+    if (raytrace_Render(&ppm, &scene) != SUCCESS) {
+        printf("Failed to render the image\n");
+        return -1;
+    }
+    
+    // Clean up scene
+    scene_Destroy(&scene);
     
     // Encode the image
-    if (ppm_Encode(&ppm, buf) == FAILURE) {
+    if (ppm_Encode(&ppm, buf) != SUCCESS) {
+        // Try to preserve the data
         printf("Failed to encode image at \"%s\"\n", buf);
+        if (ppm_Encode(&ppm, "temp") != SUCCESS) {
+            printf("Failed to buffer the image in a temp file\n");
+        } else {
+            printf("Successfully buffered image in a temporary file\n");
+        }
         return -1;
     }
     
     // Clean up
+    free(buf);
     ppm_Destroy(&ppm);
     printf("Success!\n");
     return 0;
