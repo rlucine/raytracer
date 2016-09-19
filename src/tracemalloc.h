@@ -21,10 +21,12 @@ extern void *trace_realloc(void *ptr, size_t size, const char *where);
 /*============================================================*
  * Overrides
  *============================================================*/
+#ifdef TRACE
 #define malloc(size) trace_malloc(size, __FUNCTION__)
 #define free(ptr) trace_free(ptr, __FUNCTION__)
 #define calloc(nmemb, size) trace_calloc(nmemb, size, __FUNCTION__)
 #define realloc(ptr, size) trace_realloc(ptr, size, __FUNCTION__)
+#endif
 
 /*============================================================*/
 #endif // _TRACEMALLOC_H_

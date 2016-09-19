@@ -1,11 +1,13 @@
 #####################################
 ######## CSci 5607 Makefile #########
 #####################################
+# -DDEBUG: Debug printing and testing
+# -DTRACE: Trace malloc and free
 
 #===== Compiler / linker setup =====#
 CC := gcc
 DFLAGS := -MP -MMD
-CFLAGS := -s -O3 -Wall -DDEBUG -DTRACE -std=gnu99
+CFLAGS := -s -O3 -Wall -DDEBUG -UTRACE -std=gnu99
 LFLAGS := -s -lm
 INCLUDE := 
 LIBRARY := 
