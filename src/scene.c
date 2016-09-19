@@ -511,8 +511,10 @@ int scene_Decode(SCENE *scene, const char *filename) {
     }
     
     // Shrink arraylist to conserve memory
-    SHAPE *new = (SHAPE *)realloc(scene->shapes, sizeof(SHAPE) * scene->nshapes);
+    SHAPE *new = (SHAPE *)malloc(sizeof(SHAPE) * scene->nshapes);
     if (new) {
+        memcpy(new, scene->shapes, sizeof(SHAPE) * scene->nshapes);
+        free(scene->shapes);
         scene->shapes = new;
     }
 
@@ -567,12 +569,12 @@ void scene_Destroy(SCENE *scene) {
     
     // Free all the allocated shape data (SHAPE not responsible)
     for (i = 0; i < scene->nshapes; i++) {
-        free(scene->shapes[i].data);
+       free(scene->shapes[i].data);
     }
     
     // Free allocated array
     if (scene->shapes) {
-        free(scene->shapes);
+       free(scene->shapes);
     }
 }
 
