@@ -94,5 +94,5 @@ spotless: clean
 .PHONY: turnin
 turnin: $(TURNIN)
 
-$(TURNIN): src/ppm.h src/ppm.c src/driver/main.c Makefile Doxyfile README.md test.txt test.ppm
-	tar -cvf $@ $^
+$(TURNIN):
+	tar -cvf $@ README.md Makefile Doxyfile src/*.c src/*.h src/driver/main.c
