@@ -13,7 +13,7 @@
  *============================================================*/
 void *trace_malloc(size_t size, const char *where) {
     void *ptr = malloc(size);
-    fprintf(stderr, "malloc\t0x%p (size %zd, function %s)\n", ptr, size, where);
+    fprintf(stderr, "malloc\t0x%p (size %d, function %s)\n", ptr, (int)size, where);
     return ptr;
 }
 
@@ -25,13 +25,13 @@ void trace_free(void *ptr, const char *where) {
 
 void *trace_calloc(size_t nmemb, size_t size, const char *where) {
     void *ptr = calloc(nmemb, size);
-    fprintf(stderr, "calloc\t0x%p (nmemb %zd, size %zd, function %s)\n", ptr, nmemb, size, where);
+    fprintf(stderr, "calloc\t0x%p (nmemb %d, size %d, function %s)\n", ptr, (int)nmemb, (int)size, where);
     return ptr;
 }
     
 void *trace_realloc(void *ptr, size_t size, const char *where) {
     void *next = realloc(ptr, size);
-    fprintf(stderr, "realloc\t0x%p to 0x%p (size %zd, function %s)\n", ptr, next, size, where);
+    fprintf(stderr, "realloc\t0x%p to 0x%p (size %d, function %s)\n", ptr, next, (int)size, where);
     return next;
 }
 
