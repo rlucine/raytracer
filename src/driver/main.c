@@ -36,7 +36,7 @@ int main(int argc, char **argv) {
     }
     
     // Determine the output filename
-    const char *EXTENSION = "ppm\0";
+    const char *EXTENSION = ".ppm\0";
     char *buf = (char *)malloc(sizeof(char) * (strlen(filename) + strlen(EXTENSION) + 1));
     if (!buf) {
         printf("Out of memory\n");
