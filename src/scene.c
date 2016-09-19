@@ -520,6 +520,43 @@ int scene_Decode(SCENE *scene, const char *filename) {
         free(scene->shapes);
         scene->shapes = new;
     }
+    
+#ifdef DEBUG
+    fprintf(stderr, "scene_Decode: Eye is (%lf, %lf, %lf)\n", scene->eye.x, scene->eye.y, scene->eye.z);
+    fprintf(stderr, "scene_Decode: View is (%lf, %lf, %lf)\n", scene->view.x, scene->view.y, scene->view.z);
+    fprintf(stderr, "scene_Decode: Up is (%lf, %lf, %lf)\n", scene->up.x, scene->up.y, scene->up.z);
+    fprintf(stderr, "scene_Decode: FovV is %lf\n", scene->fov);
+    fprintf(stderr, "scene_Decode: Image size is (%d, %d)\n", scene->width, scene->height);
+    fprintf(stderr, "scene_Decode: Background color is (%d, %d, %d)\n", scene->background.r, scene->background.g, scene->background.b);
+    fprintf(stderr, "scene_Decode: Number of shapes is %d\n", scene->nshapes);
+    int n = 0;
+    SHAPE_TYPE type;
+    const SPHERE *sphere;
+    const ELLIPSOID *ellipsoid;
+    while (n < scene->nshapes) {
+        type = shape_GetGeometry(&scene->shapes[n]);
+        switch (type) {
+        case SHAPE_SPHERE:
+            fprintf(stderr, "scene_Decode: Shape %d is a sphere\n", n);
+            sphere = shape_GetSphere(&scene->shapes[n]);
+            fprintf(stderr, "scene_Decode: Radius is %lf\n", sphere->radius);
+            fprintf(stderr, "scene_Decode: Center is (%lf, %lf, %lf)\n", sphere->center.x, sphere->center.y, sphere->center.z);
+            break;
+        
+        case SHAPE_ELLIPSOID:
+            fprintf(stderr, "scene_Decode: Shape %d is an ellipsoid\n", n);
+            ellipsoid = shape_GetEllipsoid(&scene->shapes[n]);
+            fprintf(stderr, "scene_Decode: Dimensions are (%lf, %lf, %lf)\n", ellipsoid->dimension.x, ellipsoid->dimension.y, ellipsoid->dimension.z);
+            fprintf(stderr, "scene_Decode: Center is (%lf, %lf, %lf)\n", ellipsoid->center.x, ellipsoid->center.y, ellipsoid->center.z);
+            break;
+        
+        default:
+            fprintf(stderr, "scene_Decode: Shape %d is undefined\n", n);
+            break;
+        }
+        n++;
+    }
+#endif
 
     // Successfully parsed the whole scene
     return SUCCESS;
