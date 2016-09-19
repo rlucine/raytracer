@@ -15,6 +15,7 @@
 #include "ppm.h"
 #include "scene.h"
 #include "raytrace.h"
+#include "tracemalloc.h"
 
 /**********************************************************//**
  * @brief Driver function for raytracer

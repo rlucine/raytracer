@@ -18,6 +18,7 @@
 // This project
 #include "rgb.h"
 #include "ppm.h"
+#include "tracemalloc.h"
 
 /*============================================================*
  * Constants
