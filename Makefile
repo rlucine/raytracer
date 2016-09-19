@@ -6,7 +6,7 @@
 CC := gcc
 DFLAGS := -MP -MMD
 CFLAGS := -s -O3 -Wall -DDEBUG
-LFLAGS := -s
+LFLAGS := -s -lm
 INCLUDE := 
 LIBRARY := 
 
@@ -68,7 +68,7 @@ $(DRIVER_BUILD_DIR)/%.o: $(DRIVER_DIR)/%.c $(DRIVER_BUILD_DIR)
 
 # Make executable for each driver
 %.exe: $(DRIVER_BUILD_DIR)/%.o $(OFILES)
-	$(CC) $< $(OFILES)  $(LIBRARY) $(LFLAGS) -o $@
+	$(CC) $(OFILES) $< $(LIBRARY) $(LFLAGS) -o $@
 
 # Doxygen documentation
 $(DOC_DIR):
