@@ -15,7 +15,10 @@
 #include "vector.h"
 #include "shape.h"
 #include "scene.h"
+
+#ifdef TRACE
 #include "tracemalloc.h"
+#endif
 
 /*============================================================*
  * Whitespace checking
