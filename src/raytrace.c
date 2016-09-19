@@ -68,6 +68,10 @@ static int raytrace_GetView(PLANE *view, const SCENE *scene) {
     vector_Add(&view->origin, &view->origin, &distance);
     vector_Add(&view->origin, &view->origin, &du);
     vector_Add(&view->origin, &view->origin, &dv);
+    
+    // Scale basis vectors
+    vector_Multiply(&view->v, &view->v, -height / (scene_GetHeight(scene) - 1));
+    vector_Multiply(&view->u, &view->u, width / (scene_GetWidth(scene) - 1));
     return SUCCESS;
 }
 
@@ -112,6 +116,23 @@ static int raytrace_Cast(RGB *color, const LINE *ray, const SCENE *scene) {
         n++;
     }
     
+#ifdef DEBUG
+    switch (closest.how) {
+    case COLLISION_SURFACE:
+        fprintf(stderr, "raytrace_Cast: Collided on surface at distance %lf\n", closest.distance);
+        break;
+    
+    case COLLISION_INSIDE:
+        fprintf(stderr, "raytrace_Cast: Point is inside object\n");
+        break;
+    
+    case COLLISION_NONE:
+    default:
+        fprintf(stderr, "raytrace_Cast: No collision\n");
+        break;
+    }
+#endif
+    
     // Determine color
     if (who && closest.how == COLLISION_SURFACE) {
         // Collided with the surface of the shape
@@ -141,6 +162,12 @@ int raytrace_Render(PPM *ppm, const SCENE *scene) {
         return FAILURE;
     }
     
+#ifdef DEBUG
+    fprintf(stderr, "raytrace_Render: Viewing plane origin is (%lf, %lf, %lf)\n", view.origin.x, view.origin.y, view.origin.z);
+    fprintf(stderr, "raytrace_Render: Viewing plane u is (%lf, %lf, %lf)\n", view.u.x, view.u.y, view.u.z);
+    fprintf(stderr, "raytrace_Render: Viewing plane v is (%lf, %lf, %lf)\n", view.v.x, view.v.y, view.v.z);
+#endif
+    
     // Get the PPM output
     if (ppm_Create(ppm, scene_GetWidth(scene), scene_GetHeight(scene)) != SUCCESS) {
 #ifdef DEBUG
@@ -163,8 +190,8 @@ int raytrace_Render(PPM *ppm, const SCENE *scene) {
     
     // Establish the step
     VECTOR dx, dy;
-    vector_Multiply(&dx, &view.u, 1.0 / (double)(width - 1));
-    vector_Multiply(&dy, &view.v, 1.0 / (double)(height - 1));
+    vector_Copy(&dx, &view.u);
+    vector_Copy(&dy, &view.v);
     
     // We buffer the step in Y separately because of floating point
     // error if we mathematically go backwards
@@ -178,6 +205,11 @@ int raytrace_Render(PPM *ppm, const SCENE *scene) {
     while (y < height) {
         x = 0;
         while (x < width) {
+#ifdef DEBUG
+            fprintf(stderr, "raytrace_Render: At pixel (%d, %d)\n", x, y);
+            fprintf(stderr, "raytrace_Render: At point (%lf, %lf, %lf)\n", target.x, target.y, target.z);
+#endif
+
             // Get the direction from the eye to the target
             vector_Subtract(&ray.direction, &target, scene_GetEyePosition(scene));
             
