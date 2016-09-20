@@ -147,7 +147,7 @@ int main(void) {
     // Test cross
     vector_Cross(&copy, &i, &j);
     assert(vector_IsEqual(&copy, &k));
-    vector_Cross(&copy, &i, &copy);
+    vector_Cross(&copy, &copy, &i);
     assert(vector_IsEqual(&copy, &j));
     vector_Cross(&copy, &copy, &k);
     assert(vector_IsEqual(&copy, &i));

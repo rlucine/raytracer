@@ -95,9 +95,9 @@ void vector_Negate(VECTOR *output, const VECTOR *a) {
 void vector_Cross(VECTOR *output, const VECTOR *a, const VECTOR *b) {
     // Buffer these before assigning to output because output
     // might be a or b
-    int out_x, out_y, out_z;
+    double out_x, out_y, out_z;
     out_x = a->y*b->z - a->z*b->y;
-    out_y = a->x*b->z - a->z*b->x;
+    out_y = a->z*b->x - a->x*b->z;
     out_z = a->x*b->y - a->y*b->x;
     
     output->x = out_x;
