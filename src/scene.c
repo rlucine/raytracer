@@ -208,7 +208,7 @@ static int scene_DecodeData(SCENE *scene, const char *encoded) {
             return FAILURE;
         }
         // Allow for parsing of doubles
-        scene->background.r = (char)r;
+        scene->background.r = (unsigned char)r;
         scene->background.g = (unsigned char)g;
         scene->background.b = (unsigned char)b;
         scene->flags |= FLAG_BACKGROUND;
