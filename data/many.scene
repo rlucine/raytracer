@@ -6,31 +6,49 @@
 #####################################
 
 # Header information
-eye			0	0	2.5
-viewdir 	0	0	-1
-updir		0	1	0
-fovv		60
-imsize		2000    2000
-bkgcolor	16	16 16
+eye 8 8 20
+viewdir -0.4 -0.4 -1
+updir 1 1 0
+fovv 70
+imsize 500 500
+bkgcolor 16 16 16
 
-# Shape information
-mtlcolor	255	0	0
-#sphere		1   0	-4	6
+# Red sphere
+mtlcolor 255 0 0
+sphere 1 0 -4 6
 
-#mtlcolor    0   255 0
-#sphere      1   1   -4  1
-#sphere      -1  -1  -4  1
-#sphere      -1  1   -4  1
-#sphere      1   -1  -4  1
+# Blue sphere
+mtlcolor 0 0 255
+sphere -1 0 -4 6
 
-# Overlap this
-#mtlcolor    255 255 0
-#sphere      0   0   -8  1
+# Green sphere
+mtlcolor 0 255 0
+sphere 0 -1 -4 6
 
-# Overlay this
-mtlcolor    0   0   255
-#sphere      -1   0   -4 6
+# Light blue sphere on top
+mtlcolor 0 255 255
+sphere 0 0 0 3
 
-mtlcolor    0   255 0
-sphere      0   -1   -4  6
+# Smaller spheres
+mtlcolor 255 0 255
+sphere 1 0 1 2
+sphere -1 0 1 2
+sphere 0 -1 1 2
 
+# Corners
+mtlcolor 255 255 255
+sphere 2 0 2 1
+sphere -2 0 2 1
+sphere 0 -2 2 1
+
+# Smaller
+mtlcolor 255 255 255
+sphere 4 0 4 0.5
+sphere -4 0 4 0.5
+sphere 0 -4 4 0.5
+
+# Smallest
+mtlcolor 255 255 255
+sphere 8 0 8 0.25
+sphere -8 0 8 0.25
+sphere 0 -8 8 0.25
