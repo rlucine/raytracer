@@ -12,6 +12,7 @@
 
 // This project
 #include "scene.h"
+#include "parser.h"
 #include "vector.h"
 #include "image.h"
 #include "shape.h"
@@ -43,9 +44,9 @@ int main(void) {
     assert(scene_GetHeight(&scene) == 48);
     
     const RGB *color = scene_GetBackgroundColor(&scene);
-    assert(color->r == 16);
-    assert(color->g == 16);
-    assert(color->b == 16);
+    assert(color->r == 255);
+    assert(color->g == 0);
+    assert(color->b == 255);
     
     assert(scene_GetNumberOfShapes(&scene) == 1);
     
@@ -53,7 +54,7 @@ int main(void) {
     assert(shape_GetGeometry(shape) == SHAPE_SPHERE);
     
     const SPHERE *sphere = shape_GetSphere(shape);
-    assert(fabs(sphere_GetRadius(sphere) - 1.0) < DBL_EPSILON);
+    assert(fabs(sphere_GetRadius(sphere) - 3.8) < DBL_EPSILON);
     vector.x = vector.y = 0.0;
     vector.z = -4.0;
     assert(vector_IsEqual(sphere_GetCenter(sphere), &vector));
