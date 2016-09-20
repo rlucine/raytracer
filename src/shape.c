@@ -94,6 +94,8 @@ int sphere_Collide(const SPHERE *sphere, const LINE *ray, COLLISION *result) {
     // Is it inside the sphere
     if (vector_Magnitude(&dis_center) <= sphere->radius) {
         result->how = COLLISION_INSIDE;
+        result->distance=  0.0;
+        vector_Copy(&result->where, &ray->origin);
         return SUCCESS;
     }
 
