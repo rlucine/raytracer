@@ -11,7 +11,7 @@
 #include <ctype.h>      // isspace
 
 // This project
-#include "rgb.h"
+#include "image.h"
 #include "vector.h"
 #include "shape.h"
 #include "scene.h"

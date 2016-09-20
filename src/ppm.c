@@ -16,8 +16,9 @@
 #include <assert.h>     // assert
 
 // This project
-#include "rgb.h"
+#include "image.h"
 #include "ppm.h"
+#include "tracemalloc.h"
 
 /*============================================================*
  * Constants
@@ -27,115 +28,13 @@ static const char *PPM_MAGIC_NUMBER = "P3";
 // The maximum value for any color (r, g, b) value
 static const int PPM_MAX_COLOR = 255;
 
-// The maximum height or width of any PPM image
-static const int PPM_MAX_DIMENSION = USHRT_MAX;
-
 // The maximum amount of characters on any line of a PPM
 static const int PPM_MAX_LINE = 70;
 
 /*============================================================*
- * Opening PPM
- *============================================================*/
-int ppm_Create(PPM *ppm, int width, int height) {
-    
-    // Error check the dimensions
-    if (width <= 0 || width > PPM_MAX_DIMENSION) {
-#ifdef VERBOSE
-        fprintf(stderr, "ppm_Create failed: Invalid width %d\n", width);
-#endif
-        return FAILURE;
-    } else if (height <= 0 || height > PPM_MAX_DIMENSION) {
-#ifdef VERBOSE
-        fprintf(stderr, "ppm_Create failed: Invalid height %d\n", height);
-#endif
-        return FAILURE;
-    }
-    
-    // Allocate the PPM data chunk
-    size_t size = sizeof(RGB)*width*height;
-    RGB *data = (RGB *)malloc(size);
-    if (!data) {
-#ifdef VERBOSE
-        fprintf(stderr, "ppm_Create failed: Out of heap space\n");
-#endif
-        return FAILURE;
-    }
-    
-    // Set up the struct
-    ppm->width = width;
-    ppm->height = height;
-    ppm->data = data;
-    return SUCCESS;
-}
-
-/*============================================================*
- * Reading pixels
- *============================================================*/
-const RGB *ppm_GetPixel(const PPM *ppm, int x, int y) {
-    
-    // Error check the index
-    if (x < 0 || x >= ppm->width) {
-#ifdef VERBOSE
-        fprintf(stderr, "ppm_GetColor failed: Invalid x coordinate\n");
-#endif
-        return NULL;
-    }
-    if (y < 0 || y >= ppm->height) {
-#ifdef VERBOSE
-        fprintf(stderr, "ppm_GetColor failed: Invalid y coordinate\n");
-#endif
-        return NULL;
-    }
-    
-    // Output the color
-    return &ppm->data[y*ppm->width + x];
-}
-
-/*============================================================*
- * Modifying pixels
- *============================================================*/
-int ppm_SetPixel(PPM *ppm, int x, int y, const RGB *color) {
-    
-    // Error check the index
-    if (x < 0 || x >= ppm->width) {
-#ifdef VERBOSE
-        fprintf(stderr, "ppm_SetColor failed: Invalid x coordinate\n");
-#endif
-        return FAILURE;
-    }
-    if (y < 0 || y >= ppm->height) {
-#ifdef VERBOSE
-        fprintf(stderr, "ppm_SetColor failed: Invalid y coordinate\n");
-#endif
-        return FAILURE;
-    }
-    
-    // Set the color
-    int index = y*ppm->width + x;
-    RGB *where = &ppm->data[index];
-    where->r = color->r;
-    where->g = color->g;
-    where->b = color->b;
-    
-    // Done
-    return SUCCESS;
-}
-
-/*============================================================*
- * Getters
- *============================================================*/
-int ppm_GetWidth(const PPM *ppm) {
-    return ppm->width;
-}
-
-int ppm_GetHeight(const PPM *ppm) {
-    return ppm->height;
-}
-
-/*============================================================*
  * Encoding PPM
  *============================================================*/
-int ppm_Encode(const PPM *ppm, const char *filename) {
+int ppm_Encode(const IMAGE *ppm, const char *filename) {
     
     // Open the output file
     FILE *file = fopen(filename, "w");
@@ -169,7 +68,7 @@ int ppm_Encode(const PPM *ppm, const char *filename) {
 /*============================================================*
  * Decoding PPM
  *============================================================*/
-int ppm_Decode(PPM *ppm, const char *filename) {
+int ppm_Decode(IMAGE *ppm, const char *filename) {
     
     // Decoding stuff
     const int BUF_SIZE = PPM_MAX_LINE;
@@ -262,7 +161,7 @@ int ppm_Decode(PPM *ppm, const char *filename) {
     }
     
     // Now have header information, can construct the PPM
-    if (ppm_Create(ppm, width, height) == FAILURE) {
+    if (image_Create(ppm, width, height) == FAILURE) {
 #ifdef VERBOSE
         fprintf(stderr, "ppm_Decode failed: Unable to create PPM\n");
 #endif
@@ -307,16 +206,6 @@ int ppm_Decode(PPM *ppm, const char *filename) {
     // Done, read all color information
     free(entire);
     return SUCCESS;
-}
-
-/*============================================================*
- * Destroy PPM
- *============================================================*/
-void ppm_Destroy(PPM *ppm) {
-    if (ppm->data) {
-        free(ppm->data);
-    }
-    return;
 }
 
 /*============================================================*/

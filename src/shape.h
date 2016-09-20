@@ -9,7 +9,7 @@
 
 // This project
 #include "macro.h"
-#include "rgb.h"
+#include "image.h"
 #include "vector.h"
 
 /**********************************************************//**

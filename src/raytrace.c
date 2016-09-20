@@ -11,9 +11,8 @@
 #include <assert.h>     // assert
 
 // This project
-#include "rgb.h"
+#include "image.h"
 #include "vector.h"
-#include "ppm.h"
 #include "shape.h"
 #include "scene.h"
 #include "raytrace.h"
@@ -187,7 +186,7 @@ static int raytrace_Cast(RGB *color, const LINE *ray, const SCENE *scene) {
 /*============================================================*
  * Generate an image
  *============================================================*/
-int raytrace_Render(PPM *ppm, const SCENE *scene) {
+int raytrace_Render(IMAGE *image, const SCENE *scene) {
     
     // Get the scene view
     VIEWPLANE view;
@@ -204,8 +203,8 @@ int raytrace_Render(PPM *ppm, const SCENE *scene) {
     fprintf(stderr, "raytrace_Render: Viewing plane v is (%lf, %lf, %lf)\n", view.v.x, view.v.y, view.v.z);
 #endif
     
-    // Get the PPM output
-    if (ppm_Create(ppm, scene_GetWidth(scene), scene_GetHeight(scene)) != SUCCESS) {
+    // Get the image output
+    if (image_Create(image, scene_GetWidth(scene), scene_GetHeight(scene)) != SUCCESS) {
 #ifdef VERBOSE
         fprintf(stderr, "raytrace_Render failed: Failed to create output image\n");
 #endif
@@ -213,8 +212,8 @@ int raytrace_Render(PPM *ppm, const SCENE *scene) {
     }
     
     // Image pixel size
-    int width = ppm_GetWidth(ppm);
-    int height = ppm_GetHeight(ppm);
+    int width = image_GetWidth(image);
+    int height = image_GetHeight(image);
     
     // Establish the ray origin and direction
     LINE ray;
@@ -265,14 +264,14 @@ int raytrace_Render(PPM *ppm, const SCENE *scene) {
             }
             
             // Put the color
-            if (ppm_SetPixel(ppm, x, y, &color) != SUCCESS) {
+            if (image_SetPixel(image, x, y, &color) != SUCCESS) {
 #ifdef VERBOSE
                 fprintf(stderr, "raytrace_Render failed: Failed to set color at (%d, %d)\n", x, y);
 #endif
                 return FAILURE;
             }
 #ifdef DEBUG
-            const RGB *what = ppm_GetPixel(ppm, x, y);
+            const RGB *what = image_GetPixel(image, x, y);
             assert(what->r == color.r);
             assert(what->g == color.g);
             assert(what->b == color.b);

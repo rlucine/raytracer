@@ -12,6 +12,7 @@
 
 // This project
 #include "macro.h"
+#include "image.h"
 #include "ppm.h"
 #include "scene.h"
 #include "raytrace.h"
@@ -64,8 +65,8 @@ int main(int argc, char **argv) {
     }
     
     // Render the image
-    PPM ppm;
-    if (raytrace_Render(&ppm, &scene) != SUCCESS) {
+    IMAGE image;
+    if (raytrace_Render(&image, &scene) != SUCCESS) {
         printf("Failed to render the image\n");
         scene_Destroy(&scene);
         return -1;
@@ -73,10 +74,10 @@ int main(int argc, char **argv) {
     scene_Destroy(&scene);
     
     // Encode the image
-    if (ppm_Encode(&ppm, buf) != SUCCESS) {
+    if (ppm_Encode(&image, buf) != SUCCESS) {
         // Try to preserve the data
         printf("Failed to encode image at \"%s\"\n", buf);
-        if (ppm_Encode(&ppm, "temp") != SUCCESS) {
+        if (ppm_Encode(&image, "temp") != SUCCESS) {
             printf("Failed to buffer the image in a temp file\n");
         } else {
             printf("Successfully buffered image in a temporary file\n");
@@ -86,7 +87,7 @@ int main(int argc, char **argv) {
     
     // Clean up
     free(buf);
-    ppm_Destroy(&ppm);
+    image_Destroy(&image);
     printf("Success!\n");
     return 0;
 }

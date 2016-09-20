@@ -12,7 +12,7 @@
 #include <float.h>      // DBL_EPSILON
 
 // This project
-#include "rgb.h"
+#include "image.h"
 #include "vector.h"
 #include "shape.h"
 

@@ -13,7 +13,7 @@
 // This project
 #include "scene.h"
 #include "vector.h"
-#include "rgb.h"
+#include "image.h"
 #include "shape.h"
 
 /**********************************************************//**

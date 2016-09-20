@@ -9,16 +9,16 @@
 
 // This project
 #include "macro.h"
-#include "ppm.h"
+#include "image.h"
 #include "scene.h"
 
 /**********************************************************//**
  * @brief Render the SCENE using a raytracing algorithm
- * @param ppm: The image to write to
+ * @param image: The image to write to
  * @param scene: The scene to render
  * @return SUCCESS or FAILURE
  **************************************************************/
-extern int raytrace_Render(PPM *ppm, const SCENE *scene);
+extern int raytrace_Render(IMAGE *image, const SCENE *scene);
 
 /*============================================================*/
 #endif // _RAYTRACE_H_
