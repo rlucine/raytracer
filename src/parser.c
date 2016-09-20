@@ -184,7 +184,7 @@ typedef struct {
 static int shapelist_AddShape(SHAPE_LIST *shapes, SHAPE_TYPE type, void *data, MATERIAL *material) {
     
     // Add a new shape to the scene
-    if (shapes->shapes || shapes->size >= shapes->capacity) {
+    if (!shapes->shapes || shapes->size >= shapes->capacity) {
         
         // Check if we can grow (no overflow)
         if (shapes->capacity * 2 < 0) {
@@ -527,6 +527,7 @@ int scene_Decode(SCENE *scene, const char *filename) {
         } else {
             // Can load all shapes
             memcpy(scene->shapes, shapes.shapes, sizeof(SHAPE) * scene->nshapes);
+            free(shapes.shapes);
         }
     } else {
         // No shapes in scene
