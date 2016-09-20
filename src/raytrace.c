@@ -6,7 +6,7 @@
 
 // Standard library
 #include <string.h>     // memcpy
-#include <math.h>       // tan, atan ...
+#include <math.h>       // tan, atan, INFINITY ...
 #include <stdio.h>      // fprintf, stderr ...
 #include <assert.h>     // assert
 
@@ -23,37 +23,46 @@
  *============================================================*/
 #define VIEW_DISTANCE 1.0
 
+typedef struct {
+    POINT origin;
+    VECTOR u;
+    VECTOR v;
+    double width;
+    double height;
+} VIEWPLANE;
+
 /*============================================================*
  * Get the viewing plane
  *============================================================*/
-static int raytrace_GetView(PLANE *view, const SCENE *scene) {
+static int raytrace_GetView(VIEWPLANE *view, const SCENE *scene) {
     
     // Get the aspect ratio
     double aspect = (double)scene_GetWidth(scene) / (double)scene_GetHeight(scene);
     
     // Get the fields of view and plane dimensions
-    double fov_vertical = scene_GetFieldOfView(scene);
+    double fov_vertical = M_PI * scene_GetFieldOfView(scene) / 180.0;
     double height = 2.0*VIEW_DISTANCE*tan(fov_vertical / 2.0);
     double width = height * aspect;
     double fov_horizontal = 2.0 * atan(width / (2.0 * VIEW_DISTANCE));
     (void)fov_horizontal;
     
     // Get the u basis vector
-    vector_Cross(&view->u, scene_GetUpDirection(scene), scene_GetViewDirection(scene));
+    vector_Cross(&view->u, scene_GetViewDirection(scene), scene_GetUpDirection(scene));
     vector_Unit(&view->u, &view->u);
     if (vector_IsZero(&view->u)) {
 #ifdef DEBUG
-        fprintf(stderr, "raytrace_GetView failed: Null u vector\n");
+        fprintf(stderr, "raytrace_GetView failed: Null u vector (%lf, %lf, %lf)\n", view->u.x, view->u.y, view->u.z);
 #endif
         return FAILURE;
     }
     
     // Get the v basis vector
-    vector_Cross(&view->v, scene_GetViewDirection(scene), &view->u);
+    vector_Cross(&view->v, &view->u, scene_GetViewDirection(scene));
     vector_Unit(&view->v, &view->v);
     if (vector_IsZero(&view->v)) {
 #ifdef DEBUG
-        fprintf(stderr, "raytrace_GetView failed: Null v vector\n");
+        fprintf(stderr, "raytrace_GetView failed: Null v vector (%lf, %lf, %lf)\n", view->v.x, view->v.y, view->v.z);
+        fprintf(stderr, "raytrace_GetView failed: U is (%lf, %lf, %lf)\n", view->u.x, view->u.y, view->u.z);
 #endif
         return FAILURE;
     }
@@ -63,15 +72,24 @@ static int raytrace_GetView(PLANE *view, const SCENE *scene) {
     vector_Multiply(&du, &view->u, width / -2.0);
     vector_Multiply(&dv, &view->v, height / 2.0);
     vector_Copy(&distance, scene_GetViewDirection(scene));
-    vector_Multiply(&distance, &distance, 1.0 / vector_Magnitude(&distance));
+    vector_Unit(&distance, scene_GetViewDirection(scene));
+    vector_Multiply(&distance, &distance, VIEW_DISTANCE / vector_Magnitude(&distance));
     vector_Copy(&view->origin, scene_GetEyePosition(scene));
     vector_Add(&view->origin, &view->origin, &distance);
     vector_Add(&view->origin, &view->origin, &du);
     vector_Add(&view->origin, &view->origin, &dv);
     
     // Scale basis vectors
-    vector_Multiply(&view->v, &view->v, -height / (scene_GetHeight(scene) - 1));
-    vector_Multiply(&view->u, &view->u, width / (scene_GetWidth(scene) - 1));
+    view->width = width;
+    view->height = height;
+    return SUCCESS;
+}
+
+/*============================================================*
+ * Shader
+ *============================================================*/
+static int raytrace_Shade(RGB *color, const MATERIAL *material) {
+    memcpy(color, &material->color, sizeof(RGB));
     return SUCCESS;
 }
 
@@ -83,6 +101,7 @@ static int raytrace_Cast(RGB *color, const LINE *ray, const SCENE *scene) {
     // Collision detectors
     COLLISION closest, current;
     closest.how = COLLISION_NONE;
+    closest.distance = INFINITY;
     
     // Check every shape
     int who = -1;
@@ -109,11 +128,18 @@ static int raytrace_Cast(RGB *color, const LINE *ray, const SCENE *scene) {
         
         // Check distance - closest is either first shape or the current shape
         // if the current shape is closer (but not behind) us.
-        if (current.how != COLLISION_NONE) {
+        switch(current.how) {
+        case COLLISION_SURFACE:
+        case COLLISION_INSIDE:
             if (n == 0 || (current.distance >= 0.0 && current.distance < closest.distance)) {
                 memcpy(&closest, &current, sizeof(COLLISION));
                 who = n;
             }
+            break;
+        
+        case COLLISION_NONE:
+        default:
+            break;
         }
         n++;
     }
@@ -140,7 +166,12 @@ static int raytrace_Cast(RGB *color, const LINE *ray, const SCENE *scene) {
         // Collided with the surface of the shape
         const SHAPE *target = scene_GetShape(scene, who);
         const MATERIAL *material = shape_GetMaterial(target);
-        memcpy(color, &material->color, sizeof(RGB));
+        if (raytrace_Shade(color, material) != SUCCESS) {
+#ifdef DEBUG
+            fprintf(stderr, "raytrace_Cast: Shader failed\n");
+#endif
+            return FAILURE;
+        }
         
     } else {
         // No shapes, no collision, or inside a shape
@@ -157,7 +188,7 @@ static int raytrace_Cast(RGB *color, const LINE *ray, const SCENE *scene) {
 int raytrace_Render(PPM *ppm, const SCENE *scene) {
     
     // Get the scene view
-    PLANE view;
+    VIEWPLANE view;
     if (raytrace_GetView(&view, scene) != SUCCESS) {
 #ifdef DEBUG
         fprintf(stderr, "raytrace_Render failed: Failed to generate viewing plane\n");
@@ -193,8 +224,10 @@ int raytrace_Render(PPM *ppm, const SCENE *scene) {
     
     // Establish the step
     VECTOR dx, dy;
-    vector_Copy(&dx, &view.u);
-    vector_Copy(&dy, &view.v);
+    vector_Multiply(&dx, &view.u, view.width / (scene_GetWidth(scene) - 1));
+    
+    // Negate v as we are moving from upper left to lower right
+    vector_Multiply(&dy, &view.v, -view.height / (scene_GetHeight(scene) - 1));
     
     // We buffer the step in Y separately because of floating point
     // error if we mathematically go backwards
@@ -215,6 +248,11 @@ int raytrace_Render(PPM *ppm, const SCENE *scene) {
 
             // Get the direction from the eye to the target
             vector_Subtract(&ray.direction, &target, scene_GetEyePosition(scene));
+            vector_Unit(&ray.direction, &ray.direction);
+            
+#ifdef DEBUG
+            fprintf(stderr, "raytrace_Render: Casting in direction (%lf, %lf, %lf)\n", ray.direction.x, ray.direction.y, ray.direction.z);
+#endif
             
             // Cast this ray
             if (raytrace_Cast(&color, &ray, scene) != SUCCESS) {
