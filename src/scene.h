@@ -17,10 +17,6 @@
  * Constants
  *============================================================*/
 
-/// @def NO_MATCH
-/// @brief Returned by decoder functions if no patterns matched
-#define NO_MATCH -2
-
 /// @def MIN_FOV
 /// @brief The minimum field of view
 #define MIN_FOV 0.0
@@ -29,26 +25,12 @@
 /// @brief The maximum field of view
 #define MAX_FOV 180.0
 
-/**********************************************************//**
- * @typedef SCENE_FLAG
- * @brief Bitset flags for which scene fields have been found
- **************************************************************/
-typedef enum {
-    FLAG_EYE = 1,
-    FLAG_VIEW = 2,
-    FLAG_UP = 4,
-    FLAG_FOV = 8,
-    FLAG_SIZE = 16,
-    FLAG_BACKGROUND = 32,
-    FLAG_MATERIAL = 64,
-} SCENE_FLAG;
 
 /**********************************************************//**
  * @typedef SCENE
  * @brief Struct for storing all scene data
  **************************************************************/
 typedef struct {
-    SCENE_FLAG flags;   ///< Bitset of which members are initialized
     POINT eye;          ///< Position of the eye in the scene
     VECTOR view;        ///< Direction the eye is pointing
     VECTOR up;          ///< Rotation of the camera
@@ -59,14 +41,6 @@ typedef struct {
     int nshapes;        ///< How many shapes are in the scene
     SHAPE *shapes;      ///< Array of all shapes in the scene
 } SCENE;
-
-/**********************************************************//**
- * @brief Load a scene from a file
- * @param scene: An uninitialized SCENE to read data into
- * @param filename: The file to read
- * @return SUCCESS or FAILURE
- **************************************************************/
-extern int scene_Decode(SCENE *scene, const char *filename);
 
 /**********************************************************//**
  * @brief Get the eye position in the scene
