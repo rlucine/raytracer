@@ -23,11 +23,11 @@
 #define VIEW_DISTANCE 1.0
 
 typedef struct {
-    POINT origin;
-    VECTOR u;
-    VECTOR v;
-    double width;
-    double height;
+    POINT origin;   // Upper left corner
+    VECTOR u;       // Unit vector u
+    VECTOR v;       // Unit vector v
+    double width;   // Real width of the viewing plane
+    double height;  // Real height of the viewing plane
 } VIEWPLANE;
 
 /*============================================================*
