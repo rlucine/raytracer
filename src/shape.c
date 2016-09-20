@@ -70,13 +70,13 @@ int sphere_Collide(const SPHERE *sphere, const LINE *ray, COLLISION *result) {
     
     // Error checking
     if (vector_IsZero(&ray->direction)) {
-#ifdef DEBUG
+#ifdef VERBOSE
         fprintf(stderr, "sphere_Collide failed: direction is the null vector\n");
 #endif
         return FAILURE;
     }
     if (sphere_GetRadius(sphere) <= 0.0) {
-#ifdef DEBUG
+#ifdef VERBOSE
         fprintf(stderr, "sphere_Collide failed: Sphere radius nonpositive\n");
 #endif
         return FAILURE;
@@ -157,7 +157,7 @@ int shape_Collide(const SHAPE *shape, const LINE *ray, COLLISION *result) {
         break;
     }
     
-#ifdef DEBUG
+#ifdef VERBOSE
     fprintf(stderr, "shape_Collide failed: No collision for shape type %d\n", shape->shape);
 #endif
     return FAILURE;

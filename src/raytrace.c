@@ -50,7 +50,7 @@ static int raytrace_GetView(VIEWPLANE *view, const SCENE *scene) {
     vector_Cross(&view->u, scene_GetViewDirection(scene), scene_GetUpDirection(scene));
     vector_Unit(&view->u, &view->u);
     if (vector_IsZero(&view->u)) {
-#ifdef DEBUG
+#ifdef VERBOSE
         fprintf(stderr, "raytrace_GetView failed: Null u vector (%lf, %lf, %lf)\n", view->u.x, view->u.y, view->u.z);
 #endif
         return FAILURE;
@@ -60,9 +60,11 @@ static int raytrace_GetView(VIEWPLANE *view, const SCENE *scene) {
     vector_Cross(&view->v, &view->u, scene_GetViewDirection(scene));
     vector_Unit(&view->v, &view->v);
     if (vector_IsZero(&view->v)) {
-#ifdef DEBUG
+#ifdef VERBOSE
         fprintf(stderr, "raytrace_GetView failed: Null v vector (%lf, %lf, %lf)\n", view->v.x, view->v.y, view->v.z);
+#ifdef DEBUG
         fprintf(stderr, "raytrace_GetView failed: U is (%lf, %lf, %lf)\n", view->u.x, view->u.y, view->u.z);
+#endif
 #endif
         return FAILURE;
     }
@@ -112,7 +114,7 @@ static int raytrace_Cast(RGB *color, const LINE *ray, const SCENE *scene) {
         // Read the shape data
         shape = scene_GetShape(scene, n);
         if (!shape) {
-#ifdef DEBUG
+#ifdef VERBOSE
             fprintf(stderr, "raytrace_Cast failed: No shape with identifier %d\n", n);
 #endif
             return FAILURE;
@@ -120,7 +122,7 @@ static int raytrace_Cast(RGB *color, const LINE *ray, const SCENE *scene) {
         
         // Collide with this shape
         if (shape_Collide(shape, ray, &current) != SUCCESS) {
-#ifdef DEBUG
+#ifdef VERBOSE
             fprintf(stderr, "raytrace_Cast failed: Collision with shape %d failed\n", n);
 #endif
             return FAILURE;
@@ -167,7 +169,7 @@ static int raytrace_Cast(RGB *color, const LINE *ray, const SCENE *scene) {
         const SHAPE *target = scene_GetShape(scene, who);
         const MATERIAL *material = shape_GetMaterial(target);
         if (raytrace_Shade(color, material) != SUCCESS) {
-#ifdef DEBUG
+#ifdef VERBOSE
             fprintf(stderr, "raytrace_Cast: Shader failed\n");
 #endif
             return FAILURE;
@@ -190,7 +192,7 @@ int raytrace_Render(PPM *ppm, const SCENE *scene) {
     // Get the scene view
     VIEWPLANE view;
     if (raytrace_GetView(&view, scene) != SUCCESS) {
-#ifdef DEBUG
+#ifdef VERBOSE
         fprintf(stderr, "raytrace_Render failed: Failed to generate viewing plane\n");
 #endif
         return FAILURE;
@@ -204,7 +206,7 @@ int raytrace_Render(PPM *ppm, const SCENE *scene) {
     
     // Get the PPM output
     if (ppm_Create(ppm, scene_GetWidth(scene), scene_GetHeight(scene)) != SUCCESS) {
-#ifdef DEBUG
+#ifdef VERBOSE
         fprintf(stderr, "raytrace_Render failed: Failed to create output image\n");
 #endif
         return FAILURE;
@@ -256,7 +258,7 @@ int raytrace_Render(PPM *ppm, const SCENE *scene) {
             
             // Cast this ray
             if (raytrace_Cast(&color, &ray, scene) != SUCCESS) {
-#ifdef DEBUG
+#ifdef VERBOSE
                 fprintf(stderr, "raytrace_Render failed: Failed to cast ray (%d, %d)\n", x, y);
 #endif
                 return FAILURE;
@@ -264,7 +266,7 @@ int raytrace_Render(PPM *ppm, const SCENE *scene) {
             
             // Put the color
             if (ppm_SetPixel(ppm, x, y, &color) != SUCCESS) {
-#ifdef DEBUG
+#ifdef VERBOSE
                 fprintf(stderr, "raytrace_Render failed: Failed to set color at (%d, %d)\n", x, y);
 #endif
                 return FAILURE;

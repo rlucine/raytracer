@@ -15,10 +15,7 @@
 #include "vector.h"
 #include "shape.h"
 #include "scene.h"
-
-#ifdef TRACE
 #include "tracemalloc.h"
-#endif
 
 /*============================================================*
  * Whitespace checking
@@ -49,7 +46,7 @@ static int scene_AddShape(SCENE *scene, size_t *capacity, const SHAPE *shape) {
         size_t size;
         // Check if we can grow
         if (*capacity * 2 < 0) {
-#ifdef DEBUG
+#ifdef VERBOSE
             fprintf(stderr, "scene_AddShape failed: Too many shapes\n");
 #endif
             return FAILURE;
@@ -61,7 +58,7 @@ static int scene_AddShape(SCENE *scene, size_t *capacity, const SHAPE *shape) {
         SHAPE *new = (SHAPE *)realloc(scene->shapes, size);
         // Check for memory errors
         if (!new) {
-#ifdef DEBUG
+#ifdef VERBOSE
             fprintf(stderr, "scene_AddShape failed: Out of memory\n");
 #endif
             return FAILURE;
@@ -92,7 +89,7 @@ static int scene_DecodeData(SCENE *scene, const char *encoded) {
     if (sscanf(encoded, "eye %lf %lf %lf%n", &scene->eye.x, &scene->eye.y, &scene->eye.z, &nread) == 3) {
         // Found valid eye
         if (scene->flags & FLAG_EYE) {
-#ifdef DEBUG
+#ifdef VERBOSE
             fprintf(stderr, "scene_DecodeData failed: Multiple definition of eye\n");
 #endif
             return FAILURE;
@@ -105,19 +102,19 @@ static int scene_DecodeData(SCENE *scene, const char *encoded) {
     } else if (sscanf(encoded, "viewdir %lf %lf %lf%n", &scene->view.x, &scene->view.y, &scene->view.z, &nread) == 3) {
         // Found valid view definition
         if (scene->flags & FLAG_VIEW) {
-#ifdef DEBUG
+#ifdef VERBOSE
             fprintf(stderr, "scene_DecodeData failed: Multiple definition of viewdir\n");
 #endif
             return FAILURE;
         }
         if (vector_IsZero(&scene->view)) {
-#ifdef DEBUG
+#ifdef VERBOSE
             fprintf(stderr, "scene_DecodeData failed: Null view vector\n");
 #endif
             return FAILURE;
         }
         if ((scene->flags & FLAG_UP) && vector_IsParalell(&scene->up, &scene->view)) {
-#ifdef DEBUG
+#ifdef VERBOSE
             fprintf(stderr, "scene_DecodeData failed: Up vector parallel to view vector\n");
 #endif
             return FAILURE;
@@ -130,19 +127,19 @@ static int scene_DecodeData(SCENE *scene, const char *encoded) {
     } else if (sscanf(encoded, "updir %lf %lf %lf%n", &scene->up.x, &scene->up.y, &scene->up.z, &nread) == 3) {
         // Found valid view definition
         if (scene->flags & FLAG_UP) {
-#ifdef DEBUG
+#ifdef VERBOSE
             fprintf(stderr, "scene_DecodeData failed: Multiple definition of updir\n");
 #endif
             return FAILURE;
         }
         if (vector_IsZero(&scene->up)) {
-#ifdef DEBUG
+#ifdef VERBOSE
             fprintf(stderr, "scene_DecodeData failed: Null up vector\n");
 #endif
             return FAILURE;
         }
         if ((scene->flags & FLAG_VIEW) && vector_IsParalell(&scene->up, &scene->view)) {
-#ifdef DEBUG
+#ifdef VERBOSE
             fprintf(stderr, "scene_DecodeData failed: Up vector parallel to view vector\n");
 #endif
             return FAILURE;
@@ -155,13 +152,13 @@ static int scene_DecodeData(SCENE *scene, const char *encoded) {
     } else if (sscanf(encoded, "fovv %lf%n", &scene->fov, &nread) == 1) {
         // Found valid view definition
         if (scene->flags & FLAG_FOV) {
-#ifdef DEBUG
+#ifdef VERBOSE
             fprintf(stderr, "scene_DecodeData failed: Multiple definition of fovv\n");
 #endif
             return FAILURE;
         }
         if (scene->fov <= MIN_FOV || scene->fov >= MAX_FOV) {
-#ifdef DEBUG
+#ifdef VERBOSE
             fprintf(stderr, "scene_DecodeData failed: Impossible fov %lf\n", scene->fov);
 #endif
             return FAILURE;
@@ -174,13 +171,13 @@ static int scene_DecodeData(SCENE *scene, const char *encoded) {
     } else if (sscanf(encoded, "imsize %lf %lf%n", &width, &height, &nread) == 2) {
         // Found valid view definition
         if (scene->flags & FLAG_SIZE) {
-#ifdef DEBUG
+#ifdef VERBOSE
             fprintf(stderr, "scene_DecodeData failed: Multiple definition of imsize\n");
 #endif
             return FAILURE;
         }
         if ((int)width <= 0 || (int)height <= 0) {
-#ifdef DEBUG
+#ifdef VERBOSE
             fprintf(stderr, "scene_DecodeData failed: Invalid image size (%lf, %lf)\n", width, height);
 #endif
             return FAILURE;
@@ -196,13 +193,13 @@ static int scene_DecodeData(SCENE *scene, const char *encoded) {
     } else if (sscanf(encoded, "bkgcolor %lf %lf %lf%n", &r, &g, &b, &nread) == 3) {
         // Found valid view definition
         if (scene->flags & FLAG_BACKGROUND) {
-#ifdef DEBUG
+#ifdef VERBOSE
             fprintf(stderr, "scene_DecodeData failed: Multiple definition of bkgcolor\n");
 #endif
             return FAILURE;
         }
         if (r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255) {
-#ifdef DEBUG
+#ifdef VERBOSE
             fprintf(stderr, "scene_DecodeData failed: Invalid background color (%lf, %lf, %lf)\n", r, g, b);
 #endif
             return FAILURE;
@@ -220,7 +217,7 @@ static int scene_DecodeData(SCENE *scene, const char *encoded) {
     
     // Extra line check
     if (!string_IsAllWhitespace(encoded + nread)) {
-#ifdef DEBUG
+#ifdef VERBOSE
         fprintf(stderr, "scene_DecodeData failed: Trailing \"%s\" on end of line\n", encoded + nread);
 #endif
         return FAILURE;
@@ -249,7 +246,7 @@ static int scene_DecodeMaterial(MATERIAL *material, const char *encoded) {
     if (sscanf(encoded, "mtlcolor %lf %lf %lf%n", &r, &g, &b, &nread) == 3) {
         // Found material color
         if (r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255) {
-#ifdef DEBUG
+#ifdef VERBOSE
             fprintf(stderr, "scene_DecodeMaterial failed: Invalid color (%lf, %lf, %lf)\n", r, g, b);
 #endif
             return FAILURE;
@@ -266,7 +263,7 @@ static int scene_DecodeMaterial(MATERIAL *material, const char *encoded) {
     
     // Extra line check
     if (!string_IsAllWhitespace(encoded + nread)) {
-#ifdef DEBUG
+#ifdef VERBOSE
         fprintf(stderr, "scene_DecodeMaterial failed: Trailing \"%s\" on end of line\n", encoded + nread);
 #endif
         return FAILURE;
@@ -295,7 +292,7 @@ static int scene_DecodeShape(SHAPE *shape, const char *encoded) {
     if (sscanf(encoded, "sphere %lf %lf %lf %lf%n", &sphere.center.x, &sphere.center.y, &sphere.center.z, &sphere.radius, &nread) == 4) {
         // Found a valid sphere - now check its properties
         if (sphere.radius <= 0.0) {
-#ifdef DEBUG
+#ifdef VERBOSE
             fprintf(stderr, "scene_DecodeShape failed: Invalid sphere radius %lf\n", sphere.radius);
 #endif
             return FAILURE;
@@ -308,7 +305,7 @@ static int scene_DecodeShape(SHAPE *shape, const char *encoded) {
     } else if (sscanf(encoded, "ellipsoid %lf %lf %lf %lf %lf %lf%n", &ellipsoid.center.x, &ellipsoid.center.y, &ellipsoid.center.z, &ellipsoid.dimension.x, &ellipsoid.dimension.y, &ellipsoid.dimension.z, &nread) == 6) {
         // Found an ellipsoid
         if (ellipsoid.dimension.x <= 0.0 || ellipsoid.dimension.y <= 0.0 || ellipsoid.dimension.z <= 0.0) {
-#ifdef DEBUG
+#ifdef VERBOSE
             fprintf(stderr, "scene_DecodeShape failed: Invalid ellipsoid dimension (%lf, %lf, %lf)\n", ellipsoid.dimension.x, ellipsoid.dimension.y, ellipsoid.dimension.z);
 #endif
             return FAILURE;
@@ -322,7 +319,7 @@ static int scene_DecodeShape(SHAPE *shape, const char *encoded) {
     
     // Extra line check
     if (!string_IsAllWhitespace(encoded + nread)) {
-#ifdef DEBUG
+#ifdef VERBOSE
         fprintf(stderr, "scene_DecodeShape failed: Trailing \"%s\" on end of line\n", encoded + nread);
 #endif
         return FAILURE;
@@ -344,7 +341,7 @@ static int scene_DecodeShape(SHAPE *shape, const char *encoded) {
     default:
     case SHAPE_NONE:
         // Should never get here
-#ifdef DEBUG
+#ifdef VERBOSE
         fprintf(stderr, "scene_DecodeShape failed: Invalid shape type %d\n", shape->shape);
 #endif
         return FAILURE;
@@ -354,7 +351,7 @@ static int scene_DecodeShape(SHAPE *shape, const char *encoded) {
     // Make shape->data hold an equal heap variable
     void *data = malloc(size);
     if (!data) {
-#ifdef DEBUG
+#ifdef VERBOSE
         fprintf(stderr, "scene_DecodeShape failed: Out of memory\n");
 #endif
         return FAILURE;
@@ -374,7 +371,7 @@ int scene_Decode(SCENE *scene, const char *filename) {
     // File reading initialize
     FILE *file = fopen(filename, "r");
     if (!file) {
-#ifdef DEBUG
+#ifdef VERBOSE
         fprintf(stderr, "scene_Decode failed: Cannot open %s\n", filename);
 #endif
         return FAILURE;
@@ -394,7 +391,7 @@ int scene_Decode(SCENE *scene, const char *filename) {
     scene->nshapes = 0;
     scene->shapes = (SHAPE *)malloc(sizeof(SHAPE) * capacity);
     if (!scene->shapes) {
-#ifdef DEBUG
+#ifdef VERBOSE
         fprintf(stderr, "scene_Decode failed: Out of memory\n");
 #endif
         return FAILURE;
@@ -415,7 +412,7 @@ int scene_Decode(SCENE *scene, const char *filename) {
             continue;
             
         case FAILURE:
-#ifdef DEBUG
+#ifdef VERBOSE
             fprintf(stderr, "scene_Decode failed: Parse error on line %d\n", line);
 #endif
             fclose(file);
@@ -434,7 +431,7 @@ int scene_Decode(SCENE *scene, const char *filename) {
             continue;
             
         case FAILURE:
-#ifdef DEBUG
+#ifdef VERBOSE
             fprintf(stderr, "scene_Decode failed: Parse error on line %d\n", line);
 #endif
             fclose(file);
@@ -450,14 +447,14 @@ int scene_Decode(SCENE *scene, const char *filename) {
         case SUCCESS:
             // Can't define a shape if material not defined!
             if (!(scene->flags & FLAG_MATERIAL)) {
-#ifdef DEBUG
+#ifdef VERBOSE
                 fprintf(stderr, "scene_Decode failed: Discovered shape before material color\n");
 #endif
                 fclose(file);
                 return FAILURE;
             }
             if (scene_AddShape(scene, &capacity, &shape) == FAILURE) {
-#ifdef DEBUG
+#ifdef VERBOSE
                 fprintf(stderr, "scene_Decode failed: Failed to add shape\n");
 #endif
                 fclose(file);
@@ -466,7 +463,7 @@ int scene_Decode(SCENE *scene, const char *filename) {
             continue;
             
         case FAILURE:
-#ifdef DEBUG
+#ifdef VERBOSE
             fprintf(stderr, "scene_Decode failed: Parse error on line %d\n", line);
 #endif
             fclose(file);
@@ -478,7 +475,7 @@ int scene_Decode(SCENE *scene, const char *filename) {
         }
         
         // No match whatsoever
-#ifdef DEBUG
+#ifdef VERBOSE
         fprintf(stderr, "scene_Decode failed: Unknown line %d \"%s\"\n", line, buf);
 #endif
         fclose(file);
@@ -507,7 +504,7 @@ int scene_Decode(SCENE *scene, const char *filename) {
         missing = NULL;
     }
     if (missing) {
-#ifdef DEBUG
+#ifdef VERBOSE
         fprintf(stderr, "scene_Decode failed: Missing %s definition\n", missing);
 #endif
         return FAILURE;

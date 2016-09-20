@@ -19,10 +19,6 @@
 #include "rgb.h"
 #include "ppm.h"
 
-#ifdef TRACE
-#include "tracemalloc.h"
-#endif
-
 /*============================================================*
  * Constants
  *============================================================*/
@@ -44,12 +40,12 @@ int ppm_Create(PPM *ppm, int width, int height) {
     
     // Error check the dimensions
     if (width <= 0 || width > PPM_MAX_DIMENSION) {
-#ifdef DEBUG
+#ifdef VERBOSE
         fprintf(stderr, "ppm_Create failed: Invalid width %d\n", width);
 #endif
         return FAILURE;
     } else if (height <= 0 || height > PPM_MAX_DIMENSION) {
-#ifdef DEBUG
+#ifdef VERBOSE
         fprintf(stderr, "ppm_Create failed: Invalid height %d\n", height);
 #endif
         return FAILURE;
@@ -59,7 +55,7 @@ int ppm_Create(PPM *ppm, int width, int height) {
     size_t size = sizeof(RGB)*width*height;
     RGB *data = (RGB *)malloc(size);
     if (!data) {
-#ifdef DEBUG
+#ifdef VERBOSE
         fprintf(stderr, "ppm_Create failed: Out of heap space\n");
 #endif
         return FAILURE;
@@ -79,13 +75,13 @@ const RGB *ppm_GetPixel(const PPM *ppm, int x, int y) {
     
     // Error check the index
     if (x < 0 || x >= ppm->width) {
-#ifdef DEBUG
+#ifdef VERBOSE
         fprintf(stderr, "ppm_GetColor failed: Invalid x coordinate\n");
 #endif
         return NULL;
     }
     if (y < 0 || y >= ppm->height) {
-#ifdef DEBUG
+#ifdef VERBOSE
         fprintf(stderr, "ppm_GetColor failed: Invalid y coordinate\n");
 #endif
         return NULL;
@@ -102,13 +98,13 @@ int ppm_SetPixel(PPM *ppm, int x, int y, const RGB *color) {
     
     // Error check the index
     if (x < 0 || x >= ppm->width) {
-#ifdef DEBUG
+#ifdef VERBOSE
         fprintf(stderr, "ppm_SetColor failed: Invalid x coordinate\n");
 #endif
         return FAILURE;
     }
     if (y < 0 || y >= ppm->height) {
-#ifdef DEBUG
+#ifdef VERBOSE
         fprintf(stderr, "ppm_SetColor failed: Invalid y coordinate\n");
 #endif
         return FAILURE;
@@ -144,7 +140,7 @@ int ppm_Encode(const PPM *ppm, const char *filename) {
     // Open the output file
     FILE *file = fopen(filename, "w");
     if (!file) {
-#ifdef DEBUG
+#ifdef VERBOSE
         perror("fopen");
         fprintf(stderr, "ppm_Encode failed: Cannot open file %s\n", filename);
 #endif
@@ -182,7 +178,7 @@ int ppm_Decode(PPM *ppm, const char *filename) {
     // Calculate the size of the PPM image in bytes
     struct stat stat_buf;
     if (stat(filename, &stat_buf)) {
-#ifdef DEBUG
+#ifdef VERBOSE
         perror("stat");
 #endif
         return FAILURE;
@@ -192,7 +188,7 @@ int ppm_Decode(PPM *ppm, const char *filename) {
     size_t size = stat_buf.st_size;
     char *entire = (char *)malloc(size+1);
     if (!entire) {
-#ifdef DEBUG
+#ifdef VERBOSE
         fprintf(stderr, "ppm_Decode failed: Out of heap space\n");
 #endif
         return FAILURE;
@@ -201,14 +197,14 @@ int ppm_Decode(PPM *ppm, const char *filename) {
     // Mark the end of the buffer
     const char CANARY_VALUE = 127;
     entire[size] = CANARY_VALUE;
-#ifdef DEBUG
+#ifdef VERBOSE
     assert(entire[size] == CANARY_VALUE);
 #endif
     
     // File for decoding
     FILE *file = fopen(filename, "r");
     if (!file) {
-#ifdef DEBUG
+#ifdef VERBOSE
         perror("fopen");
         fprintf(stderr, "ppm_Decode failed: Failed to open file\n");
 #endif
@@ -233,7 +229,7 @@ int ppm_Decode(PPM *ppm, const char *filename) {
     
     // Check buffer overflow
     if (entire[size] != CANARY_VALUE) {
-#ifdef DEBUG
+#ifdef VERBOSE
         fprintf(stderr, "ppm_Decode failed: Buffer overflow detected (canary %d)\n", entire[size]);
 #endif
         free(entire);
@@ -249,7 +245,7 @@ int ppm_Decode(PPM *ppm, const char *filename) {
     where = entire;
     if (sscanf(where, "%s %d %d %d%n", header, &width, &height, &maxsize, &nread) != 4) {
         // Failed to read entire header data
-#ifdef DEBUG
+#ifdef VERBOSE
         fprintf(stderr, "ppm_Decode failed: Error parsing header\n");
 #endif
         free(entire);
@@ -258,7 +254,7 @@ int ppm_Decode(PPM *ppm, const char *filename) {
     
     // Header check
     if (header[0] != PPM_MAGIC_NUMBER[0] || header[1] != PPM_MAGIC_NUMBER[1]) {
-#ifdef DEBUG
+#ifdef VERBOSE
         fprintf(stderr, "ppm_Decode failed: Missing PPM magic number\n");
 #endif
         free(entire);
@@ -267,7 +263,7 @@ int ppm_Decode(PPM *ppm, const char *filename) {
     
     // Now have header information, can construct the PPM
     if (ppm_Create(ppm, width, height) == FAILURE) {
-#ifdef DEBUG
+#ifdef VERBOSE
         fprintf(stderr, "ppm_Decode failed: Unable to create PPM\n");
 #endif
         free(entire);
@@ -284,7 +280,7 @@ int ppm_Decode(PPM *ppm, const char *filename) {
         color = &ppm->data[index];
         if (sscanf(where, "%d %d %d%n", &first, &second, &third, &nread) != 3) {
             // Failed to read another color
-#ifdef DEBUG
+#ifdef VERBOSE
             fprintf(stderr, "ppm_Decode failed: Error parsong color\n");
 #endif
             free(entire);
