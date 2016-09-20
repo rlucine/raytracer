@@ -11,8 +11,8 @@ viewdir	0	0	-1
 updir		0	0	1
 fovv		60
 imsize		64	48
-bkgcolor	16	16	16
+bkgcolor	0 0 0
 
 # Shape information
-mtlcolor	255	0	0
+mtlcolor	1 0 0
 sphere		0	0	-4	1
