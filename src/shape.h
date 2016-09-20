@@ -81,6 +81,25 @@ typedef struct {
 } COLLISION;
 
 /**********************************************************//**
+ * @brief Construct a shape of the given properties
+ * @param shape: The shape to construct. It must be destroyed
+ * with shape_Destroy if this function is successful.
+ * @param type: The shape type
+ * @param data: Pointer to a block of data corresponding to
+ * the shape type. SPHERE* or ELLIPSOID* are valid.
+ * @param material: Pointer to the material properties
+ * @return SUCCESS or FAILURE
+ **************************************************************/
+extern int shape_Create(SHAPE *shape, SHAPE_TYPE type, const void *data, const MATERIAL *material);
+
+/**********************************************************//**
+ * @brief Destroy a shape struct
+ * @param shape: The shape to destroy. It cannot be accessed
+ * after calling this function.
+ **************************************************************/
+extern void shape_Destroy(SHAPE *shape);
+
+/**********************************************************//**
  * @brief Get the material properties of the SHAPE
  * @param shape: The shape to read
  * @return Pointer to a MATERIAL struct

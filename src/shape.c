@@ -6,6 +6,7 @@
 
 // Standard library
 #include <stdlib.h>     // free
+#include <string.h>     // memcpy
 #include <math.h>       // sqrt, asin, M_PI, fabs, sqrt ...
 #include <stdio.h>      // fprintf, stderr ...
 #include <assert.h>     // assert
@@ -15,6 +16,64 @@
 #include "image.h"
 #include "vector.h"
 #include "shape.h"
+
+/*============================================================*
+ * Shape creation
+ *============================================================*/
+int shape_Create(SHAPE *shape, SHAPE_TYPE type, const void *data, const MATERIAL *material) {
+    // Initialize a shape with the given data
+    shape->shape = type;
+    
+    // Get the size of the data block
+    size_t size;
+    switch (type) {
+    case SHAPE_SPHERE:
+        size = sizeof(SPHERE);
+        break;
+    
+    case SHAPE_ELLIPSOID:
+        size = sizeof(ELLIPSOID);
+        break;
+    
+    default:
+        size = 0;
+        break;
+    }
+    
+    // Check size
+    if (!size) {
+#ifdef VERBOSE
+        fprintf(stderr, "shape_Create failed: Invalid shape type %d\n", type);
+#endif
+        return FAILURE;
+    }
+    
+    // Copy data
+    shape->data = (void *)malloc(size);
+    if (!shape->data) {
+#ifdef VERBOSE
+        fprintf(stderr, "shape_Create failed: Out of memory\n");
+#endif
+        return FAILURE;
+    }
+    memcpy(shape->data, data, size);
+    
+    // Copy material
+    memcpy(&shape->material, material, sizeof(MATERIAL));
+    
+    // Done
+    return SUCCESS;
+}
+
+/*============================================================*
+ * Shape destruction
+ *============================================================*/
+void shape_Destroy(SHAPE *shape) {
+    if (shape->data) {
+        free(shape->data);
+    }
+    return;
+}
 
 /*============================================================*
  * Shape accessors
