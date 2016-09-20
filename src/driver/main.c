@@ -37,6 +37,23 @@ int main(int argc, char **argv) {
         printf("The program will generate a .ppm file with the same base name.\n");
         return -1;
     }
+
+    // Get the scene
+    SCENE scene;
+    if (scene_Decode(&scene, filename) != SUCCESS) {
+        printf("Failed to decode the scene file \"%s\"\n", filename);
+
+        return -1;
+    }
+    
+    // Render the image
+    IMAGE image;
+    if (raytrace_Render(&image, &scene) != SUCCESS) {
+        printf("Failed to render the image\n");
+        scene_Destroy(&scene);
+        return -1;
+    }
+    scene_Destroy(&scene);
     
     // Determine the output filename
     const char *EXTENSION = ".ppm\0";
@@ -57,22 +74,6 @@ int main(int argc, char **argv) {
         index = end;
     }
     strcpy(&buf[index], EXTENSION);
-
-    // Get the scene
-    SCENE scene;
-    if (scene_Decode(&scene, filename) != SUCCESS) {
-        printf("Failed to decode the scene file \"%s\"\n", filename);
-        return -1;
-    }
-    
-    // Render the image
-    IMAGE image;
-    if (raytrace_Render(&image, &scene) != SUCCESS) {
-        printf("Failed to render the image\n");
-        scene_Destroy(&scene);
-        return -1;
-    }
-    scene_Destroy(&scene);
     
     // Encode the image
     if (ppm_Encode(&image, buf) != SUCCESS) {
@@ -83,6 +84,7 @@ int main(int argc, char **argv) {
         } else {
             printf("Successfully buffered image in a temporary file\n");
         }
+        free(buf);
         return -1;
     }
     

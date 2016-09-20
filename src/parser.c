@@ -515,6 +515,17 @@ int scene_Decode(SCENE *scene, const char *filename) {
     // Clean up
     fclose(file);
     
+    // Move shapes arraylist into scene
+    scene->nshapes = shapes.size;
+    scene->shapes = shapes.shapes;
+
+     // Check any failure here to standardize cleanup
+    if (failure) {
+        // Get rid of shapes arraylist
+        scene_Destroy(scene);
+        return FAILURE;
+    }
+
     // Check missing flags
     if (!failure) {
         int missing = ~flags & FLAG_REQUIRED;
@@ -526,30 +537,17 @@ int scene_Decode(SCENE *scene, const char *filename) {
 #ifdef VERBOSE
             fprintf(stderr, "scene_Decode failed: Missing %s definition\n", flag_GetName(which));
 #endif
-            failure = 1;
+            scene_Destroy(scene);
+            return FAILURE;
         }
     }
-    
-    // Check any failure here to standardize cleanup
-    if (failure) {
-        // Get rid of shapes arraylist
-        if (shapes.size > 0) {
-            int i = 0;
-            while (i < shapes.size) {
-                shape_Destroy(&shapes.shapes[i]);
-                i++;
-            }
-            free(shapes.shapes);
-        }
+       
+    // Must validate scene
+    if (!scene_Validate(scene)) {
+        scene_Destroy(scene);
         return FAILURE;
     }
-    
-    // Move shapes arraylist into scene
-    scene->nshapes = shapes.size;
-    scene->shapes = shapes.shapes;
-    
-    // Must validate scene
-    return scene_Validate(scene);
+    return SUCCESS;
 }
 
 /*============================================================*/
