@@ -515,23 +515,19 @@ int scene_Decode(SCENE *scene, const char *filename) {
     // Clean up
     fclose(file);
     
-    // Move shapes arraylist into scene
-    scene->nshapes = shapes.size;
-    if (scene->nshapes) {
-        scene->shapes = (SHAPE *)malloc(sizeof(SHAPE) * scene->nshapes);
-        if (!scene->nshapes) {
+    // Check missing flags
+    if (!failure) {
+        int missing = ~flags & FLAG_REQUIRED;
+        if (missing) {
+            int which = 1;
+            while (!(missing & which)) {
+                which <<= 1;
+            }
 #ifdef VERBOSE
-            fprintf(stderr, "scene_Decode failed: Out of memory\n");
+            fprintf(stderr, "scene_Decode failed: Missing %s definition\n", flag_GetName(which));
 #endif
             failure = 1;
-        } else {
-            // Can load all shapes
-            memcpy(scene->shapes, shapes.shapes, sizeof(SHAPE) * scene->nshapes);
-            free(shapes.shapes);
         }
-    } else {
-        // No shapes in scene
-        scene->shapes = NULL;
     }
     
     // Check any failure here to standardize cleanup
@@ -547,19 +543,10 @@ int scene_Decode(SCENE *scene, const char *filename) {
         }
         return FAILURE;
     }
-
-    // Check missing flags
-    int missing = ~flags & FLAG_REQUIRED;
-    if (missing) {
-        int which = 1;
-        while (!(missing & which)) {
-            which <<= 1;
-        }
-#ifdef VERBOSE
-        fprintf(stderr, "scene_Decode failed: Missing %s definition\n", flag_GetName(which));
-#endif
-        return FAILURE;
-    }
+    
+    // Move shapes arraylist into scene
+    scene->nshapes = shapes.size;
+    scene->shapes = shapes.shapes;
     
     // Must validate scene
     return scene_Validate(scene);
