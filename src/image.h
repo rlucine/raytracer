@@ -10,6 +10,10 @@
 // This project
 #include "macro.h"
 
+/// @def RGB_MAX
+/// @brief The maximum value for an rgb color
+#define RGB_MAX 255
+
 /**********************************************************//**
  * @typedef RGB
  * @brief Struct for RGB colors
