@@ -47,7 +47,7 @@ static int raytrace_GetView(VIEWPLANE *view, const SCENE *scene) {
     
     // Get the u basis vector
     vector_Cross(&view->u, scene_GetViewDirection(scene), scene_GetUpDirection(scene));
-    vector_Unit(&view->u, &view->u);
+    vector_Normalize(&view->u, &view->u);
     if (vector_IsZero(&view->u)) {
 #ifdef VERBOSE
         fprintf(stderr, "raytrace_GetView failed: Null u vector (%lf, %lf, %lf)\n", view->u.x, view->u.y, view->u.z);
@@ -57,7 +57,7 @@ static int raytrace_GetView(VIEWPLANE *view, const SCENE *scene) {
     
     // Get the v basis vector
     vector_Cross(&view->v, &view->u, scene_GetViewDirection(scene));
-    vector_Unit(&view->v, &view->v);
+    vector_Normalize(&view->v, &view->v);
     if (vector_IsZero(&view->v)) {
 #ifdef VERBOSE
         fprintf(stderr, "raytrace_GetView failed: Null v vector (%lf, %lf, %lf)\n", view->v.x, view->v.y, view->v.z);
@@ -73,7 +73,7 @@ static int raytrace_GetView(VIEWPLANE *view, const SCENE *scene) {
     vector_Multiply(&du, &view->u, width / -2.0);
     vector_Multiply(&dv, &view->v, height / 2.0);
     vector_Copy(&distance, scene_GetViewDirection(scene));
-    vector_Unit(&distance, scene_GetViewDirection(scene));
+    vector_Normalize(&distance, scene_GetViewDirection(scene));
     vector_Multiply(&distance, &distance, VIEW_DISTANCE / vector_Magnitude(&distance));
     vector_Copy(&view->origin, scene_GetEyePosition(scene));
     vector_Add(&view->origin, &view->origin, &distance);
@@ -249,7 +249,7 @@ int raytrace_Render(IMAGE *image, const SCENE *scene) {
 
             // Get the direction from the eye to the target
             vector_Subtract(&ray.direction, &target, scene_GetEyePosition(scene));
-            vector_Unit(&ray.direction, &ray.direction);
+            vector_Normalize(&ray.direction, &ray.direction);
             
 #ifdef DEBUG
             fprintf(stderr, "raytrace_Render: Casting in direction (%lf, %lf, %lf)\n", ray.direction.x, ray.direction.y, ray.direction.z);

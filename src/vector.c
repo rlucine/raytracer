@@ -55,7 +55,7 @@ int vector_IsZero(const VECTOR *vector) {
     return double_IsZero(vector->x) && double_IsZero(vector->y) && double_IsZero(vector->z);
 }
 
-int vector_IsParalell(const VECTOR *a, const VECTOR *b) {
+int vector_IsColinear(const VECTOR *a, const VECTOR *b) {
     return double_IsZero(fmod(vector_Angle(a, b), M_PI));
 }
 
@@ -105,7 +105,7 @@ void vector_Cross(VECTOR *output, const VECTOR *a, const VECTOR *b) {
     output->z = out_z;
 }
 
-void vector_Unit(VECTOR *output, const VECTOR *a) {
+void vector_Normalize(VECTOR *output, const VECTOR *a) {
     double magnitude = vector_Magnitude(a);
     if (!double_IsZero(magnitude)) {
         output->x = a->x / magnitude;

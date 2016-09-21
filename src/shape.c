@@ -143,7 +143,7 @@ int sphere_Collide(const SPHERE *sphere, const LINE *ray, COLLISION *result) {
 
     // Solve for sphere intersection with line
     VECTOR unit_direction;
-    vector_Unit(&unit_direction, &ray->direction);
+    vector_Normalize(&unit_direction, &ray->direction);
     double a = 1.0;
     VECTOR dis_center;
     vector_Subtract(&dis_center, &ray->origin, &sphere->center);

@@ -1,18 +1,17 @@
 /**********************************************************//**
  * @file vector.h
- * @brief Header file for VECTOR operations
+ * @brief Header file for vector mathematics
  * @author Alec Shinomiya
  **************************************************************/
 
 #ifndef _VECTOR_H_
 #define _VECTOR_H_
 
-// This project
-#include "macro.h"
-
 /**********************************************************//**
  * @struct VECTOR
- * @brief Struct for 3-dimensional vectors
+ * @brief Struct for 3-dimensional vectors. Each member is of
+ * type double. DBL_EPSILON is used as a tolerance to check if
+ * any member is equal.
  **************************************************************/
 typedef struct {
     double x;   ///< The x coordinate of the vector
@@ -22,24 +21,27 @@ typedef struct {
 
 /**********************************************************//**
  * @typedef POINT
- * @brief Struct for 3-dimensional points
+ * @brief Struct for 3-dimensional points. It is really just
+ * a typedef of VECTOR but can be used to disambiguate
+ * between points and vectors.
  **************************************************************/
 typedef VECTOR POINT;
 
-// TODO maybe this belongs in another file?
 /**********************************************************//**
  * @struct LINE
- * @brief Struct for an infinite line
+ * @brief Struct for an infinite line emanating from the origin
+ * in the given direction. Direction need not be normalized.
  **************************************************************/
 typedef struct {
     POINT origin;       ///< Origin of the line
     VECTOR direction;   ///< Direction of the line
 } LINE;
 
-// TODO maybe this belongs in another file?
 /**********************************************************//**
  * @struct PLANE
- * @brief Struct for a flat plane
+ * @brief Struct for a flat plane. The point origin is on
+ * the plane and the vectors u and v form the basis of the
+ * plane space. u and v need not be normalized.
  **************************************************************/
 typedef struct {
     POINT origin;   ///< Upper left corner of the plane
@@ -79,19 +81,20 @@ extern double vector_Magnitude(const VECTOR *vector);
 extern double vector_Angle(const VECTOR *a, const VECTOR *b);
 
 /**********************************************************//**
- * @brief Check if a vector is the zero vector
+ * @brief Check if a vector is the zero vector. This uses a
+ * floating point tolerance of DBL_EPSILON.
  * @param vector: The vector to check
  * @return 1 if it is the zero vector, otherwise 0
  **************************************************************/
 extern int vector_IsZero(const VECTOR *vector);
 
 /**********************************************************//**
- * @brief Check if two vectors are parelell
+ * @brief Check if two vectors are colinear.
  * @param a: The first vector
  * @param b: The second vector
- * @return 1 if the vectors are parelell, otherwise 0
+ * @return 1 if the vectors are colinear, otherwise 0
  **************************************************************/
-extern int vector_IsParalell(const VECTOR *a, const VECTOR *b);
+extern int vector_IsColinear(const VECTOR *a, const VECTOR *b);
 
 /**********************************************************//**
  * @brief Check if two vectors are orthogonal
@@ -102,7 +105,8 @@ extern int vector_IsParalell(const VECTOR *a, const VECTOR *b);
 extern int vector_IsOrthogonal(const VECTOR *a, const VECTOR *b);
 
 /**********************************************************//**
- * @brief Check if two vectors are equal
+ * @brief Check if two vectors are equal using a tolerance
+ * of DBL_EPSILON.
  * @param a: The first vector
  * @param b: The second vector
  * @return 1 if the vectors are equal, otherwise 0
@@ -159,7 +163,7 @@ extern void vector_Cross(VECTOR *output, const VECTOR *a, const VECTOR *b);
  * equal to a without becoming incorrect.
  * @param a: The vector
  **************************************************************/
-extern void vector_Unit(VECTOR *output, const VECTOR *a);
+extern void vector_Normalize(VECTOR *output, const VECTOR *a);
 
 /**********************************************************//**
  * @brief Multiply the vector by a scalar

@@ -286,7 +286,7 @@ static int scene_Validate(const SCENE *scene) {
 #endif
         return FAILURE;
     }
-    if (vector_IsParalell(&scene->up, &scene->view)) {
+    if (vector_IsColinear(&scene->up, &scene->view)) {
 #ifdef VERBOSE
         fprintf(stderr, "scene_Validate failed: Up vector parallel to view vector\n");
 #endif

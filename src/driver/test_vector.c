@@ -71,18 +71,18 @@ int main(void) {
     assert_DoubleEqual(vector_Angle(&i, &i), 0.0);
     
     // Test paralell
-    assert(vector_IsParalell(&i, &i));
-    assert(vector_IsParalell(&j, &j));
-    assert(vector_IsParalell(&k, &k));
-    assert(!vector_IsParalell(&i, &j));
-    assert(!vector_IsParalell(&j, &k));
-    assert(!vector_IsParalell(&i, &k));
+    assert(vector_IsColinear(&i, &i));
+    assert(vector_IsColinear(&j, &j));
+    assert(vector_IsColinear(&k, &k));
+    assert(!vector_IsColinear(&i, &j));
+    assert(!vector_IsColinear(&j, &k));
+    assert(!vector_IsColinear(&i, &k));
     
     vector_Multiply(&copy, &i, 5);
-    assert(vector_IsParalell(&copy, &i));
+    assert(vector_IsColinear(&copy, &i));
     
     vector_Multiply(&copy, &i, -7.3);
-    assert(vector_IsParalell(&copy, &i));
+    assert(vector_IsColinear(&copy, &i));
     
     // Test orthogonal
     assert(vector_IsOrthogonal(&i, &j));
@@ -156,19 +156,19 @@ int main(void) {
     vector_Copy(&copy, &i);
     vector_Multiply(&copy, &copy, 2);
     assert(!vector_IsEqual(&copy, &i));
-    vector_Unit(&copy, &copy);
+    vector_Normalize(&copy, &copy);
     assert(vector_IsUnit(&copy));
     
     vector_Copy(&copy, &j);
     vector_Multiply(&copy, &copy, 2);
     assert(!vector_IsEqual(&copy, &j));
-    vector_Unit(&copy, &copy);
+    vector_Normalize(&copy, &copy);
     assert(vector_IsUnit(&copy));
     
     vector_Copy(&copy, &k);
     vector_Multiply(&copy, &copy, 2);
     assert(!vector_IsEqual(&copy, &k));
-    vector_Unit(&copy, &copy);
+    vector_Normalize(&copy, &copy);
     assert(vector_IsUnit(&copy));
     
     // Test multiply
