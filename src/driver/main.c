@@ -82,7 +82,7 @@ int main(int argc, char **argv) {
         index--;
     }
     if (index < 0 || buf[index] != '.') {
-        index = end;
+        index = end + 1;
     }
     strcpy(&buf[index], EXTENSION);
     
