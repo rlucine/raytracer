@@ -11,7 +11,7 @@
 #include "macro.h"
 
 /**********************************************************//**
- * @typedef VECTOR
+ * @struct VECTOR
  * @brief Struct for 3-dimensional vectors
  **************************************************************/
 typedef struct {
@@ -28,7 +28,7 @@ typedef VECTOR POINT;
 
 // TODO maybe this belongs in another file?
 /**********************************************************//**
- * @typedef LINE
+ * @struct LINE
  * @brief Struct for an infinite line
  **************************************************************/
 typedef struct {
@@ -38,7 +38,7 @@ typedef struct {
 
 // TODO maybe this belongs in another file?
 /**********************************************************//**
- * @typedef PLANE
+ * @struct PLANE
  * @brief Struct for a flat plane
  **************************************************************/
 typedef struct {

@@ -27,7 +27,7 @@
 
 
 /**********************************************************//**
- * @typedef SCENE
+ * @struct SCENE
  * @brief Struct for storing all scene data
  **************************************************************/
 typedef struct {

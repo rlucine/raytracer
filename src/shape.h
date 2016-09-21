@@ -13,7 +13,7 @@
 #include "vector.h"
 
 /**********************************************************//**
- * @typedef SHAPE_TYPE
+ * @enum SHAPE_TYPE
  * @brief Integer representing every kind of shape
  **************************************************************/
 typedef enum {
@@ -23,7 +23,7 @@ typedef enum {
 } SHAPE_TYPE;
 
 /**********************************************************//**
- * @typedef SPHERE
+ * @struct SPHERE
  * @brief Struct for storing sphere data
  **************************************************************/
 typedef struct {
@@ -32,7 +32,7 @@ typedef struct {
 } SPHERE;
 
 /**********************************************************//**
- * @typedef ELLIPSOID
+ * @struct ELLIPSOID
  * @brief Struct for storing ellipsoid data
  **************************************************************/
 typedef struct {
@@ -41,7 +41,7 @@ typedef struct {
 } ELLIPSOID;
 
 /**********************************************************//**
- * @typedef MATERIAL
+ * @struct MATERIAL
  * @brief Struct for storing object material data
  **************************************************************/
 typedef struct {
@@ -49,7 +49,7 @@ typedef struct {
 } MATERIAL;
 
 /**********************************************************//**
- * @typedef SHAPE
+ * @struct SHAPE
  * @brief Polymorphic struct for storing shape data
  * SHAPE is not responsible for allocating or freeing the data
  * field, as this field may also be stack-allocated.
@@ -61,7 +61,7 @@ typedef struct {
 } SHAPE;
 
 /**********************************************************//**
- * @typedef COLLISION_TYPE
+ * @enum COLLISION_TYPE
  * @brief Integer representing what type of collision occurred
  **************************************************************/
 typedef enum {
@@ -71,7 +71,7 @@ typedef enum {
 } COLLISION_TYPE;
 
 /**********************************************************//**
- * @typedef COLLISION
+ * @struct COLLISION
  * @brief Data about the collision with a shape
  **************************************************************/
 typedef struct {

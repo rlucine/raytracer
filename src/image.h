@@ -15,7 +15,7 @@
 #define RGB_MAX 255
 
 /**********************************************************//**
- * @typedef RGB
+ * @struct RGB
  * @brief Struct for RGB colors
  **************************************************************/
 typedef struct {
@@ -25,7 +25,7 @@ typedef struct {
 } RGB;
 
 /**********************************************************//**
- * @typedef IMAGE
+ * @struct IMAGE
  * @brief Struct for image data. Use the functions defined
  * in this file instead of accessing members directly.
  **************************************************************/
