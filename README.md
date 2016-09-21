@@ -3,7 +3,7 @@
 ## Assignment 1
 This assignment was programmed in C and compiled on Windows using `gcc` via MinGW64. The standard `-std=gnu99` is now enforced by the `Makefile`. It is verified that this code compiles on the CSELabs computers.
 
-### Files
+## Files
 The `turnin.tar` for this assignment should contain:
 
 * Auto-generation tools
@@ -42,19 +42,20 @@ src/vector.c
 src/vector.h
 ```
 
-### Building
+## Building
 There are no dependencies on external libraries. For compatibility, `libm.a` is explicitly linked to, but should be part of the C standard library. This project is expected to be compiled with `gcc` with `-std=gnu99` using the given `Makefile`. To build the project, run `make all`. This will create `main.exe` which is the program to run.
 
-### Scene files
+## Scene files
 Input files may be located anywhere and may have any file extension
 * Comments are lines that begin with `#`. These are ignored.
 * Empty lines are ignored, as are lines containing only whitespace.
 * Lines without the required number of arguments or with too many arguments are errors. Each instruction must begin and end on the same line.
-* Each of the required fields must be present, but may be in any order. Each may only appear once.
+* Each of the required fields must be present, but may be in any order. Each may only appear once. A file may contain 0 or more shape definitions.
 * All material fields must be defined before any shapes, but may be redefined arbitrarily later.
 
-In this format, `<vector>` refers to a list of 3 decimals separated by whitespace, which respectively represent the x, y, and z coordinates of a vector. `<color>` refers to a list of 3 decimals, each of which are between `0.0` and `1.0`, which respectively represent the red, green, and blue components of the color. 
-`<decimal>` and `<integer>` may be any numbers.
+In this format, `<vector>` refers to a list of 3 decimals separated by whitespace, which respectively represent the x, y, and z coordinates of a vector. `<color>` refers to a list of 3 decimals, each of which are between `0.0` and `1.0`, which respectively represent the red, green, and blue components of the color. `<decimal>` and `<integer>` may be any numbers.
+
+### Required fields
 * ```eye <vector>```: The position of the viewing eye.
 * ```viedir <vector>```: The direction the eye is looking. Must be nonzero.
 * ```updir <vector>```: The rotation around the vire direction. Must be nonzero and noncolinear to the `viewdir`.
@@ -62,19 +63,14 @@ In this format, `<vector>` refers to a list of 3 decimals separated by whitespac
 * ```imsize <integer> <integer>```: The dimensions of the image. Must be positive integers. Decimals will be rounded down.
 * ```bkgcolor <color>```: The background color.
 
-Material properties:
+### Material properties
 * ```mtlcolor <color>```: The color of all subsequent shapes. May be redefined arbitrarily. Must be defined before any shapes.
 
-Shape definitions:
+### Shape definitions
 * ```sphere <vector> <decimal>```: A sphere with the given center and radius. Nonpositive radius will cause the sphere to become invisible.
 * ```ellipsoid <vector> <vector>```: An ellipsoid with the given center and dimension vector. Nonpositive dimensions will cause errors.
 
-Additionally, mathematical properties must be obeyes:
-* `viewdir` and `updir` must be nonzero and noncolinear.
-* `fovv` must be between `0.0` and `180.0`.
-* `imsize`
-
-### Executing
+## Executing
 To execute the program, run `./main.exe input.scene` where `input.scene` is a valid text file in the format described above, located anywhere on the file system. This will generate a file with the same base name as the input file and the suffix `.ppm` which shall be a P3-encoded ASCII PPM image containing the rendered scene.
 
 Render time will increase as the image size and number of objects increase.
@@ -83,10 +79,13 @@ Render time will increase as the image size and number of objects increase.
 
 Any errors will be reported on the terminal, and an output image will not be generated.
 
-### Example
+## Example
 The included `data/many.png` is generated from `data/many.scene`.
 
-### Documentation
+## Documentation
 The code is documented using Doxygen-compatible commenting. To create the documentation webpage, run `make doc` and launch `doc/html/index.html` in a web browser. You must have `doxygen` installed.
 
 Doxygen-style documentation is found in header files and the main file. The implementation files also contain comments, but not Doxygen comments.
+
+## Cleanup
+To delete build files, run `make clean`. To delete all generated files, run `make spotless`.
