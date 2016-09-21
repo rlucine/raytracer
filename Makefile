@@ -7,8 +7,7 @@
 
 #===== Compiler / linker setup =====#
 CC := gcc
-DFLAGS := -MP -MMD
-CFLAGS := -s -O3 -Wall -DDEBUG -DVERBOSE -DTRACE -std=gnu99
+CFLAGS := -s -O3 -Wall -DNDEBUG -UDEBUG -DVERBOSE -UTRACE -std=gnu99
 LFLAGS := -s -lm
 INCLUDE := 
 LIBRARY := 
@@ -23,7 +22,6 @@ CFILES := $(wildcard $(SRC_DIR)/*.c)
 # Build files
 BUILD_DIR := build
 OFILES := $(CFILES:$(SRC_DIR)/%.c=$(BUILD_DIR)/%.o)
-DFILES := $(OFILES:.o=.d)
 
 # Documentation files
 DOC_DIR := doc
@@ -48,7 +46,6 @@ EXECUTABLES := $(subst $(MAIN),,$(DRIVER_CFILES:$(DRIVER_DIR)/%.c=./%.exe))
 # Default - make the executable
 .PHONY: all
 all: $(BUILD_DIR) $(DRIVER_BUILD_DIR) $(MAIN)
-	echo $(EXECUTABLES)
 
 .PHONY: test
 test: $(BUILD_DIR) $(DRIVER_BUILD_DIR) $(EXECUTABLES)
@@ -63,11 +60,11 @@ $(DRIVER_BUILD_DIR): $(BUILD_DIR)
 
 # Generate auto-dependency files (.d) instead
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c $(BUILD_DIR)
-	$(CC) $(CFLAGS) $(DFLAGS) $(INCLUDE) -c $< -o $@
+	$(CC) $(CFLAGS) $(INCLUDE) -c $< -o $@
 
 # Generate driver files also
 $(DRIVER_BUILD_DIR)/%.o: $(DRIVER_DIR)/%.c $(DRIVER_BUILD_DIR)
-	$(CC) $(CFLAGS) $(DFLAGS) $(INCLUDE) -c $< -o $@
+	$(CC) $(CFLAGS) $(INCLUDE) -c $< -o $@
 
 # Make executable for each driver
 %.exe: $(DRIVER_BUILD_DIR)/%.o $(OFILES)
@@ -76,11 +73,6 @@ $(DRIVER_BUILD_DIR)/%.o: $(DRIVER_DIR)/%.c $(DRIVER_BUILD_DIR)
 # Doxygen documentation
 $(DOC_DIR):
 	doxygen Doxyfile
-
-#============= Include =============#
-# Auto-generated dependencies
--include $(DFILES)
--include $(DRIVER_DFILES)
 
 #============== Clean ==============#
 # Clean up build files and executable
