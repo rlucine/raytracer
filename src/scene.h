@@ -25,7 +25,6 @@
 /// @brief The maximum field of view
 #define MAX_FOV 180.0
 
-
 /**********************************************************//**
  * @struct SCENE
  * @brief Struct for storing all scene data
@@ -52,14 +51,16 @@ extern const POINT *scene_GetEyePosition(const SCENE *scene);
 /**********************************************************//**
  * @brief Get the view direction in the scene
  * @param scene: The scene to read
- * @return Pointer to the view direction
+ * @return Pointer to the view direction. The view direction
+ * may not be normalized and may not be orthogonal to the up.
  **************************************************************/
 extern const VECTOR *scene_GetViewDirection(const SCENE *scene);
 
 /**********************************************************//**
  * @brief Get the up direction in the scene
  * @param scene: The scene to read
- * @return Pointer to the up direction
+ * @return Pointer to the up direction. The up direction may
+ * not be normalized and may not be orthogonal to the view.
  **************************************************************/
 extern const VECTOR *scene_GetUpDirection(const SCENE *scene);
 
@@ -73,14 +74,14 @@ extern double scene_GetFieldOfView(const SCENE *scene);
 /**********************************************************//**
  * @brief Get the scene width in pixels
  * @param scene: The scene to read
- * @return The width of the scene
+ * @return The width of the scene in pixels
  **************************************************************/
 extern int scene_GetWidth(const SCENE *scene);
 
 /**********************************************************//**
  * @brief Get the scene height in pixels
  * @param scene: The scene to read
- * @return The height of the scene
+ * @return The height of the scene in pixels
  **************************************************************/
 extern int scene_GetHeight(const SCENE *scene);
 
@@ -94,21 +95,26 @@ extern const RGB *scene_GetBackgroundColor(const SCENE *scene);
 /**********************************************************//**
  * @brief Get how many shapes are in the scene
  * @param scene: The scene to read
- * @return The number of shapes in the scene
+ * @return The number of shapes in the scene. scene_GetShape
+ * is guaranteed not to fail for non-negative int less than
+ * this returned value.
  **************************************************************/
 extern int scene_GetNumberOfShapes(const SCENE *scene);
 
 /**********************************************************//**
  * @brief Get the shape from the scene
  * @param scene: The scene to read
- * @param index: Shape index from 0 to the number of shapes - 1
+ * @param index: Shape index from 0 to the number of shapes
+ * minus one.
  * @return Pointer to the shape
  **************************************************************/
 extern const SHAPE *scene_GetShape(const SCENE *scene, int index);
 
 /**********************************************************//**
- * @brief Destroy the SCENE structure
- * @param scene: The sturcture to destroy
+ * @brief Destroy the SCENE structure. The structure cannot
+ * have been destroyed already, and must have been initialized.
+ * @param scene: The sturcture to destroy. The structure may
+ * not be used after calling this function.
  **************************************************************/
 extern void scene_Destroy(SCENE *scene);
 
