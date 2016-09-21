@@ -16,7 +16,7 @@
 
 /**********************************************************//**
  * @struct RGB
- * @brief Struct for RGB colors
+ * @brief Struct for 24-bit RGB colors.
  **************************************************************/
 typedef struct {
     unsigned char r;    ///< The red part of the color 0 - 255
@@ -26,8 +26,7 @@ typedef struct {
 
 /**********************************************************//**
  * @struct IMAGE
- * @brief Struct for image data. Use the functions defined
- * in this file instead of accessing members directly.
+ * @brief Struct for uncompressed RGB image data
  **************************************************************/
 typedef struct {
     unsigned short width;   ///< Width of the image
@@ -36,7 +35,7 @@ typedef struct {
 } IMAGE;
 
 /**********************************************************//**
- * @brief Allocate space for an image containing garbage.
+ * @brief Allocate space for an image
  * @param image: Pointer to an uninitialized IMAGE struct. You
  * need to use image_Destroy on this parameter if the function
  * is successful. Don't pass a image which has already been
