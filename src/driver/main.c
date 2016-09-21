@@ -4,6 +4,17 @@
  * @author Alec Shinomiya
  **************************************************************/
 
+/**********************************************************//**
+ * @mainpage
+ * This is the auto-generated documentation page for the
+ * CSci 5607 Fall 2016 raytracer project.<br/>
+ * Programmed by Alec Shinomiya (shino012@umn.edu).
+ * <h1><a href="files.htm">Files</a></h1>
+ * List of all documented files included in the project.
+ * <h1><a href="annotated.htm">Data Structures</a></h1>
+ * List of all the data structures defined in the files.
+ **************************************************************/
+
 // Standard library
 #include <stdlib.h>     // malloc
 #include <stdio.h>      // printf, fopen, fclose ...

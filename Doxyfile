@@ -2,7 +2,7 @@ PROJECT_NAME = "CSci 5607"
 PROJECT_BRIEF = "Raytracer project for CSci 5607"
 
 OUTPUT_DIRECTORY = "doc"
-INPUT = src/
+INPUT = src/ src/driver/main.c
 FILE_PATTERNS = *.h
 RECURSIVE = NO
 EXCLUDE = src/driver
