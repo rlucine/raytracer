@@ -543,7 +543,7 @@ int scene_Decode(SCENE *scene, const char *filename) {
     }
        
     // Must validate scene
-    if (!scene_Validate(scene)) {
+    if (scene_Validate(scene) != SUCCESS) {
         scene_Destroy(scene);
         return FAILURE;
     }
