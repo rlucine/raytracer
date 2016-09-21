@@ -1,6 +1,6 @@
 /**********************************************************//**
  * @file macro.h
- * @brief Header file project-wide macros
+ * @brief Defines the SUCCESS and FAILURE constants
  * @author Alec Shinomiya
  **************************************************************/
 

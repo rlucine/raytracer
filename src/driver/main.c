@@ -1,6 +1,6 @@
 /**********************************************************//**
  * @file main.c
- * @brief Main module for PPM testing
+ * @brief Main module for raytracer
  * @author Alec Shinomiya
  **************************************************************/
 
