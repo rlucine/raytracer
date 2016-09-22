@@ -73,6 +73,32 @@ int main(void) {
     scene_Destroy(&scene);
     printf("Success!\n\n");
     
+    printf("Decoding many.scene...\n");
+    assert(scene_Decode(&scene, "data/many.scene") == SUCCESS);
+    scene_Destroy(&scene);
+    printf("Success!\n\n");
+    
+    printf("Decoding simple.scene...\n");
+    assert(scene_Decode(&scene, "data/simple.scene") == SUCCESS);
+    scene_Destroy(&scene);
+    printf("Success!\n\n");
+    
+    printf("Decoding tatest.scene...\n");
+    assert(scene_Decode(&scene, "data/tatest.scene") == SUCCESS);
+    scene_Destroy(&scene);
+    printf("Success!\n\n");
+    
+    printf("Decoding test...\n");
+    assert(scene_Decode(&scene, "data/test") == SUCCESS);
+    scene_Destroy(&scene);
+    printf("Success!\n\n");
+    
+    printf("Decoding complex.scene...\n");
+    assert(scene_Decode(&scene, "data/complex.scene") == SUCCESS);
+    scene_Destroy(&scene);
+    printf("Success!\n\n");
+    
+    
     // Fail to decode these scenes
     printf("Catching errors in bad.scene...\n");
     assert(scene_Decode(&scene, "data/bad.scene") == FAILURE);
@@ -93,6 +119,15 @@ int main(void) {
     printf("Catching errors in paralell.scene...\n");
     assert(scene_Decode(&scene, "data/paralell.scene") == FAILURE);
     printf("Success!\n\n");
+    
+    printf("Catching errors in nonexistant file...\n");
+    assert(scene_Decode(&scene, "data/doesnotexist.scene") == FAILURE);
+    printf("Success!\n\n");
+    
+    printf("Catching errors in bad file...\n");
+    assert(scene_Decode(&scene, "data") == FAILURE);
+    printf("Success!\n\n");
+    
     
     // Done!
     printf("Passed all tests!\n");
