@@ -163,7 +163,7 @@ static int raytrace_Cast(RGB *color, const LINE *ray, const SCENE *scene) {
 #endif
     
     // Determine color
-    if (who >= 0 && closest.how == COLLISION_SURFACE) {
+    if (who >= 0 && closest.how != COLLISION_NONE) {
         // Collided with the surface of the shape
         const SHAPE *target = scene_GetShape(scene, who);
         const MATERIAL *material = shape_GetMaterial(target);
