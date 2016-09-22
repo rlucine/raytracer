@@ -92,4 +92,4 @@ spotless: clean
 turnin: $(TURNIN)
 
 $(TURNIN):
-	tar -cvf $@ README.md Makefile Doxyfile src/*.c src/*.h src/driver/main.c data/many.scene data/many.png
+	tar -cvf $@ README.md Makefile Doxyfile src/*.c src/*.h src/driver/main.c data/many.scene data/many.png data/example1.png data/example2.png

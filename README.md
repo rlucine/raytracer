@@ -23,6 +23,8 @@ README.md
 ```
 data/many.scene
 data/many.png
+data/example1.png
+data/example2.png
 ```
 * Source code
 ```
