@@ -3,6 +3,10 @@
 ## Assignment 1
 This assignment was programmed in C and compiled on Windows using `gcc` via MinGW64. The standard `-std=gnu99` is now enforced by the `Makefile`. It is verified that this code compiles on the CSELabs computers.
 
+### Original scene
+<img src="data/many.png"><br/>
+The included `data/many.png` is generated from `data/many.scene`.
+
 ## Files
 The `turnin.tar` for this assignment should contain:
 
@@ -80,12 +84,8 @@ Render time will increase as the image size and number of objects increase.
 Any errors will be reported on the terminal, and an output image will not be generated.
 
 ## Example
-<img src="data/example1.png">
-<img src="data/example2.png">
-The above images are different views of the same scene. The lower scene is being viewed from the opposite direction at the same distance. The up direction has also rotated 90 degrees, and the field of view has decreased, leading to a zooming effect.
-
-<img src="data/many.png">
-The included `data/many.png` is generated from `data/many.scene`.
+<img src="data/example1.png", width=240> <img src="data/example2.png", width=240><br/>
+The above images are different views of the same scene. The right side scene is being viewed from the opposite direction at the same distance. The up direction has also rotated 90 degrees, and the field of view has decreased, leading to a zooming effect.
 
 ## Documentation
 The code is documented using Doxygen-compatible commenting. To create the documentation webpage, run `make doc` and launch `doc/html/index.html` in a web browser. You must have `doxygen` installed.
