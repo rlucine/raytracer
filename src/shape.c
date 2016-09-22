@@ -194,8 +194,77 @@ int sphere_Collide(const SPHERE *sphere, const LINE *ray, COLLISION *result) {
  * Ellipsoid geometry
  *============================================================*/
 int ellipsoid_Collide(const ELLIPSOID *ellipsoid, const LINE *ray, COLLISION *result) {
-    // TODO
-    return FAILURE;
+    
+    // Error checking
+    if (vector_IsZero(&ray->direction)) {
+#ifdef VERBOSE
+        fprintf(stderr, "ellipsoid_Collide failed: direction is the null vector\n");
+#endif
+        return FAILURE;
+    }
+    
+    const VECTOR *dimension = ellipsoid_GetDimension(ellipsoid);
+    if (dimension->x <= 0.0 || dimension->y <= 0.0 || dimension->z <= 0.0) {
+#ifdef VERBOSE
+        fprintf(stderr, "ellipsoid_Collide failed: Ellipsoid with negative dimension\n");
+#endif
+        return FAILURE;
+    }
+
+    // Get the unit direction of the ray
+    VECTOR unit;
+    vector_Normalize(&unit, &ray->direction);
+    
+    // Get the distance to the center of the ellipsoid
+    VECTOR center;
+    vector_Subtract(&center, &ray->origin, &ellipsoid->center);
+    
+    double a = 0.0;
+    a += unit.x*unit.x / (dimension->x * dimension->x);
+    a += unit.y*unit.y / (dimension->y * dimension->y);
+    a += unit.z*unit.z / (dimension->z * dimension->z);
+    
+    double b = 0.0;
+    b += 2*(center.x * unit.x / (dimension->x * dimension->x));
+    b += 2*(center.y * unit.y / (dimension->y * dimension->y));
+    b += 2*(center.z * unit.z / (dimension->z * dimension->z));
+    
+    double c = -1.0;
+    c += center.x*center.x / (dimension->x * dimension->x);
+    c += center.y*center.y / (dimension->y * dimension->y);
+    c += center.z*center.z / (dimension->z * dimension->z);
+    
+    // Solve the quadratic att + bt + c = 0
+    double discriminant = b*b - 4.0*a*c;
+    if (discriminant < 0.0) {
+        // No solutions - missed the sphere
+        result->how = COLLISION_NONE;
+        return SUCCESS;
+    }
+
+    // Two or one solution
+    double t1, t2;
+    t1 = (-b + sqrt(discriminant)) / (2.0 * a);
+    t2 = (-b - sqrt(discriminant)) / (2.0 * a);
+
+    // Determine closest collision
+    double tclosest = 0.0;
+    if (t1 < t2 && t1 >= 0) {
+        tclosest = t1;
+    } else if (t2 >= 0) {
+        tclosest = t2;
+    } else {
+        // The sphere is behind the viewer - miss!
+        result->how = COLLISION_NONE;
+        return SUCCESS;
+    }
+
+    // Get location of closest collision
+    // This absorbs case when we collide immediately
+    result->how = COLLISION_SURFACE;
+    result->distance = tclosest;
+    vector_Multiply(&result->where, &unit, tclosest);
+    return SUCCESS;
 }
 
 /*============================================================*

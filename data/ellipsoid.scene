@@ -1,0 +1,24 @@
+#####################################
+# Test ellipsoids
+#####################################
+
+# Header information
+eye 4 4 4
+viewdir -1 -1 -1
+updir 0 1 0
+fovv 60
+imsize 640 480
+bkgcolor 0.1 0.1 0.1
+
+# Shape information
+mtlcolor 1 0 0
+ellipsoid 0 0 2 2 1 1
+
+mtlcolor 0 1 0
+ellipsoid 2 0 0 1 2 1
+
+mtlcolor 0 0 1
+ellipsoid 0 2 0 1 1 2
+
+mtlcolor 1 0 1
+sphere 0 0 0 2
