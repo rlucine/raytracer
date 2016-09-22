@@ -7,7 +7,9 @@
 
 #===== Compiler / linker setup =====#
 CC := gcc
-CFLAGS := -s -O3 -Wall -DNDEBUG -UDEBUG -DVERBOSE -UTRACE -std=gnu99
+DEBUG := -DNDEBUG -UDEBUG -DVERBOSE -UTRACE
+#DEBUG := -DDEBUG -DVERBOSE -DTRACE
+CFLAGS := -s -O3 -Wall -std=gnu99
 LFLAGS := -s -lm
 INCLUDE := 
 LIBRARY := 
@@ -60,11 +62,11 @@ $(DRIVER_BUILD_DIR): $(BUILD_DIR)
 
 # Generate auto-dependency files (.d) instead
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c $(BUILD_DIR)
-	$(CC) $(CFLAGS) $(INCLUDE) -c $< -o $@
+	$(CC) $(CFLAGS) $(DEBUG) $(INCLUDE) -c $< -o $@
 
 # Generate driver files also
 $(DRIVER_BUILD_DIR)/%.o: $(DRIVER_DIR)/%.c $(DRIVER_BUILD_DIR)
-	$(CC) $(CFLAGS) $(INCLUDE) -c $< -o $@
+	$(CC) $(CFLAGS) $(DEBUG) $(INCLUDE) -c $< -o $@
 
 # Make executable for each driver
 %.exe: $(DRIVER_BUILD_DIR)/%.o $(OFILES)
