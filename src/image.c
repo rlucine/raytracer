@@ -39,15 +39,16 @@ int image_Create(IMAGE *image, int width, int height) {
         fprintf(stderr, "image_Create failed: Invalid height %d\n", height);
 #endif
         return FAILURE;
-    } else if (width * height < 0) {
+    }
+    
+    // Allocate the image data chunk
+    size_t size = sizeof(RGB)*width*height;
+    if (size < 0 || size > INT_MAX) {
 #ifdef VERBOSE
         fprintf(stderr, "image_Create failed: %d by %d image is too large\n", width, height);
 #endif
         return FAILURE;
     }
-    
-    // Allocate the image data chunk
-    size_t size = sizeof(RGB)*width*height;
     RGB *data = (RGB *)malloc(size);
     if (!data) {
 #ifdef VERBOSE
