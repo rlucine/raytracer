@@ -56,11 +56,11 @@ Input files may be located anywhere and may have any file extension
 In this format, `<vector>` refers to a list of 3 decimals separated by whitespace, which respectively represent the x, y, and z coordinates of a vector. `<color>` refers to a list of 3 decimals, each of which are between `0.0` and `1.0`, which respectively represent the red, green, and blue components of the color. `<decimal>` and `<integer>` may be any numbers.
 
 ### Required fields
-* ```eye <vector>```: The position of the viewing eye.
-* ```viedir <vector>```: The direction the eye is looking. Must be nonzero.
-* ```updir <vector>```: The rotation around the vire direction. Must be nonzero and noncolinear to the `viewdir`.
-* ```fovv <decimal>```: The field of view in degrees.
-* ```imsize <integer> <integer>```: The dimensions of the image. Must be positive integers. Decimals will be rounded down.
+* ```eye <vector>```: The position of the viewing eye. This changes the absolute position of the viewer within the scene.
+* ```viedir <vector>```: The direction the viewer is looking. Shapes behind the viewer are not rendered. Must be nonzero.
+* ```updir <vector>```: The rotation around the view direction. This changes the apparent "upwards" direction in the image by rotating the scene. Must be nonzero and noncolinear to the `viewdir`.
+* ```fovv <decimal>```: The vertical field of view in degrees. Decreased field of view correlates with zooming in from the eye.
+* ```imsize <integer> <integer>```: The dimensions of the image. Must be positive integers. Decimals will be rounded down. The proportion of the shapes in the image will not change but increased resolution is acquired at higher sizes.
 * ```bkgcolor <color>```: The background color.
 
 ### Material properties
@@ -80,6 +80,11 @@ Render time will increase as the image size and number of objects increase.
 Any errors will be reported on the terminal, and an output image will not be generated.
 
 ## Example
+<img src="data/example1.png">
+<img src="data/example2.png">
+The above images are different views of the same scene. The lower scene is being viewed from the opposite direction at the same distance. The up direction has also rotated 90 degrees, and the field of view has decreased, leading to a zooming effect.
+
+<img src="data/many.png">
 The included `data/many.png` is generated from `data/many.scene`.
 
 ## Documentation
