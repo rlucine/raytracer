@@ -97,12 +97,13 @@ static int raytrace_Shade(COLOR *color, const MATERIAL *material) {
 /*============================================================*
  * Cast one ray
  *============================================================*/
-static int raytrace_Cast(COLOR *color, const LINE *ray, const SCENE *scene) {
+static int raytrace_Cast(COLLISION *closest, const LINE *ray, const SCENE *scene) {
     
     // Collision detectors
-    COLLISION closest, current;
-    closest.how = COLLISION_NONE;
-    closest.distance = INFINITY;
+    COLLISION current;
+    closest->how = COLLISION_NONE;
+    closest->distance = INFINITY;
+    closest->material = NULL;
     
     // Check every shape
     int who = -1;
@@ -132,8 +133,8 @@ static int raytrace_Cast(COLOR *color, const LINE *ray, const SCENE *scene) {
         switch(current.how) {
         case COLLISION_SURFACE:
         case COLLISION_INSIDE:
-            if (n == 0 || (current.distance >= 0.0 && current.distance < closest.distance)) {
-                memcpy(&closest, &current, sizeof(COLLISION));
+            if (n == 0 || (current.distance >= 0.0 && current.distance < closest->distance)) {
+                memcpy(closest, &current, sizeof(COLLISION));
                 who = n;
             }
             break;
@@ -146,9 +147,9 @@ static int raytrace_Cast(COLOR *color, const LINE *ray, const SCENE *scene) {
     }
     
 #ifdef DEBUG
-    switch (closest.how) {
+    switch (closest->how) {
     case COLLISION_SURFACE:
-        fprintf(stderr, "raytrace_Cast: Collided with %d at distance %lf\n", who, closest.distance);
+        fprintf(stderr, "raytrace_Cast: Collided with %d at distance %lf\n", who, closest->distance);
         break;
     
     case COLLISION_INSIDE:
@@ -161,24 +162,14 @@ static int raytrace_Cast(COLOR *color, const LINE *ray, const SCENE *scene) {
         break;
     }
 #endif
-    
-    // Determine color
-    if (who >= 0 && closest.how != COLLISION_NONE) {
+
+    // Get the material properties
+    if (who >= 0 && closest->how != COLLISION_NONE) {
         // Collided with the surface of the shape
         const SHAPE *target = scene_GetShape(scene, who);
-        const MATERIAL *material = shape_GetMaterial(target);
-        if (raytrace_Shade(color, material) != SUCCESS) {
-#ifdef VERBOSE
-            fprintf(stderr, "raytrace_Cast: Shader failed\n");
-#endif
-            return FAILURE;
-        }
-        
-    } else {
-        // No shapes, no collision, or inside a shape
-        memcpy(color, scene_GetBackgroundColor(scene), sizeof(COLOR));
+        closest->material = shape_GetMaterial(target);
     }
-    
+
     // Checked all shapes - valid!
     return SUCCESS;
 }
@@ -236,6 +227,7 @@ int raytrace_Render(IMAGE *image, const SCENE *scene) {
     ystep.x = ystep.y = ystep.z = 0.0;
     
     // Send rays
+    COLLISION collision;
     COLOR color;
     RGB rgb;
     int y = 0;
@@ -257,15 +249,32 @@ int raytrace_Render(IMAGE *image, const SCENE *scene) {
 #endif
             
             // Cast this ray
-            if (raytrace_Cast(&color, &ray, scene) != SUCCESS) {
+            if (raytrace_Cast(&collision, &ray, scene) != SUCCESS) {
 #ifdef VERBOSE
                 fprintf(stderr, "raytrace_Render failed: Failed to cast ray (%d, %d)\n", x, y);
 #endif
                 return FAILURE;
             }
             
+            // Determine color
+            if (collision.how != COLLISION_NONE) {
+                // Collided with the surface of the shape
+                if (raytrace_Shade(&color, collision.material) != SUCCESS) {
+        #ifdef VERBOSE
+                    fprintf(stderr, "raytrace_Cast: Shader failed\n");
+        #endif
+                    return FAILURE;
+                }
+                
+                // Get the RGB color
+                color_ToRgb(&rgb, &color);
+                
+            } else {
+                // No shapes, no collision, or inside a shape
+                color_ToRgb(&rgb, scene_GetBackgroundColor(scene));
+            }
+            
             // Put the color
-            color_ToRgb(&rgb, &color);
             if (image_SetPixel(image, x, y, &rgb) != SUCCESS) {
 #ifdef VERBOSE
                 fprintf(stderr, "raytrace_Render failed: Failed to set color at (%d, %d)\n", x, y);

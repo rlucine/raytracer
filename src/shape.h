@@ -77,9 +77,10 @@ typedef enum {
  * @brief Data about the collision with a shape
  **************************************************************/
 typedef struct {
-    COLLISION_TYPE how; ///< How the collision occurred
-    VECTOR where;       ///< Point of collision on the surface
-    double distance;    ///< How far away the point is
+    COLLISION_TYPE how;         ///< How the collision occurred
+    VECTOR where;               ///< Point of collision on the surface
+    double distance;            ///< How far away the point is
+    const MATERIAL *material;   ///< The material that was collided with
 } COLLISION;
 
 /**********************************************************//**
