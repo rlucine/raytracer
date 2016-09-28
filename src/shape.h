@@ -81,6 +81,7 @@ typedef struct {
     VECTOR where;               ///< Point of collision on the surface
     double distance;            ///< How far away the point is
     const MATERIAL *material;   ///< The material that was collided with
+    VECTOR normal;              ///< Normal vector at collision site
 } COLLISION;
 
 /**********************************************************//**

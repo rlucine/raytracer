@@ -187,6 +187,12 @@ int sphere_Collide(const SPHERE *sphere, const LINE *ray, COLLISION *result) {
     result->how = COLLISION_SURFACE;
     result->distance = tclosest;
     vector_Multiply(&result->where, &unit_direction, tclosest);
+    
+    // Get normal vector at collision
+    vector_Subtract(&result->normal, &result->where, sphere_GetCenter(sphere));
+    vector_Normalize(&result->normal, &result->normal);
+    
+    // Done!
     return SUCCESS;
 }
 
@@ -264,6 +270,15 @@ int ellipsoid_Collide(const ELLIPSOID *ellipsoid, const LINE *ray, COLLISION *re
     result->how = COLLISION_SURFACE;
     result->distance = tclosest;
     vector_Multiply(&result->where, &unit, tclosest);
+    
+    // Get the normal vector at the collision site
+    vector_Subtract(&result->normal, &result->where, ellipsoid_GetCenter(ellipsoid));
+    result->normal.x *= 2.0 / (dimension->x * dimension->x);
+    result->normal.y *= 2.0 / (dimension->y * dimension->y);
+    result->normal.z *= 2.0 / (dimension->z * dimension->z);
+    vector_Normalize(&result->normal, &result->normal);
+    
+    // Done
     return SUCCESS;
 }
 
