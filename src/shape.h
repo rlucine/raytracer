@@ -45,7 +45,7 @@ typedef struct {
  * @brief Struct for storing object material data
  **************************************************************/
 typedef struct {
-    RGB color;      ///< The color of the object
+    COLOR color;        ///< The color of the object
 } MATERIAL;
 
 /**********************************************************//**

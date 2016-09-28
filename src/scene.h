@@ -36,7 +36,7 @@ typedef struct {
     double fov;         ///< Field of view in degrees
     int width;          ///< Width of the image plane
     int height;         ///< Height of the image plane
-    RGB background;     ///< The default background color
+    COLOR background;   ///< The default background color
     int nshapes;        ///< How many shapes are in the scene
     SHAPE *shapes;      ///< Array of all shapes in the scene
 } SCENE;
@@ -86,11 +86,11 @@ extern int scene_GetWidth(const SCENE *scene);
 extern int scene_GetHeight(const SCENE *scene);
 
 /**********************************************************//**
- * @brief Get the background RGB color of the scene
+ * @brief Get the background color of the scene
  * @param scene: The scene to read
  * @return Pointer to the background color
  **************************************************************/
-extern const RGB *scene_GetBackgroundColor(const SCENE *scene);
+extern const COLOR *scene_GetBackgroundColor(const SCENE *scene);
 
 /**********************************************************//**
  * @brief Get how many shapes are in the scene

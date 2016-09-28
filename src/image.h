@@ -9,20 +9,7 @@
 
 // This project
 #include "macro.h"
-
-/// @def RGB_MAX
-/// @brief The maximum value for an rgb color
-#define RGB_MAX 255
-
-/**********************************************************//**
- * @struct RGB
- * @brief Struct for 24-bit RGB colors.
- **************************************************************/
-typedef struct {
-    unsigned char r;    ///< The red part of the color 0 - 255
-    unsigned char g;    ///< The green part of the color 0 - 255
-    unsigned char b;    ///< The blue part of the color 0 - 255
-} RGB;
+#include "color.h"
 
 /**********************************************************//**
  * @struct IMAGE

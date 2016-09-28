@@ -89,15 +89,15 @@ static int raytrace_GetView(VIEWPLANE *view, const SCENE *scene) {
 /*============================================================*
  * Shader
  *============================================================*/
-static int raytrace_Shade(RGB *color, const MATERIAL *material) {
-    memcpy(color, &material->color, sizeof(RGB));
+static int raytrace_Shade(COLOR *color, const MATERIAL *material) {
+    memcpy(color, &material->color, sizeof(COLOR));
     return SUCCESS;
 }
 
 /*============================================================*
  * Cast one ray
  *============================================================*/
-static int raytrace_Cast(RGB *color, const LINE *ray, const SCENE *scene) {
+static int raytrace_Cast(COLOR *color, const LINE *ray, const SCENE *scene) {
     
     // Collision detectors
     COLLISION closest, current;
@@ -176,7 +176,7 @@ static int raytrace_Cast(RGB *color, const LINE *ray, const SCENE *scene) {
         
     } else {
         // No shapes, no collision, or inside a shape
-        memcpy(color, scene_GetBackgroundColor(scene), sizeof(RGB));
+        memcpy(color, scene_GetBackgroundColor(scene), sizeof(COLOR));
     }
     
     // Checked all shapes - valid!
@@ -236,7 +236,8 @@ int raytrace_Render(IMAGE *image, const SCENE *scene) {
     ystep.x = ystep.y = ystep.z = 0.0;
     
     // Send rays
-    RGB color;
+    COLOR color;
+    RGB rgb;
     int y = 0;
     int x = 0;
     while (y < height) {
@@ -264,7 +265,8 @@ int raytrace_Render(IMAGE *image, const SCENE *scene) {
             }
             
             // Put the color
-            if (image_SetPixel(image, x, y, &color) != SUCCESS) {
+            color_ToRgb(&rgb, &color);
+            if (image_SetPixel(image, x, y, &rgb) != SUCCESS) {
 #ifdef VERBOSE
                 fprintf(stderr, "raytrace_Render failed: Failed to set color at (%d, %d)\n", x, y);
 #endif
@@ -272,9 +274,9 @@ int raytrace_Render(IMAGE *image, const SCENE *scene) {
             }
 #ifdef DEBUG
             const RGB *what = image_GetPixel(image, x, y);
-            assert(what->r == color.r);
-            assert(what->g == color.g);
-            assert(what->b == color.b);
+            assert(what->r == rgb.r);
+            assert(what->g == rgb.g);
+            assert(what->b == rgb.b);
 #endif
             
             // Step forward in x

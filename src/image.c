@@ -14,6 +14,7 @@
 
 // This project
 #include "image.h"
+#include "color.h"
 #include "tracemalloc.h"
 
 /*============================================================*

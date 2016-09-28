@@ -11,6 +11,7 @@
 #include <ctype.h>      // isspace
 
 // This project
+#include "color.h"
 #include "image.h"
 #include "vector.h"
 #include "shape.h"
@@ -258,18 +259,6 @@ static const char *flag_GetName(int flag) {
 }
 
 /*============================================================*
- * Convert double 0.0-1.0 to RGB 0-255 value
- *============================================================*/
-static unsigned char rgb_FromDouble(double d) {
-    if (d > 1.0) {
-        return RGB_MAX;
-    } else if (d < 0.0) {
-        return 0;
-    }
-    return d * RGB_MAX;
-}
-
-/*============================================================*
  * Validate the entire scene after it has successfully parsed
  *============================================================*/
 static int scene_Validate(const SCENE *scene) {
@@ -315,7 +304,7 @@ static int scene_Validate(const SCENE *scene) {
     fprintf(stderr, "scene_Validate: Up is (%lf, %lf, %lf)\n", scene->up.x, scene->up.y, scene->up.z);
     fprintf(stderr, "scene_Validate: FovV is %lf\n", scene->fov);
     fprintf(stderr, "scene_Validate: Image size is (%d, %d)\n", scene->width, scene->height);
-    fprintf(stderr, "scene_Validate: Background color is (%d, %d, %d)\n", scene->background.r, scene->background.g, scene->background.b);
+    fprintf(stderr, "scene_Validate: Background color is (%lf, %lf, %lf)\n", scene->background.x, scene->background.y, scene->background.z);
     fprintf(stderr, "scene_Validate: Number of shapes is %d\n", scene->nshapes);
     int n = 0;
     SHAPE_TYPE type;
@@ -454,16 +443,16 @@ int scene_Decode(SCENE *scene, const char *filename) {
         
         case FLAG_BACKGROUND:
             // Found background color
-            scene->background.r = rgb_FromDouble(line.argv[0]);
-            scene->background.g = rgb_FromDouble(line.argv[1]);
-            scene->background.b = rgb_FromDouble(line.argv[2]);
+            scene->background.x = line.argv[0];
+            scene->background.y = line.argv[1];
+            scene->background.z = line.argv[2];
             break;
         
         case FLAG_MATERIAL:
             // Found material color
-            material.color.r = rgb_FromDouble(line.argv[0]);
-            material.color.g = rgb_FromDouble(line.argv[1]);
-            material.color.b = rgb_FromDouble(line.argv[2]);
+            material.color.x = line.argv[0];
+            material.color.y = line.argv[1];
+            material.color.z = line.argv[2];
             break;
         
         case FLAG_SPHERE:

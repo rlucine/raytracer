@@ -43,10 +43,10 @@ int main(void) {
     assert(scene_GetWidth(&scene) == 64);
     assert(scene_GetHeight(&scene) == 48);
     
-    const RGB *color = scene_GetBackgroundColor(&scene);
-    assert(color->r == 255);
-    assert(color->g == 0);
-    assert(color->b == 255);
+    const COLOR *color = scene_GetBackgroundColor(&scene);
+    assert(color->x == 1);
+    assert(color->y == 0);
+    assert(color->z == 1);
     
     assert(scene_GetNumberOfShapes(&scene) == 1);
     

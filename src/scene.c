@@ -44,7 +44,7 @@ int scene_GetHeight(const SCENE *scene) {
     return scene->height;
 }
 
-const RGB *scene_GetBackgroundColor(const SCENE *scene) {
+const COLOR *scene_GetBackgroundColor(const SCENE *scene) {
     return &scene->background;
 }
 
