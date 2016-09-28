@@ -45,7 +45,12 @@ typedef struct {
  * @brief Struct for storing object material data
  **************************************************************/
 typedef struct {
-    COLOR color;        ///< The color of the object
+    COLOR color;        ///< The diffuse color of the object
+    COLOR highlight;    ///< The specular color of the object
+    double ambient;     ///< The ambient reflectivity of the object
+    double diffuse;     ///< The diffuse reflectivity of the object
+    double specular;    ///< The specular reflectivity of the object
+    int exponent;       ///< The size of the specular highlight
 } MATERIAL;
 
 /**********************************************************//**

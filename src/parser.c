@@ -111,7 +111,7 @@ static int scene_ParseLine(TOKENS *line, const char *buf) {
     
     } else if (scene_HasKeyword(buf, "mtlcolor", &args)) {
         line->keyword = FLAG_MATERIAL;
-        line->argc = 3;
+        line->argc = 10;
     
     } else if (scene_HasKeyword(buf, "sphere", &args)) {
         line->keyword = FLAG_SPHERE;
@@ -135,7 +135,7 @@ static int scene_ParseLine(TOKENS *line, const char *buf) {
     }
     
     // Too many?
-    if (line->argc >= MAX_ARGS) {
+    if (line->argc > MAX_ARGS) {
 #ifdef VERBOSE
         fprintf(stderr, "parser_ParseLine failed: Tell the programmer to raise MAX_ARGS\n");
 #endif
@@ -453,6 +453,13 @@ int scene_Decode(SCENE *scene, const char *filename) {
             material.color.x = line.argv[0];
             material.color.y = line.argv[1];
             material.color.z = line.argv[2];
+            material.highlight.x = line.argv[3];
+            material.highlight.y = line.argv[4];
+            material.highlight.z = line.argv[5];
+            material.ambient = line.argv[6];
+            material.diffuse = line.argv[7];
+            material.specular = line.argv[8];
+            material.exponent = (int)line.argv[9];
             break;
         
         case FLAG_SPHERE:
