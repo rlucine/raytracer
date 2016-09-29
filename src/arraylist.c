@@ -12,6 +12,7 @@
 // This project
 #include "macro.h"
 #include "arraylist.h"
+#include "tracemalloc.h"
 
 /*============================================================*
  * Creation function
@@ -87,6 +88,7 @@ int arraylist_Append(ARRAYLIST *list, const void *item) {
         memcpy(new, list->data, list->length * list->itemsize);
         free(list->data);
         list->data = new;
+        list->maxlength *= 2;
     }
     
     // Copy the new item into the arraylist

@@ -16,6 +16,7 @@
 #include "vector.h"
 #include "shape.h"
 #include "scene.h"
+#include "arraylist.h"
 #include "tracemalloc.h"
 
 /*============================================================*
@@ -33,7 +34,8 @@ typedef enum {
     FLAG_MATERIAL   = 0x00000040,   // mtlcolor keyword
     FLAG_SPHERE     = 0x00000080,   // sphere keyword
     FLAG_ELLIPSOID  = 0x00000100,   // ellipsoid keyword
-    FLAG_SHAPE      = 0x00000180,   // All shapes
+    FLAG_LIGHT      = 0x00010000,   // light keyword
+    FLAG_SPOTLIGHT  = 0x00020000,   // spotlight keyword
 } SCENE_FLAG;
 
 /*============================================================*
@@ -120,6 +122,14 @@ static int scene_ParseLine(TOKENS *line, const char *buf) {
     } else if (scene_HasKeyword(buf, "ellipsoid", &args)) {
         line->keyword = FLAG_ELLIPSOID;
         line->argc = 6;
+        
+    } else if (scene_HasKeyword(buf, "light", &args)) {
+        line->keyword = FLAG_LIGHT;
+        line->argc = 7;
+        
+    } else if (scene_HasKeyword(buf, "spotlight", &args)) {
+        line->keyword = FLAG_SPOTLIGHT;
+        line->argc = 10;
     
     } else if (buf[0] == '#' || string_IsAllWhitespace(buf)) {
         line->keyword = FLAG_NONE;
@@ -171,56 +181,6 @@ static int scene_ParseLine(TOKENS *line, const char *buf) {
 }
 
 /*============================================================*
- * Arraylist of shapes
- *============================================================*/
-typedef struct {
-    int size;
-    int capacity;
-    SHAPE *shapes;
-} SHAPE_LIST;
-
-/*============================================================*
- * Add a shape to the shape list
- *============================================================*/
-static int shapelist_AddShape(SHAPE_LIST *shapes, SHAPE_TYPE type, void *data, MATERIAL *material) {
-    
-    // Add a new shape to the scene
-    if (!shapes->shapes || shapes->size >= shapes->capacity) {
-        
-        // Check if we can grow (no overflow)
-        if (shapes->capacity * 2 < 0) {
-#ifdef VERBOSE
-            fprintf(stderr, "shapelist_AddShape failed: Too many shapes\n");
-#endif
-            return FAILURE;
-        }
-        
-        // Grow the shape list
-        SHAPE *new;
-        if (shapes->capacity > 0) {
-            shapes->capacity *= 2;
-            new = (SHAPE *)realloc(shapes->shapes, shapes->capacity * sizeof(SHAPE));
-        } else {
-            shapes->capacity = 1;
-            new = (SHAPE *)malloc(shapes->capacity * sizeof(SHAPE));
-        }
-        
-        // Check for memory errors
-        if (!new) {
-#ifdef VERBOSE
-            fprintf(stderr, "shapelist_AddShape failed: Out of memory\n");
-#endif
-            return FAILURE;
-        }
-        shapes->shapes = new;
-    }
-    
-    // No problems - deep copy the shape into the scene
-    shape_Create(&shapes->shapes[shapes->size++], type, data, material);
-    return SUCCESS;
-}
-
-/*============================================================*
  * Convert flag to its string name
  *============================================================*/
 static const char *flag_GetName(int flag) {
@@ -251,6 +211,12 @@ static const char *flag_GetName(int flag) {
     
     case FLAG_ELLIPSOID:
         return "ellipsoid";
+        
+    case FLAG_LIGHT:
+        return "light";
+    
+    case FLAG_SPOTLIGHT:
+        return "spotlight";
     
     default:
         return NULL;
@@ -340,26 +306,35 @@ static int scene_Validate(const SCENE *scene) {
 }
 
 /*============================================================*
- * Union to store shapes on the stack
- *============================================================*/
-typedef union {
-    SPHERE sphere;
-    ELLIPSOID ellipsoid;
-} SHAPE_DATA;
-
-/*============================================================*
  * Main decoder
  *============================================================*/
 int scene_Decode(SCENE *scene, const char *filename) {
     
-    // List of all shapes in the scene
-    SHAPE_LIST shapes;
-    shapes.size = 0;
-    shapes.capacity = 0;
-    shapes.shapes = NULL;
+    // Set up scene so we don't free garbage on failure
+    scene->nshapes = 0;
+    scene->shapes = NULL;
+    scene->nlights = 0;
+    scene->lights = NULL;
+    
+    // Set up data arrays
+    ARRAYLIST shapes, lights;
+    if (arraylist_Create(&shapes, sizeof(SHAPE), 4) != SUCCESS) {
+#ifdef VERBOSE
+        fprintf(stderr, "scene_Decode failed: Cannot allocate shape data\n");
+#endif
+        return FAILURE;
+    }
+    if (arraylist_Create(&lights, sizeof(LIGHT), 4) != SUCCESS) {
+#ifdef VERBOSE
+        fprintf(stderr, "scene_Decode failed: Cannot allocate light data\n");
+#endif
+        return FAILURE;
+    }
     
     // Shapes to unpack
-    SHAPE_DATA data;
+    SHAPE shape;
+    ELLIPSOID ellipsoid;
+    SPHERE sphere;
     MATERIAL material;
     
     // Parser flags
@@ -464,15 +439,24 @@ int scene_Decode(SCENE *scene, const char *filename) {
         
         case FLAG_SPHERE:
             // Found a sphere
-            data.sphere.center.x = line.argv[0];
-            data.sphere.center.y = line.argv[1];
-            data.sphere.center.z = line.argv[2];
-            data.sphere.radius = line.argv[3];
+            sphere.center.x = line.argv[0];
+            sphere.center.y = line.argv[1];
+            sphere.center.z = line.argv[2];
+            sphere.radius = line.argv[3];
+            
+            // Generate shape to copy in to list
+            if (shape_CreateSphere(&shape, &sphere, &material) != SUCCESS) {
+#ifdef VERBOSE
+                fprintf(stderr, "scene_Decode failed: Unable to allocate new sphere\n");
+#endif
+                failure = 1;
+                continue;
+            }
             
             // Add shape to list
-            if (shapelist_AddShape(&shapes, SHAPE_SPHERE, &data.sphere, &material) != SUCCESS) {
+            if (arraylist_Append(&shapes, &shape) != SUCCESS) {
 #ifdef VERBOSE
-                fprintf(stderr, "scene_Decode failed: Too many shapes\n");
+                fprintf(stderr, "scene_Decode failed: Unable to store new sphere\n");
 #endif
                 failure = 1;
                 continue;
@@ -481,22 +465,37 @@ int scene_Decode(SCENE *scene, const char *filename) {
             
         case FLAG_ELLIPSOID:
             // Found an ellipsoid
-            data.ellipsoid.center.x = line.argv[0];
-            data.ellipsoid.center.y = line.argv[1];
-            data.ellipsoid.center.z = line.argv[2];
-            data.ellipsoid.dimension.x = line.argv[3];
-            data.ellipsoid.dimension.y = line.argv[4];
-            data.ellipsoid.dimension.z = line.argv[5];
+            ellipsoid.center.x = line.argv[0];
+            ellipsoid.center.y = line.argv[1];
+            ellipsoid.center.z = line.argv[2];
+            ellipsoid.dimension.x = line.argv[3];
+            ellipsoid.dimension.y = line.argv[4];
+            ellipsoid.dimension.z = line.argv[5];
+            
+            // Generate shape to copy in to list
+            if (shape_CreateEllipsoid(&shape, &ellipsoid, &material) != SUCCESS) {
+#ifdef VERBOSE
+                fprintf(stderr, "scene_Decode failed: Unable to allocate new ellipsoid\n");
+#endif
+                failure = 1;
+                continue;
+            }
             
             // Add shape to list
-            if (shapelist_AddShape(&shapes, SHAPE_ELLIPSOID, &data.ellipsoid, &material) != SUCCESS) {
+            if (arraylist_Append(&shapes, &shape) != SUCCESS) {
 #ifdef VERBOSE
-                fprintf(stderr, "scene_Decode failed: Too many shapes\n");
+                fprintf(stderr, "scene_Decode failed: Unable to store new sphere\n");
 #endif
                 failure = 1;
                 continue;
             }
             break;
+            
+        case FLAG_LIGHT:
+            // TODO found a light
+            
+        case FLAG_SPOTLIGHT:
+            // TODO found a spotlight
             
         default:
             // Invalid line keyword
@@ -512,8 +511,14 @@ int scene_Decode(SCENE *scene, const char *filename) {
     fclose(file);
     
     // Move shapes arraylist into scene
-    scene->nshapes = shapes.size;
-    scene->shapes = shapes.shapes;
+    arraylist_Compress(&shapes);
+    scene->nshapes = arraylist_Length(&shapes);
+    scene->shapes = (SHAPE *)arraylist_GetData(&shapes);
+    
+    // Move lights into scene
+    arraylist_Compress(&lights);
+    scene->nlights = arraylist_Length(&lights);
+    scene->lights = (LIGHT *)arraylist_GetData(&shapes);
 
      // Check any failure here to standardize cleanup
     if (failure) {
@@ -523,19 +528,17 @@ int scene_Decode(SCENE *scene, const char *filename) {
     }
 
     // Check missing flags
-    if (!failure) {
-        int missing = ~flags & FLAG_REQUIRED;
-        if (missing) {
-            int which = 1;
-            while (!(missing & which)) {
-                which <<= 1;
-            }
-#ifdef VERBOSE
-            fprintf(stderr, "scene_Decode failed: Missing %s definition\n", flag_GetName(which));
-#endif
-            scene_Destroy(scene);
-            return FAILURE;
+    int missing = ~flags & FLAG_REQUIRED;
+    if (missing) {
+        int which = 1;
+        while (!(missing & which)) {
+            which <<= 1;
         }
+#ifdef VERBOSE
+        fprintf(stderr, "scene_Decode failed: Missing %s definition\n", flag_GetName(which));
+#endif
+        scene_Destroy(scene);
+        return FAILURE;
     }
        
     // Must validate scene

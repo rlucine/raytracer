@@ -12,6 +12,7 @@
 #include "image.h"
 #include "vector.h"
 #include "shape.h"
+#include "light.h"
 
 /*============================================================*
  * Constants
@@ -39,6 +40,8 @@ typedef struct {
     COLOR background;   ///< The default background color
     int nshapes;        ///< How many shapes are in the scene
     SHAPE *shapes;      ///< Array of all shapes in the scene
+    int nlights;        ///< How many lights are in the scene
+    LIGHT *lights;      ///< Array of all lights in the scene
 } SCENE;
 
 /**********************************************************//**
