@@ -177,6 +177,7 @@ static int sphere_Collide(const SPHERE *sphere, const LINE *ray, COLLISION *resu
     result->how = COLLISION_SURFACE;
     result->distance = tclosest;
     vector_Multiply(&result->where, &unit_direction, tclosest);
+    vector_Add(&result->where, &result->where, &ray->origin);
     
     // Get normal vector at collision
     vector_Subtract(&result->normal, &result->where, sphere_GetCenter(sphere));
@@ -260,6 +261,7 @@ static int ellipsoid_Collide(const ELLIPSOID *ellipsoid, const LINE *ray, COLLIS
     result->how = COLLISION_SURFACE;
     result->distance = tclosest;
     vector_Multiply(&result->where, &unit, tclosest);
+    vector_Add(&result->where, &result->where, &ray->origin);
     
     // Get the normal vector at the collision site
     vector_Subtract(&result->normal, &result->where, ellipsoid_GetCenter(ellipsoid));
@@ -276,6 +278,9 @@ static int ellipsoid_Collide(const ELLIPSOID *ellipsoid, const LINE *ray, COLLIS
  * Generalized geometry
  *============================================================*/
 int shape_Collide(const SHAPE *shape, const LINE *ray, COLLISION *result) {
+    
+    // Get collision material
+    result->material = &shape->material;
     
     // Map to specific collision checking functions
     switch (shape->shape) {
