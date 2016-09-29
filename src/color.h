@@ -20,7 +20,7 @@
 
 /// @def RGB_MIN
 /// @brief The minimum value for an RGB color
-#define RGB_MAX 0
+#define RGB_MIN 0
 
 /// @def COLOR_MAX
 /// @brief The maximum value for a COLOR component
@@ -28,7 +28,7 @@
 
 /// @def COLOR_MIN
 /// @brief The minimum value for a COLOR component
-#define COLOR_MAX 0.0
+#define COLOR_MIN 0.0
 
 /**********************************************************//**
  * @struct RGB
