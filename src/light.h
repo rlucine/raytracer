@@ -39,6 +39,15 @@ typedef struct {
 } LIGHT;
 
 /**********************************************************//**
+ * @brief Get the direction to the light.
+ * @param light: The light to calculate shading for
+ * @param where: The point to calculate the direction from.
+ * @param output: The resulting direction.
+ * @return SUCCESS or FAILURE
+ **************************************************************/
+extern int light_GetDirection(const LIGHT *light, const POINT *where, VECTOR *output, double *distance);
+
+/**********************************************************//**
  * @brief Calculate the Blinn-Phong shading for one light at the
  * given collision location.
  * @param light: The light to calculate shading for
@@ -47,7 +56,7 @@ typedef struct {
  * @param color: Output location for the color
  * @return SUCCESS or FAILURE
  **************************************************************/
-extern int light_BlinnPhongShade(const LIGHT *light, const COLLISION *collision, const VECTOR *view, COLOR *color);
+extern int light_BlinnPhongShade(const LIGHT *light, const COLLISION *collision, const POINT *eye, COLOR *color);
 
 /*============================================================*/
 #endif // _LIGHT_H_
