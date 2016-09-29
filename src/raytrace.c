@@ -9,6 +9,7 @@
 #include <math.h>       // tan, atan, INFINITY ...
 #include <stdio.h>      // fprintf, stderr ...
 #include <assert.h>     // assert
+#include <float.h>      // DBL_EPSILON
 
 // This project
 #include "image.h"
@@ -87,14 +88,6 @@ static int raytrace_GetView(VIEWPLANE *view, const SCENE *scene) {
 }
 
 /*============================================================*
- * Shader
- *============================================================*/
-static int raytrace_Shade(COLOR *color, const MATERIAL *material) {
-    memcpy(color, &material->color, sizeof(COLOR));
-    return SUCCESS;
-}
-
-/*============================================================*
  * Cast one ray
  *============================================================*/
 static int raytrace_Cast(COLLISION *closest, const LINE *ray, const SCENE *scene) {
@@ -149,7 +142,7 @@ static int raytrace_Cast(COLLISION *closest, const LINE *ray, const SCENE *scene
 #ifdef DEBUG
     switch (closest->how) {
     case COLLISION_SURFACE:
-        fprintf(stderr, "raytrace_Cast: Collided with %d at distance %lf\n", who, closest->distance);
+        fprintf(stderr, "raytrace_Cast: Collided with %d at (%lf, %lf, %lf)\n", who, closest->where.x, closest->where.y, closest->where.z);
         break;
     
     case COLLISION_INSIDE:
@@ -171,6 +164,104 @@ static int raytrace_Cast(COLLISION *closest, const LINE *ray, const SCENE *scene
     }
 
     // Checked all shapes - valid!
+    return SUCCESS;
+}
+
+/*============================================================*
+ * Shadowing
+ *============================================================*/
+#ifdef SHADOWS
+static int raytrace_Shadow(double *shadows, const POINT *where, const LIGHT *light, const SCENE *scene) {
+    
+    // Set up ray pointing to light
+    LINE ray;
+    double distance;
+    memcpy(&ray.origin, where, sizeof(POINT));
+    if (light_GetDirection(light, where, &ray.direction, &distance) != SUCCESS) {
+#ifdef VERBOSE
+        fprintf(stderr, "raytrace_Shadow failed: Invalid light\n");
+#endif
+        return FAILURE;
+    }
+    
+    // Fire the ray
+    COLLISION collision;
+    if (raytrace_Cast(&collision, &ray, scene) != SUCCESS) {
+#ifdef VERBOSE
+        fprintf(stderr, "raytrace_Shadow failed: Failed to shoot shadow ray\n");
+#endif
+        return FAILURE;
+    }
+    
+    // Check collisions
+    if (collision.how != COLLISION_NONE && collision.distance < distance && collision.distance > DBL_EPSILON) {
+        // Something in between the light and us, and it isn't ourself!
+        *shadows = 0.0;
+        return SUCCESS;
+    }
+    *shadows = 1.0;
+    return SUCCESS;
+}
+#endif
+
+/*============================================================*
+ * Shader
+ *============================================================*/
+static int raytrace_Shade(COLOR *color, const COLLISION *collision, const SCENE *scene) {
+    
+    // Set the ambient color of the object
+    const MATERIAL *material = collision->material;
+    vector_Multiply(color, &material->color, material->ambient);
+    
+    // Add up component for each light
+    COLOR temp;
+#ifdef SHADOWS
+    double shadows;
+#endif
+    int i;
+    int max = scene_GetNumberOfLights(scene);
+    const LIGHT *light;
+    for (i = 0; i < max; i++) {
+        // Check for shadows
+        light = scene_GetLight(scene, i);
+        
+#ifdef SHADOWS
+        if (raytrace_Shadow(&shadows, &collision->where, light, scene) != SUCCESS) {
+#ifdef VERBOSE
+            fprintf(stderr, "raytrace_Shade failed: Failed to check shadows\n");
+#endif
+            return FAILURE;
+        }
+        
+        // No contribution from this light
+        // TODO check float error
+        if (shadows == 0.0) {
+#ifdef DEBUG
+            fprintf(stderr, "raytrace_Shade: Light obstructed\n");
+#endif
+            continue;
+        }
+#endif
+        
+        // Get shading for this light
+        if (light_BlinnPhongShade(light, collision, &scene->eye, &temp) != SUCCESS) {
+#ifdef DEBUG
+            fprintf(stderr, "raytrace_Shade: Shape outside of light area\n");
+#endif
+            continue;
+        }
+        
+        // Scale light by shadows
+#ifdef SHADOWS
+        vector_Multiply(&temp, &temp, shadows);
+#endif
+        
+        // Add light contributions
+        vector_Add(color, color, &temp);
+    }
+    
+    // Added contribution for every light
+    color_Clamp(color);
     return SUCCESS;
 }
 
@@ -259,7 +350,7 @@ int raytrace_Render(IMAGE *image, const SCENE *scene) {
             // Determine color
             if (collision.how != COLLISION_NONE) {
                 // Collided with the surface of the shape
-                if (raytrace_Shade(&color, collision.material) != SUCCESS) {
+                if (raytrace_Shade(&color, &collision, scene) != SUCCESS) {
         #ifdef VERBOSE
                     fprintf(stderr, "raytrace_Cast: Shader failed\n");
         #endif
