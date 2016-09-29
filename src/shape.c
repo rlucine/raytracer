@@ -90,10 +90,6 @@ const ELLIPSOID *shape_GetEllipsoid(const SHAPE *shape) {
     return NULL;
 }
 
-SHAPE_TYPE shape_GetGeometry(const SHAPE *shape) {
-    return shape->shape;
-}
-
 /*============================================================*
  * Sphere accessors
  *============================================================*/

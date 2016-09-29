@@ -148,14 +148,6 @@ extern const SPHERE *shape_GetSphere(const SHAPE *shape);
 extern const ELLIPSOID *shape_GetEllipsoid(const SHAPE *shape);
 
 /**********************************************************//**
- * @brief Determine the shape's geometry.
- * @param shape: The shape to read
- * @return The SHAPE_TYPE representing the geometry, or
- * SHAPE_NONE on failure.
- **************************************************************/
-extern SHAPE_TYPE shape_GetGeometry(const SHAPE *shape);
-
-/**********************************************************//**
  * @brief Generalized collision function for all SHAPE_TYPE
  * @param shape: The shape to collide with
  * @param ray: The line to intersect with the shape
