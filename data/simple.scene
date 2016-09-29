@@ -5,13 +5,14 @@
 #####################################
 
 # Header information
-eye			0	0	0
-viewdir	    0	0	-1
-updir		0  1	0
-fovv		60
-imsize		3   3
-bkgcolor	0 0 0
+eye 0 0 4
+viewdir 0 0 -1
+updir 0 1 0
+fovv 60
+imsize 63 63
+bkgcolor 0 0 0
 
 # Shape information
-mtlcolor	1	0	0
-sphere		0	0	-4	1
+light 0 0 1 0 1 1 1
+mtlcolor 1 0 0 1 1 1 0.1 0.4 0.4 100
+sphere 0 0 0 1
