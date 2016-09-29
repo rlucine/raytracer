@@ -90,22 +90,30 @@ typedef struct {
 } COLLISION;
 
 /**********************************************************//**
- * @brief Construct a shape of the given properties.
+ * @brief Construct a sphere shape of the given properties.
  * @param shape: The shape to construct. It must be destroyed
  * with shape_Destroy if this function is successful. If this
  * function is not successful, it will clean up any memory
  * allocations and shape_Destroy will not work.
- * @param type: The shape type. This must correspond exactly
- * with the type of data pointed to by the data pointer.
- * @param data: Pointer to a block of data corresponding to
- * the shape type. SPHERE* or ELLIPSOID* are valid. The data
- * may be destroyed after calling this function, as all the
- * target data is copied.
+ * @param sphere: Pointer to SPHERE definition
  * @param material: Pointer to the material properties. The
  * data pointed to may be destroyed after calling this function.
  * @return SUCCESS or FAILURE
  **************************************************************/
-extern int shape_Create(SHAPE *shape, SHAPE_TYPE type, const void *data, const MATERIAL *material);
+extern int shape_CreateSphere(SHAPE *shape, const SPHERE *sphere, const MATERIAL *material);
+
+/**********************************************************//**
+ * @brief Construct an ellipsoid shape of the given properties.
+ * @param shape: The shape to construct. It must be destroyed
+ * with shape_Destroy if this function is successful. If this
+ * function is not successful, it will clean up any memory
+ * allocations and shape_Destroy will not work.
+ * @param ellipsoid: Pointer to ELLIPSOID definition
+ * @param material: Pointer to the material properties. The
+ * data pointed to may be destroyed after calling this function.
+ * @return SUCCESS or FAILURE
+ **************************************************************/
+extern int shape_CreateEllipsoid(SHAPE *shape, const ELLIPSOID *ellipsoid, const MATERIAL *material);
 
 /**********************************************************//**
  * @brief Destroy a shape struct that has been initialized by
@@ -146,58 +154,6 @@ extern const ELLIPSOID *shape_GetEllipsoid(const SHAPE *shape);
  * SHAPE_NONE on failure.
  **************************************************************/
 extern SHAPE_TYPE shape_GetGeometry(const SHAPE *shape);
-
-/**********************************************************//**
- * @brief Get the center of the sphere.
- * @param sphere: The sphere to read
- * @return Pointer to the POINT of the center of the sphere
- **************************************************************/
-extern const POINT *sphere_GetCenter(const SPHERE *sphere);
-
-/**********************************************************//**
- * @brief Get the radius of the sphere.
- * @param sphere: The sphere to read
- * @return The positive value of the radius
- **************************************************************/
-extern double sphere_GetRadius(const SPHERE *sphere);
-
-/**********************************************************//**
- * @brief Get the center of the ellipsoid.
- * @param ellipsoid: The ellipsoid to read
- * @return Pointer to the POINT of the center of the ellipsoid
- **************************************************************/
-extern const POINT *ellipsoid_GetCenter(const ELLIPSOID *ellipsoid);
-
-/**********************************************************//**
- * @brief Get the dimensions of the ellipsoid as a vector.
- * @param ellipsoid: The ellipsoid to read
- * @return Pointer to the VECTOR containing the dimensions
- **************************************************************/
-extern const VECTOR *ellipsoid_GetDimension(const ELLIPSOID *ellipsoid);
-
-/**********************************************************//**
- * @brief Collide the line with the sphere and generate
- * collision data.
- * @param sphere: The sphere to collide with
- * @param ray: The line to intersect with the sphere
- * @param result: Output location for collision data. If the
- * collision type is COLLISION_NONE, no other data fields will
- * be valid. Otherwise, all data fields will be written to.
- * @return SUCCESS or FAILURE
- **************************************************************/
-extern int sphere_Collide(const SPHERE *sphere, const LINE *ray, COLLISION *result);
-
-/**********************************************************//**
- * @brief Collide the line with the ellipsoid and generate
- * collision data.
- * @param ellipsoid: The ellipsoid to collide with
- * @param ray: The line to intersect with the ellipsoid
- * @param result: Output location for collision data. If the
- * collision type is COLLISION_NONE, no other data fields will
- * be valid. Otherwise, all data fields will be written to.
- * @return SUCCESS or FAILURE
- **************************************************************/
-extern int ellipsoid_Collide(const ELLIPSOID *ellipsoid, const LINE *ray, COLLISION *result);
 
 /**********************************************************//**
  * @brief Generalized collision function for all SHAPE_TYPE

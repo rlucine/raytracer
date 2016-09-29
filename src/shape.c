@@ -16,52 +16,46 @@
 #include "image.h"
 #include "vector.h"
 #include "shape.h"
+#include "tracemalloc.h"
 
 /*============================================================*
  * Shape creation
  *============================================================*/
-int shape_Create(SHAPE *shape, SHAPE_TYPE type, const void *data, const MATERIAL *material) {
-    // Initialize a shape with the given data
-    shape->shape = type;
+int shape_CreateSphere(SHAPE *shape, const SPHERE *sphere, const MATERIAL *material) {
+    // Initialize a new sphere
+    shape->shape = SHAPE_SPHERE;
     
-    // Get the size of the data block
-    size_t size;
-    switch (type) {
-    case SHAPE_SPHERE:
-        size = sizeof(SPHERE);
-        break;
-    
-    case SHAPE_ELLIPSOID:
-        size = sizeof(ELLIPSOID);
-        break;
-    
-    default:
-        size = 0;
-        break;
-    }
-    
-    // Check size
-    if (!size) {
-#ifdef VERBOSE
-        fprintf(stderr, "shape_Create failed: Invalid shape type %d\n", type);
-#endif
-        return FAILURE;
-    }
-    
-    // Copy data
-    shape->data = (void *)malloc(size);
+    // Copy data into the shape
+    shape->data = malloc(sizeof(SPHERE));
     if (!shape->data) {
 #ifdef VERBOSE
-        fprintf(stderr, "shape_Create failed: Out of memory\n");
+        fprintf(stderr, "shape_CreateSphere failed: Out of memory\n");
 #endif
         return FAILURE;
     }
-    memcpy(shape->data, data, size);
+    memcpy(shape->data, sphere, sizeof(SPHERE));
     
-    // Copy material
+    // Copy material into shape
     memcpy(&shape->material, material, sizeof(MATERIAL));
+    return SUCCESS;
+}
+
+int shape_CreateEllipsoid(SHAPE *shape, const ELLIPSOID *ellipsoid, const MATERIAL *material) {
+    // Initialize a new ellipsoid
+    shape->shape = SHAPE_ELLIPSOID;
     
-    // Done
+    // Copy data into the shape
+    shape->data = malloc(sizeof(ELLIPSOID));
+    if (!shape->data) {
+#ifdef VERBOSE
+        fprintf(stderr, "shape_CreateEllipsoid failed: Out of memory\n");
+#endif
+        return FAILURE;
+    }
+    memcpy(shape->data, ellipsoid, sizeof(ELLIPSOID));
+    
+    // Copy material into shape
+    memcpy(&shape->material, material, sizeof(MATERIAL));
     return SUCCESS;
 }
 
@@ -103,29 +97,29 @@ SHAPE_TYPE shape_GetGeometry(const SHAPE *shape) {
 /*============================================================*
  * Sphere accessors
  *============================================================*/
-const POINT *sphere_GetCenter(const SPHERE *sphere) {
+static const POINT *sphere_GetCenter(const SPHERE *sphere) {
     return &sphere->center;
 }
 
-double sphere_GetRadius(const SPHERE *sphere) {
+static double sphere_GetRadius(const SPHERE *sphere) {
     return sphere->radius;
 }
 
 /*============================================================*
  * Ellipsoid accessors
  *============================================================*/
-const POINT *ellipsoid_GetCenter(const ELLIPSOID *ellipsoid) {
+static const POINT *ellipsoid_GetCenter(const ELLIPSOID *ellipsoid) {
     return &ellipsoid->center;
 }
 
-const VECTOR *ellipsoid_GetDimension(const ELLIPSOID *ellipsoid) {
+static const VECTOR *ellipsoid_GetDimension(const ELLIPSOID *ellipsoid) {
     return &ellipsoid->dimension;
 }
 
 /*============================================================*
  * Sphere geometry
  *============================================================*/
-int sphere_Collide(const SPHERE *sphere, const LINE *ray, COLLISION *result) {
+static int sphere_Collide(const SPHERE *sphere, const LINE *ray, COLLISION *result) {
     
     // Error checking
     if (vector_IsZero(&ray->direction)) {
@@ -199,7 +193,7 @@ int sphere_Collide(const SPHERE *sphere, const LINE *ray, COLLISION *result) {
 /*============================================================*
  * Ellipsoid geometry
  *============================================================*/
-int ellipsoid_Collide(const ELLIPSOID *ellipsoid, const LINE *ray, COLLISION *result) {
+static int ellipsoid_Collide(const ELLIPSOID *ellipsoid, const LINE *ray, COLLISION *result) {
     
     // Error checking
     if (vector_IsZero(&ray->direction)) {
