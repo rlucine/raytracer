@@ -15,8 +15,20 @@
  *============================================================*/
 
 /// @def RGB_MAX
-/// @brief The maximum value for an rgb color
+/// @brief The maximum value for an RGB color
 #define RGB_MAX 255
+
+/// @def RGB_MIN
+/// @brief The minimum value for an RGB color
+#define RGB_MAX 0
+
+/// @def COLOR_MAX
+/// @brief The maximum value for a COLOR component
+#define COLOR_MAX 1.0
+
+/// @def COLOR_MIN
+/// @brief The minimum value for a COLOR component
+#define COLOR_MAX 0.0
 
 /**********************************************************//**
  * @struct RGB
@@ -49,6 +61,13 @@ extern void color_ToRgb(RGB *rgb, const COLOR *color);
  * @param rgb: The rgb struct to read.
  **************************************************************/
 extern void rgb_ToColor(COLOR *color, const RGB *rgb);
+
+/**********************************************************//**
+ * @brief Clamp the color in the proper range from COLOR_MIN
+ * to COLOR_MAX.
+ * @param color: The color to clamp.
+ **************************************************************/
+extern void color_Clamp(COLOR *color);
 
 /*============================================================*/
 #endif // _COLOR_H_
