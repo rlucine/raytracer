@@ -114,6 +114,24 @@ extern int scene_GetNumberOfShapes(const SCENE *scene);
 extern const SHAPE *scene_GetShape(const SCENE *scene, int index);
 
 /**********************************************************//**
+ * @brief Get how many lights are in the scene
+ * @param scene: The scene to read
+ * @return The number of lights in the scene. scene_GetLight
+ * is guaranteed not to fail for non-negative int less than
+ * this returned value.
+ **************************************************************/
+extern int scene_GetNumberOfLights(const SCENE *scene);
+
+/**********************************************************//**
+ * @brief Get the light from the scene
+ * @param scene: The scene to read
+ * @param index: Light index from 0 to the number of lights
+ * minus one.
+ * @return Pointer to the light
+ **************************************************************/
+extern const LIGHT *scene_GetLight(const SCENE *scene, int index);
+
+/**********************************************************//**
  * @brief Destroy the SCENE structure. The structure cannot
  * have been destroyed already, and must have been initialized.
  * @param scene: The sturcture to destroy. The structure may

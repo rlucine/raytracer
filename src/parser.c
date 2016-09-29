@@ -271,30 +271,73 @@ static int scene_Validate(const SCENE *scene) {
     fprintf(stderr, "scene_Validate: FovV is %lf\n", scene->fov);
     fprintf(stderr, "scene_Validate: Image size is (%d, %d)\n", scene->width, scene->height);
     fprintf(stderr, "scene_Validate: Background color is (%lf, %lf, %lf)\n", scene->background.x, scene->background.y, scene->background.z);
+    
+    // Printing shapes
     fprintf(stderr, "scene_Validate: Number of shapes is %d\n", scene->nshapes);
     int n = 0;
-    SHAPE_TYPE type;
+    const SHAPE *shape;
+    const MATERIAL *material;
     const SPHERE *sphere;
     const ELLIPSOID *ellipsoid;
     while (n < scene->nshapes) {
-        type = shape_GetGeometry(&scene->shapes[n]);
-        switch (type) {
+        shape = scene_GetShape(scene, n);
+        switch (shape->shape) {
         case SHAPE_SPHERE:
             fprintf(stderr, "scene_Validate: Shape %d is a sphere\n", n);
-            sphere = shape_GetSphere(&scene->shapes[n]);
+            sphere = shape_GetSphere(shape);
             fprintf(stderr, "scene_Validate: Radius is %lf\n", sphere->radius);
             fprintf(stderr, "scene_Validate: Center is (%lf, %lf, %lf)\n", sphere->center.x, sphere->center.y, sphere->center.z);
             break;
         
         case SHAPE_ELLIPSOID:
             fprintf(stderr, "scene_Validate: Shape %d is an ellipsoid\n", n);
-            ellipsoid = shape_GetEllipsoid(&scene->shapes[n]);
+            ellipsoid = shape_GetEllipsoid(shape);
             fprintf(stderr, "scene_Validate: Dimensions are (%lf, %lf, %lf)\n", ellipsoid->dimension.x, ellipsoid->dimension.y, ellipsoid->dimension.z);
             fprintf(stderr, "scene_Validate: Center is (%lf, %lf, %lf)\n", ellipsoid->center.x, ellipsoid->center.y, ellipsoid->center.z);
             break;
         
         default:
             fprintf(stderr, "scene_Validate: Shape %d is undefined\n", n);
+            continue;
+        }
+        
+        // Print material properties
+        material = shape_GetMaterial(shape);
+        fprintf(stderr, "scene_Validate: Color is (%lf, %lf, %lf)\n", material->color.x, material->color.y, material->color.z);
+        fprintf(stderr, "scene_Validate: Highlight is (%lf, %lf, %lf)\n", material->highlight.x, material->highlight.y, material->highlight.z);
+        fprintf(stderr, "scene_Validate: Ka=%lf, Kd=%lf, Ks=%lf, n=%d\n", material->ambient, material->diffuse, material->specular, material->exponent);
+        
+        n++;
+    }
+    
+    // Printing lights
+    fprintf(stderr, "scene_Validate: Number of lights is %d\n", scene->nlights);
+    n = 0;
+    const LIGHT *light;
+    while (n < scene->nlights) {
+        light = scene_GetLight(scene, n);
+        switch (light->type) {
+        case LIGHT_POINT:
+            fprintf(stderr, "scene_Validate: Light %d is a point\n", n);
+            fprintf(stderr, "scene_Validate: Position is (%lf, %lf, %lf)\n", light->where.x, light->where.y, light->where.z);
+            fprintf(stderr, "scene_Validate: Color is (%lf, %lf, %lf)\n", light->color.x, light->color.y, light->color.z);
+            break;
+        
+        case LIGHT_DIRECTED:
+            fprintf(stderr, "scene_Validate: Light %d is a direction\n", n);
+            fprintf(stderr, "scene_Validate: Direction is (%lf, %lf, %lf)\n", light->direction.x, light->direction.y, light->direction.z);
+            fprintf(stderr, "scene_Validate: Color is (%lf, %lf, %lf)\n", light->color.x, light->color.y, light->color.z);
+            break;
+            
+        case LIGHT_SPOT:
+            fprintf(stderr, "scene_Validate: Light %d is a spotlight\n", n);
+            fprintf(stderr, "scene_Validate: Position is (%lf, %lf, %lf)\n", light->where.x, light->where.y, light->where.z);
+            fprintf(stderr, "scene_Validate: Direction is (%lf, %lf, %lf)\n", light->direction.x, light->direction.y, light->direction.z);
+            fprintf(stderr, "scene_Validate: Color is (%lf, %lf, %lf)\n", light->color.x, light->color.y, light->color.z);
+            break;
+        
+        default:
+            fprintf(stderr, "scene_Validate: Light %d is undefined\n", n);
             break;
         }
         n++;
@@ -318,13 +361,13 @@ int scene_Decode(SCENE *scene, const char *filename) {
     
     // Set up data arrays
     ARRAYLIST shapes, lights;
-    if (arraylist_Create(&shapes, sizeof(SHAPE), 4) != SUCCESS) {
+    if (arraylist_Create(&shapes, sizeof(SHAPE), 8) != SUCCESS) {
 #ifdef VERBOSE
         fprintf(stderr, "scene_Decode failed: Cannot allocate shape data\n");
 #endif
         return FAILURE;
     }
-    if (arraylist_Create(&lights, sizeof(LIGHT), 4) != SUCCESS) {
+    if (arraylist_Create(&lights, sizeof(LIGHT), 8) != SUCCESS) {
 #ifdef VERBOSE
         fprintf(stderr, "scene_Decode failed: Cannot allocate light data\n");
 #endif
@@ -336,6 +379,7 @@ int scene_Decode(SCENE *scene, const char *filename) {
     ELLIPSOID ellipsoid;
     SPHERE sphere;
     MATERIAL material;
+    LIGHT light;
     
     // Parser flags
     int flags = 0;
@@ -492,15 +536,62 @@ int scene_Decode(SCENE *scene, const char *filename) {
             break;
             
         case FLAG_LIGHT:
-            // TODO found a light
+            // Found a point or directed light
+            if (line.argv[3] == 0.0) {
+                // Directed light
+                light.type = LIGHT_DIRECTED;
+                light.direction.x = line.argv[0];
+                light.direction.y = line.argv[1];
+                light.direction.z = line.argv[2];
+            } else {
+                // Point light
+                light.type = LIGHT_POINT;
+                light.where.x = line.argv[0];
+                light.where.y = line.argv[1];
+                light.where.z = line.argv[2];
+            }
+            light.color.x = line.argv[4];
+            light.color.y = line.argv[5];
+            light.color.z = line.argv[6];
+            
+            // Add light to list
+            if (arraylist_Append(&lights, &light) != SUCCESS) {
+#ifdef VERBOSE
+                fprintf(stderr, "scene_Decode failed: Unable to store new light\n");
+#endif
+                failure = 1;
+                continue;
+            }
+            break;
             
         case FLAG_SPOTLIGHT:
-            // TODO found a spotlight
+            // Found a spotlight
+            light.type = LIGHT_SPOT;
+            light.where.x = line.argv[0];
+            light.where.y = line.argv[1];
+            light.where.z = line.argv[2];
+            light.direction.x = line.argv[3];
+            light.direction.y = line.argv[4];
+            light.direction.z = line.argv[5];
+            light.angle = line.argv[6];
+            light.color.x = line.argv[7];
+            light.color.y = line.argv[8];
+            light.color.z = line.argv[9];
+            
+            // Add light to list
+            if (arraylist_Append(&lights, &light) != SUCCESS) {
+#ifdef VERBOSE
+                fprintf(stderr, "scene_Decode failed: Unable to store new light\n");
+#endif
+                failure = 1;
+                continue;
+            }
+            break;
             
         default:
             // Invalid line keyword
 #ifdef VERBOSE
-            fprintf(stderr, "scene_Decode failed: Invalid like keyword %d\n", line.keyword);
+            fprintf(stderr, "scene_Decode failed: Invalid line keyword %d\n", line.keyword);
 #endif
             failure = 1;
             continue;
@@ -518,7 +609,7 @@ int scene_Decode(SCENE *scene, const char *filename) {
     // Move lights into scene
     arraylist_Compress(&lights);
     scene->nlights = arraylist_Length(&lights);
-    scene->lights = (LIGHT *)arraylist_GetData(&shapes);
+    scene->lights = (LIGHT *)arraylist_GetData(&lights);
 
      // Check any failure here to standardize cleanup
     if (failure) {

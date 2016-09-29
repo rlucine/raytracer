@@ -15,6 +15,7 @@
 #include "vector.h"
 #include "shape.h"
 #include "scene.h"
+#include "light.h"
 #include "tracemalloc.h"
 
 /*============================================================*
@@ -54,6 +55,14 @@ int scene_GetNumberOfShapes(const SCENE *scene) {
 
 const SHAPE *scene_GetShape(const SCENE *scene, int index) {
     return &scene->shapes[index];
+}
+
+int scene_GetNumberOfLights(const SCENE *scene) {
+    return scene->nlights;
+}
+
+const LIGHT *scene_GetLight(const SCENE *scene, int index) {
+    return &scene->lights[index];
 }
 
 /*============================================================*
