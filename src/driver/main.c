@@ -16,7 +16,8 @@
  **************************************************************/
 
 // Standard library
-#include <stdlib.h>     // malloc
+#include <stdlib.h>     // malloc, srand
+#include <time.h>       // time
 #include <stdio.h>      // printf, fopen, fclose ...
 #include <string.h>     // strcmp, strncmp, strlen ...
 #include <assert.h>     // assert
@@ -34,6 +35,13 @@
  * @brief Driver function for raytracer
  **************************************************************/
 int main(int argc, char **argv) {
+    
+    // Random number generator setup
+#ifdef DEBUG
+    srand(42);
+#else
+    srand(time(NULL));
+#endif
     
     // Command-line args
     const char *filename = NULL;

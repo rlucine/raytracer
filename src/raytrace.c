@@ -5,6 +5,7 @@
  **************************************************************/
 
 // Standard library
+#include <stdlib.h>     // rand, RAND_MAX
 #include <string.h>     // memcpy
 #include <math.h>       // tan, atan, INFINITY ...
 #include <stdio.h>      // fprintf, stderr ...
@@ -21,10 +22,28 @@
 /*============================================================*
  * Constants
  *============================================================*/
+
+// Distance of viewing plane from eye
 #define VIEW_DISTANCE 1.0
-#define SHADOW_THRESHOLD (1.0/255)
+
+// Considered completely dark if under this value
+// because 0.003 < (1 / 255)
+#define SHADOW_THRESHOLD 0.003
+
+// Only consider collisions greater than this distance for
+// shadow casting.
 #define COLLISION_THRESHOLD DBL_EPSILON
 
+// Perturb the ray origin by this amount for more precise
+// shadow casting.
+#define PERTURB_DISTANCE 0.1
+
+// Number of shadow rays to shoot
+#define SHADOW_PRECISION 30
+
+/*============================================================*
+ * Viewing plane
+ *============================================================*/
 typedef struct {
     POINT origin;   // Upper left corner
     VECTOR u;       // Unit vector u
@@ -172,6 +191,12 @@ static int raytrace_Cast(COLLISION *closest, const LINE *ray, const SCENE *scene
 /*============================================================*
  * Shadowing
  *============================================================*/
+static double uniform(double a, double b) {
+    // Generate random double for perturbation
+    double unit = (double)rand() / (double)(RAND_MAX - 1);
+    return a + (b - a)*unit;
+}
+
 static int raytrace_Shadow(const POINT *where, const LIGHT *light, const SCENE *scene, double *shadows) {
     
     // Set up ray pointing to light
@@ -185,22 +210,35 @@ static int raytrace_Shadow(const POINT *where, const LIGHT *light, const SCENE *
         return FAILURE;
     }
     
-    // Fire the ray
+    // Fire all the rays
     COLLISION collision;
-    if (raytrace_Cast(&collision, &ray, scene) != SUCCESS) {
+    VECTOR perturb;
+    int hits = 0;
+    int nrays = 0;
+    while (nrays < SHADOW_PRECISION) {
+        // Shoot one ray
+        if (raytrace_Cast(&collision, &ray, scene) != SUCCESS) {
 #ifdef VERBOSE
-        fprintf(stderr, "raytrace_Shadow failed: Failed to shoot shadow ray\n");
+            fprintf(stderr, "raytrace_Shadow failed: Failed to shoot shadow ray\n");
 #endif
-        return FAILURE;
+            return FAILURE;
+        }
+        
+        // Check collisions
+        if ((collision.how != COLLISION_NONE) && (collision.distance < distance) && (collision.distance > COLLISION_THRESHOLD)) {
+            // Something in between the light and us, and it isn't ourself!
+            hits++;
+        }
+        
+        // Perturb the origin of the ray
+        perturb.x = uniform(0.0, PERTURB_DISTANCE);
+        perturb.y = uniform(0.0, PERTURB_DISTANCE);
+        perturb.z = uniform(0.0, PERTURB_DISTANCE);
+        vector_Add(&ray.origin, where, &perturb);
+        nrays++;
     }
     
-    // Check collisions
-    if ((collision.how != COLLISION_NONE) && (collision.distance < distance) && (collision.distance > COLLISION_THRESHOLD)) {
-        // Something in between the light and us, and it isn't ourself!
-        *shadows = 0.0;
-        return SUCCESS;
-    }
-    *shadows = 1.0;
+    *shadows = 1.0 - ((double)hits / (double)SHADOW_PRECISION);
     return SUCCESS;
 }
 
