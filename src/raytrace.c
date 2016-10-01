@@ -22,6 +22,8 @@
  * Constants
  *============================================================*/
 #define VIEW_DISTANCE 1.0
+#define SHADOW_THRESHOLD (1.0/255)
+#define COLLISION_THRESHOLD DBL_EPSILON
 
 typedef struct {
     POINT origin;   // Upper left corner
@@ -170,8 +172,7 @@ static int raytrace_Cast(COLLISION *closest, const LINE *ray, const SCENE *scene
 /*============================================================*
  * Shadowing
  *============================================================*/
-#ifdef SHADOWS
-static int raytrace_Shadow(double *shadows, const POINT *where, const LIGHT *light, const SCENE *scene) {
+static int raytrace_Shadow(const POINT *where, const LIGHT *light, const SCENE *scene, double *shadows) {
     
     // Set up ray pointing to light
     LINE ray;
@@ -194,7 +195,7 @@ static int raytrace_Shadow(double *shadows, const POINT *where, const LIGHT *lig
     }
     
     // Check collisions
-    if (collision.how != COLLISION_NONE && collision.distance < distance && collision.distance > DBL_EPSILON) {
+    if ((collision.how != COLLISION_NONE) && (collision.distance < distance) && (collision.distance > COLLISION_THRESHOLD)) {
         // Something in between the light and us, and it isn't ourself!
         *shadows = 0.0;
         return SUCCESS;
@@ -202,7 +203,6 @@ static int raytrace_Shadow(double *shadows, const POINT *where, const LIGHT *lig
     *shadows = 1.0;
     return SUCCESS;
 }
-#endif
 
 /*============================================================*
  * Shader
@@ -213,11 +213,11 @@ static int raytrace_Shade(COLOR *color, const COLLISION *collision, const SCENE 
     const MATERIAL *material = collision->material;
     vector_Multiply(color, &material->color, material->ambient);
     
-    // Add up component for each light
+    // Setup
     COLOR temp;
-#ifdef SHADOWS
     double shadows;
-#endif
+    
+    // Loop over every light
     int i;
     int max = scene_GetNumberOfLights(scene);
     const LIGHT *light;
@@ -225,23 +225,18 @@ static int raytrace_Shade(COLOR *color, const COLLISION *collision, const SCENE 
         // Check for shadows
         light = scene_GetLight(scene, i);
         
-#ifdef SHADOWS
-        if (raytrace_Shadow(&shadows, &collision->where, light, scene) != SUCCESS) {
+        // Get shadows and check float 
+        if (raytrace_Shadow(&collision->where, light, scene, &shadows) != SUCCESS) {
 #ifdef VERBOSE
             fprintf(stderr, "raytrace_Shade failed: Failed to check shadows\n");
 #endif
             return FAILURE;
         }
         
-        // No contribution from this light
-        // TODO check float error
-        if (shadows == 0.0) {
-#ifdef DEBUG
-            fprintf(stderr, "raytrace_Shade: Light obstructed\n");
-#endif
+        // Optimization - skip shader if shadowed
+        if (shadows < SHADOW_THRESHOLD) {
             continue;
         }
-#endif
         
         // Get shading for this light
         if (light_BlinnPhongShade(light, collision, &scene->eye, &temp) != SUCCESS) {
@@ -252,9 +247,7 @@ static int raytrace_Shade(COLOR *color, const COLLISION *collision, const SCENE 
         }
         
         // Scale light by shadows
-#ifdef SHADOWS
         vector_Multiply(&temp, &temp, shadows);
-#endif
         
         // Add light contributions
         vector_Add(color, color, &temp);
