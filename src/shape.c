@@ -140,14 +140,6 @@ static int sphere_Collide(const SPHERE *sphere, const LINE *ray, COLLISION *resu
     double b = 2.0*vector_Dot(&unit_direction, &dis_center);
     double c = vector_Dot(&dis_center, &dis_center) - (sphere->radius * sphere->radius);
 
-    // Is it inside the sphere
-    if (vector_Magnitude(&dis_center) <= sphere->radius) {
-        result->how = COLLISION_INSIDE;
-        result->distance=  0.0;
-        vector_Copy(&result->where, &ray->origin);
-        return SUCCESS;
-    }
-
     // Solve the quadratic att + bt + c = 0
     double discriminant = b*b - 4.0*a*c;
     if (discriminant < 0.0) {
@@ -174,7 +166,11 @@ static int sphere_Collide(const SPHERE *sphere, const LINE *ray, COLLISION *resu
     }
 
     // Get location of closest collision
-    result->how = COLLISION_SURFACE;
+    if (vector_Magnitude(&dis_center) <= sphere->radius) {
+        result->how = COLLISION_INSIDE;
+    } else {
+        result->how = COLLISION_SURFACE;
+    }
     result->distance = tclosest;
     vector_Multiply(&result->where, &unit_direction, tclosest);
     vector_Add(&result->where, &result->where, &ray->origin);
