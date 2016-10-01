@@ -42,7 +42,10 @@ typedef struct {
  * @brief Get the direction to the light.
  * @param light: The light to calculate shading for
  * @param where: The point to calculate the direction from.
- * @param output: The resulting direction.
+ * @param output: The resulting direction as a unit vector.
+ * @param distance: The distance to the light. This may be a
+ * NULL pointer. Otherwise the distance is written to the
+ * location.
  * @return SUCCESS or FAILURE
  **************************************************************/
 extern int light_GetDirection(const LIGHT *light, const POINT *where, VECTOR *output, double *distance);
