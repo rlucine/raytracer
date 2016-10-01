@@ -46,10 +46,8 @@ EXECUTABLES := $(subst $(MAIN),,$(DRIVER_CFILES:$(DRIVER_DIR)/%.c=./%.exe))
 
 #============== Rules ==============#
 # Default - make the executable
-.PHONY: all
 all: $(BUILD_DIR) $(DRIVER_BUILD_DIR) $(MAIN)
 
-.PHONY: test
 test: $(BUILD_DIR) $(DRIVER_BUILD_DIR) $(EXECUTABLES)
 
 # Put all the .o files in the build directory
