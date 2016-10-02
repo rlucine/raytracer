@@ -7,8 +7,8 @@
 
 #===== Compiler / linker setup =====#
 CC := gcc
-#DEBUG := -DNDEBUG -UDEBUG -DVERBOSE -UTRACE
-DEBUG := -DDEBUG -DVERBOSE -DTRACE
+DEBUG := -DNDEBUG -UDEBUG -DVERBOSE -UTRACE
+#DEBUG := -DDEBUG -DVERBOSE -DTRACE
 CFLAGS := -s -O3 -Wall -std=gnu99
 LFLAGS := -s -lm
 INCLUDE := 
