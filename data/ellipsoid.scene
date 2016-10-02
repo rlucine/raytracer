@@ -1,19 +1,11 @@
 # Test drawing some ellipsoids
-eye -4 -4 -4
-viewdir 1 1 1
+eye 4 4 4
+viewdir -1 -1 -1
 updir 1 1 0
 fovv 40
 imsize 100 100
 bkgcolor 0.1 0.1 0.1
 
+light 0 0 -1 0 1 1 1
 mtlcolor 1 0 0 1 1 1 0.1 0.4 0.4 10
-ellipsoid 0 0 1 2 1 1
-
-mtlcolor 0 1 0 1 1 1 0.1 0.4 0.4 10
-ellipsoid 1 0 0 1 2 1
-
-mtlcolor 0 0 1 1 1 1 0.1 0.4 0.4 10
-ellipsoid 0 1 0 1 1 2
-
-mtlcolor 1 0 1 1 1 1 0.1 0.4 0.4 10
-sphere 0 0 0 2
+ellipsoid 0 0 0 2 1 1
