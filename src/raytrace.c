@@ -36,10 +36,10 @@
 
 // Perturb the ray origin by this amount for more precise
 // shadow casting.
-#define PERTURB_DISTANCE 0.1
+#define PERTURB_DISTANCE 0.02
 
 // Number of shadow rays to shoot
-#define SHADOW_PRECISION 30
+#define SHADOW_PRECISION 50
 
 /*============================================================*
  * Viewing plane
@@ -216,7 +216,7 @@ static int raytrace_Shadow(const POINT *where, const LIGHT *light, const SCENE *
     int hits = 0;
     int nrays = 0;
     while (nrays < SHADOW_PRECISION) {
-        // Shoot one ray
+        // Shoot one ray - the first one is always unperturbed
         if (raytrace_Cast(&collision, &ray, scene) != SUCCESS) {
 #ifdef VERBOSE
             fprintf(stderr, "raytrace_Shadow failed: Failed to shoot shadow ray\n");
