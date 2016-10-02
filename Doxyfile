@@ -3,14 +3,14 @@ PROJECT_BRIEF = "Raytracer project for CSci 5607"
 
 OUTPUT_DIRECTORY = "doc"
 EXAMPLE_PATH = .
-INPUT = src/ src/driver/main.c mainpage.dox
+INPUT = src/ src/driver/main.c
 FILE_PATTERNS = *.h
 RECURSIVE = NO
 EXCLUDE = src/driver
 
 GENERATE_LATEX = NO
 GENERATE_HTML = YES
-HTML_FILE_EXTENSION = .htm
+HTML_FILE_EXTENSION = .html
 
 QUIET = YES
 

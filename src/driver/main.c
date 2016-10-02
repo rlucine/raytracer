@@ -4,6 +4,11 @@
  * @author Alec Shinomiya
  **************************************************************/
 
+/**********************************************************//**
+ * @mainpage
+ * @htmlinclude mainpage.html
+ **************************************************************/
+
 // Standard library
 #include <stdlib.h>     // malloc, srand
 #include <time.h>       // time
