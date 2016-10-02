@@ -1,18 +1,10 @@
-#####################################
-# Test scene file
-# * Draw a unit sphere at (0, 0, -4)
-# * Look directly at the sphere
-# Line has extra information
-#####################################
-
-# Header information
-eye			0	0	0
-viewdir	0	0	-1 3
-updir		0	1	0
-fovv		60 4
-imsize		64	48
-bkgcolor	16	16	16
-
-# Shape information
-mtlcolor	255	0	0
-sphere		0	0	-4	1 7
+# Fails because line has extra information
+eye 0 0 4
+viewdir 0 0 -1 3
+updir 0 1 0
+fovv 60
+imsize 100 100 100
+bkgcolor 0.1 0.1 0.1
+mtlcolor 1 0 0 1 1 1 0.1 0.4 0.4 10
+light -1 -1 -1 0 1 1 1
+sphere 0 0 0 1

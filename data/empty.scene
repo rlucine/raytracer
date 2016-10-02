@@ -1,14 +1,7 @@
-#####################################
-# Test scene file
-# * Draw a unit sphere at (0, 0, -4)
-# * Look directly at the sphere
-# Scene contains nothing
-#####################################
-
-# Header information
-eye			0	0	0
-viewdir	0	0	-1
-updir		0	1	0
-fovv		60
-imsize		64	48
-bkgcolor	0	0	0
+# Scene with no information should still render
+eye 0 0 0
+viewdir 0 0 -1
+updir 0 1 0
+fovv 60
+imsize 100 100
+bkgcolor 0 0 0
