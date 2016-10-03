@@ -21,3 +21,6 @@ build/
 
 # Ignore vim stuff
 *.swp
+
+# Ignore documentation pages
+doc/
