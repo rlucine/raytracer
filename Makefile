@@ -1,14 +1,21 @@
 #####################################
 ######## CSci 5607 Makefile #########
 #####################################
+
+#========= Debug mode setup ========#
+# Comment one line only!
 # -DDEBUG: Debug testing
 # -DVERBOSE: Print error messages
 # -DTRACE: Trace malloc and free
 
+# Uncomment this line for release
+DEBUG := -DNDEBUG -UDEBUG -DVERBOSE -UTRACE
+
+# Uncomment this line for debug
+#DEBUG := -DDEBUG -DVERBOSE -DTRACE
+
 #===== Compiler / linker setup =====#
 CC := gcc
-DEBUG := -DNDEBUG -UDEBUG -DVERBOSE -UTRACE
-#DEBUG := -DDEBUG -DVERBOSE -DTRACE
 CFLAGS := -s -O3 -Wall -std=gnu99
 DFLAGS := -MP -MMD
 LFLAGS := -s -lm
