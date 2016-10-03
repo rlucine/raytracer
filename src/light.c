@@ -5,7 +5,7 @@
  **************************************************************/
 
 // Standard library
-#include <math.h>   // pow, INFINITY
+#include <math.h>   // pow, INFINITY, M_PI
 #include <stdio.h>  // stderr, fprintf
 
 // This project
@@ -68,8 +68,9 @@ int light_BlinnPhongShade(const LIGHT *light, const COLLISION *collision, const 
     }
     
     // Check spotlight radius
+    double radians = light->angle * M_PI / 180;
     if (light->type == LIGHT_SPOT) {
-        if (vector_Angle(&to_light, &light->direction) > light->angle) {
+        if (vector_Angle(&to_light, &light->direction) > radians) {
             // Outside the spotlight!
             return FAILURE;
         }

@@ -10,37 +10,39 @@ eye 8 8 20
 viewdir -0.4 -0.4 -1
 updir 1 1 0
 fovv 70
-imsize 200 200
-bkgcolor 0.1 0.1 0.1
+imsize 600 600
+bkgcolor 0 0 0
 
 # Lights
-light -6 -6 6 1 1 1 1
-light 6 6 6 1 1 1 1
+light 1 0 4 1 1 1 1
+light -1 0 4 1 1 1 1
+light 0 0 6 1 1 1 1
+light 0 0 -1 0 0.1 0.1 0.1
 
 # Red sphere
-mtlcolor 1 0 0 1 1 1 0.2 0.2 0.2 20
+mtlcolor 1 0 0 1 1 1 0 0.4 0.4 20
 sphere 1 0 -4 6
 
 # Blue sphere
-mtlcolor 0 0 1 1 1 1 0.2 0.2 0.2 20
+mtlcolor 0 0 1 1 1 1 0 0.4 0.4 20
 sphere -1 0 -4 6
 
 # Green sphere
-mtlcolor 0 1 0 1 1 1 0.2 0.2 0.2 20
+mtlcolor 0 1 0 1 1 1 0 0.4 0.4 20
 sphere 0 -1 -4 6
 
 # Light blue sphere on top
-mtlcolor 0 1 1 1 1 1 0.2 0.2 0.2 20
+mtlcolor 0 1 1 1 1 1 0 0.4 0.4 20
 sphere 0 0 0 3
 
 # Smaller spheres
-mtlcolor 1 0 1 1 1 1 0.2 0.2 0.2 20
+mtlcolor 1 0 1 1 1 1 0 0.4 0.4 20
 sphere 1 0 1 2
 sphere -1 0 1 2
 sphere 0 -1 1 2
 
 # Corners
-mtlcolor 1 1 1 1 1 1 0.2 0.2 0.2 20
+mtlcolor 1 1 1 1 1 1 0 0.4 0.4 20
 sphere 2 0 2 1
 sphere -2 0 2 1
 sphere 0 -2 2 1
