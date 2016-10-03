@@ -91,7 +91,7 @@ $(DRIVER_BUILD_DIR)/%.o: $(DRIVER_DIR)/%.c
 	$(CC) $(OFILES) $< $(LIBRARY) $(LFLAGS) -o $@
 
 # Doxygen documentation
-$(DOC_DIR):
+$(DOC_DIR): Doxyfile $(CFILES) $(HFILES) $(DRIVER_CFILES)
 	doxygen Doxyfile
 
 #============== Clean ==============#
