@@ -10,6 +10,7 @@ CC := gcc
 DEBUG := -DNDEBUG -UDEBUG -DVERBOSE -UTRACE
 #DEBUG := -DDEBUG -DVERBOSE -DTRACE
 CFLAGS := -s -O3 -Wall -std=gnu99
+DFLAGS := -MP -MMD
 LFLAGS := -s -lm
 INCLUDE := 
 LIBRARY := 
@@ -24,6 +25,7 @@ CFILES := $(wildcard $(SRC_DIR)/*.c)
 # Build files
 BUILD_DIR := build
 OFILES := $(CFILES:$(SRC_DIR)/%.c=$(BUILD_DIR)/%.o)
+DFILES := $(OFILES:%.o=%.d)
 
 # Documentation files
 DOC_DIR := doc
@@ -46,8 +48,10 @@ EXECUTABLES := $(subst $(MAIN),,$(DRIVER_CFILES:$(DRIVER_DIR)/%.c=./%.exe))
 
 #============== Rules ==============#
 # Default - make the executable
+.PHONY: all
 all: $(BUILD_DIR) $(DRIVER_BUILD_DIR) $(MAIN)
 
+.PHONY: test
 test: $(BUILD_DIR) $(DRIVER_BUILD_DIR) $(EXECUTABLES)
 
 # Put all the .o files in the build directory
@@ -55,16 +59,24 @@ $(BUILD_DIR):
 	-mkdir $@
 
 # Also create subdirectory for driver files
-$(DRIVER_BUILD_DIR): $(BUILD_DIR)
+$(DRIVER_BUILD_DIR):
 	-mkdir $@
 
 # Generate auto-dependency files (.d) instead
-$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c $(BUILD_DIR)
-	$(CC) $(CFLAGS) $(DEBUG) $(INCLUDE) -c $< -o $@
+.SECONDARY: $(DFILES)
+.SECONDARY: $(OFILES)
+$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
+	$(CC) $(CFLAGS) $(DFLAGS) $(DEBUG) $(INCLUDE) -c $< -o $@
+
+-include $(DFILES)
 
 # Generate driver files also
-$(DRIVER_BUILD_DIR)/%.o: $(DRIVER_DIR)/%.c $(DRIVER_BUILD_DIR)
-	$(CC) $(CFLAGS) $(DEBUG) $(INCLUDE) -c $< -o $@
+.SECONDARY: $(DRIVER_DFILES)
+.SECONDARY: $(DRIVER_OFILES)
+$(DRIVER_BUILD_DIR)/%.o: $(DRIVER_DIR)/%.c
+	$(CC) $(CFLAGS) $(DFLAGS) $(DEBUG) $(INCLUDE) -c $< -o $@
+
+-include $(DRIVER_DFILES)
 
 # Make executable for each driver
 %.exe: $(DRIVER_BUILD_DIR)/%.o $(OFILES)
