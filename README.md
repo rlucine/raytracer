@@ -1,5 +1,5 @@
 # CSci 5607
-Here is the example image for this submission:
+Here is the example image for this submission. This was generated using `data/art.scene` as the input file. The image size has been increased to 1000 by 1000.
 <br/>
 <img src="image/art.png">
 
