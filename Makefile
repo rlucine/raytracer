@@ -109,5 +109,5 @@ spotless: clean
 .PHONY: turnin
 turnin: $(TURNIN)
 
-$(TURNIN): $(CFILES) $(HFILES) README.md Doxyfile Makefile src/driver/main.c image/*.png data/art.scene
+$(TURNIN): $(CFILES) $(HFILES) README.md Doxyfile Makefile src/driver/main.c image/*.png data/art.scene mainpage.html
 	tar -cvf $@ $^
