@@ -20,6 +20,7 @@ LIBRARY :=
 SRC_DIR := src
 INCLUDE += -I$(SRC_DIR)
 CFILES := $(wildcard $(SRC_DIR)/*.c)
+HFILES := $(wildcard $(SRC_DIR)/*.h)
 
 #=========== Build setup ===========#
 # Build files
@@ -101,5 +102,5 @@ spotless: clean
 .PHONY: turnin
 turnin: $(TURNIN)
 
-$(TURNIN):
-	tar -cvf $@ README.md Makefile Doxyfile src/*.c src/*.h src/driver/main.c data/many.scene data/many.png data/example1.png data/example2.png
+$(TURNIN): $(CFILES) $(HFILES) README.md Doxyfile Makefile src/driver/main.c
+	tar -cvf $@ $^
