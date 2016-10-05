@@ -12,6 +12,7 @@
 
 // This project
 #include "color.h"
+#include "ppm.h"
 #include "image.h"
 #include "vector.h"
 #include "shape.h"
@@ -36,17 +37,22 @@ typedef enum {
     FLAG_ELLIPSOID  = 0x00000100,   // ellipsoid keyword
     FLAG_LIGHT      = 0x00010000,   // light keyword
     FLAG_SPOTLIGHT  = 0x00020000,   // spotlight keyword
+    FLAG_TEXTURE    = 0x00100000,   // texture keyword
 } SCENE_FLAG;
 
 /*============================================================*
  * Tokenized line
  *============================================================*/
 #define MAX_ARGS 10
+#define MAX_CHARS 80
+
+#define ARGC_STRING -1
 
 typedef struct {
     SCENE_FLAG keyword;     // Kind of data
     int argc;               // How many arguments?
     double argv[MAX_ARGS];  // Value of arguments
+    char string[MAX_CHARS]; // String arguments?
 } TOKENS;
 
 /*============================================================*
@@ -130,6 +136,10 @@ static int scene_ParseLine(TOKENS *line, const char *buf) {
     } else if (scene_HasKeyword(buf, "spotlight", &args)) {
         line->keyword = FLAG_SPOTLIGHT;
         line->argc = 10;
+        
+    } else if (scene_HasKeyword(buf, "texture", &args)) {
+        line->keyword = FLAG_TEXTURE;
+        line->argc = ARGC_STRING;
     
     } else if (buf[0] == '#' || string_IsAllWhitespace(buf)) {
         line->keyword = FLAG_NONE;
@@ -153,19 +163,32 @@ static int scene_ParseLine(TOKENS *line, const char *buf) {
     }
     
     // Get all args
-    int index = 0;
     int delta;
-    while (index < line->argc) {
-        if (sscanf(args, "%lf%n", &line->argv[index], &delta) != 1) {
+    if (line->argc == ARGC_STRING) {
+        // Parse a string argument
+        if (sscanf(args, "%80s%n", &line->string[0], &delta) != 1) {
 #ifdef VERBOSE
-            fprintf(stderr, "parser_ParseLine failed: Required %d arguments but found %d\n", line->argc, index);
+            fprintf(stderr, "parser_ParseLine failed: Required string argument but found none\n");
 #endif
             return FAILURE;
         }
-        
-        // Move to next argument
         args += delta;
-        index++;
+        
+    } else {
+        // Parse numeric arguments
+        int index = 0;
+        while (index < line->argc) {
+            if (sscanf(args, "%lf%n", &line->argv[index], &delta) != 1) {
+#ifdef VERBOSE
+                fprintf(stderr, "parser_ParseLine failed: Required %d arguments but found %d\n", line->argc, index);
+#endif
+                return FAILURE;
+            }
+            
+            // Move to next argument
+            args += delta;
+            index++;
+        }
     }
     
     // Extra junk after args?
@@ -217,6 +240,9 @@ static const char *flag_GetName(int flag) {
     
     case FLAG_SPOTLIGHT:
         return "spotlight";
+        
+    case FLAG_TEXTURE:
+        return "texture";
     
     default:
         return NULL;
@@ -306,6 +332,7 @@ static int scene_Validate(const SCENE *scene) {
         fprintf(stderr, "scene_Validate: Color is (%lf, %lf, %lf)\n", material->color.x, material->color.y, material->color.z);
         fprintf(stderr, "scene_Validate: Highlight is (%lf, %lf, %lf)\n", material->highlight.x, material->highlight.y, material->highlight.z);
         fprintf(stderr, "scene_Validate: Ka=%lf, Kd=%lf, Ks=%lf, n=%d\n", material->ambient, material->diffuse, material->specular, material->exponent);
+        fprintf(stderr, "scene_Validate: Texture is 0x%p\n", material->texture);
         
         n++;
     }
@@ -360,7 +387,7 @@ int scene_Decode(SCENE *scene, const char *filename) {
     scene->lights = NULL;
     
     // Set up data arrays
-    ARRAYLIST shapes, lights, materials;
+    ARRAYLIST shapes, lights, materials, textures;
     if (arraylist_Create(&shapes, sizeof(SHAPE), 8) != SUCCESS) {
 #ifdef VERBOSE
         fprintf(stderr, "scene_Decode failed: Cannot allocate shape data\n");
@@ -379,6 +406,12 @@ int scene_Decode(SCENE *scene, const char *filename) {
 #endif
         return FAILURE;
     }
+    if (arraylist_Create(&textures, sizeof(TEXTURE), 8) != SUCCESS) {
+#ifdef VERBOSE
+        fprintf(stderr, "scene_Decode failed: Cannot allocate texture data\n");
+#endif
+        return FAILURE;
+    }
     
     // Shapes to unpack
     SHAPE shape;
@@ -386,7 +419,10 @@ int scene_Decode(SCENE *scene, const char *filename) {
     SPHERE sphere;
     MATERIAL material;
     LIGHT light;
-    MATERIAL *current_material = NULL;
+    TEXTURE texture;
+    
+    const MATERIAL *current_material = NULL;
+    const TEXTURE *current_texture = NULL;
     
     // Parser flags
     int flags = 0;
@@ -486,6 +522,7 @@ int scene_Decode(SCENE *scene, const char *filename) {
             material.diffuse = line.argv[7];
             material.specular = line.argv[8];
             material.exponent = (int)line.argv[9];
+            material.texture = current_texture;
             
             // Add material to list
             if (arraylist_Append(&materials, &material) != SUCCESS) {
@@ -606,6 +643,40 @@ int scene_Decode(SCENE *scene, const char *filename) {
                 continue;
             }
             break;
+        
+        case FLAG_TEXTURE:
+            // Found a new texture
+            if (ppm_Decode(&texture, line.string) != SUCCESS) {
+#ifdef VERBOSE
+                fprintf(stderr, "scene_Decode failed: Unable to load texture \"%s\"\n", line.string);
+#endif
+                failure = 1;
+                continue;
+            }
+            
+            // Install texture
+            if (arraylist_Append(&textures, &texture) != SUCCESS) {
+#ifdef VERBOSE
+                fprintf(stderr, "scene_Decode failed: Unable to store new texture\n");
+#endif
+                failure = 1;
+                continue;
+            }
+            
+            // Set up current texture
+            current_texture = (TEXTURE *)arraylist_At(&textures, arraylist_Length(&textures)-1);
+            
+            // Generating a new texture means we have to push a new material
+            material.texture = current_texture;
+            if (arraylist_Append(&materials, &material) != SUCCESS) {
+#ifdef VERBOSE
+                fprintf(stderr, "scene_Decode failed: Unable to store new material\n");
+#endif
+                failure = 1;
+                continue;
+            }
+            current_material = (MATERIAL *)arraylist_At(&materials, arraylist_Length(&materials)-1);
+            break;
             
         default:
             // Invalid line keyword
@@ -632,7 +703,13 @@ int scene_Decode(SCENE *scene, const char *filename) {
     
     // Move materials into scene
     arraylist_Compress(&materials);
+    scene->nmaterials = arraylist_Length(&materials);
     scene->materials = (MATERIAL *)arraylist_GetData(&materials);
+    
+    // Move textures into scene
+    arraylist_Compress(&textures);
+    scene->ntextures = arraylist_Length(&textures);
+    scene->textures = (TEXTURE *)arraylist_GetData(&textures);
 
      // Check any failure here to standardize cleanup
     if (failure) {

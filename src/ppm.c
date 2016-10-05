@@ -78,7 +78,7 @@ int ppm_Decode(IMAGE *ppm, const char *filename) {
     struct stat stat_buf;
     if (stat(filename, &stat_buf)) {
 #ifdef VERBOSE
-        perror("stat");
+        fprintf(stderr, "ppm_Decode failed: File \"%s\" not found\n", filename);
 #endif
         return FAILURE;
     }

@@ -72,12 +72,12 @@ void scene_Destroy(SCENE *scene) {
     
     // Free all the allocated shape data
     int i;
-    for (i = 0; i < scene->nshapes; i++) {
-        shape_Destroy(&scene->shapes[i]);
-    }
     
     // Free allocated array
     if (scene->nshapes > 0 && scene->shapes) {
+        for (i = 0; i < scene->nshapes; i++) {
+            shape_Destroy(&scene->shapes[i]);
+        }
         free(scene->shapes);
         scene->nshapes = 0;
         scene->shapes = NULL;
@@ -91,9 +91,20 @@ void scene_Destroy(SCENE *scene) {
     }
     
     // Free all the materials
-    if (scene->materials) {
+    if (scene->nmaterials > 0 && scene->materials) {
         free(scene->materials);
+        scene->nmaterials = 0;
         scene->materials = NULL;
+    }
+    
+    // Free all the textures
+    if (scene->ntextures > 0 && scene->textures) {
+        for (i = 0; i < scene->ntextures; i++) {
+            image_Destroy(&scene->textures[i]);
+        }
+        free(scene->textures);
+        scene->ntextures = 0;
+        scene->textures = NULL;
     }
 }
 

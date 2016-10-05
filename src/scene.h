@@ -42,7 +42,10 @@ typedef struct {
     SHAPE *shapes;      ///< Array of all shapes in the scene
     int nlights;        ///< How many lights are in the scene
     LIGHT *lights;      ///< Array of all lights in the scene
+    int nmaterials;     ///< How many materials?
     MATERIAL *materials;///< Buffer shared SHAPE materials here
+    int ntextures;      ///< How many textures?
+    TEXTURE *textures;  ///< Buffer shared TEXTURE here
 } SCENE;
 
 /**********************************************************//**
