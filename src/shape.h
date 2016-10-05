@@ -62,9 +62,9 @@ typedef struct {
  * No further shape types are supported.
  **************************************************************/
 typedef struct {
-    SHAPE_TYPE shape;       ///< Key representing the type of geometry
-    void *data;             ///< Pointer to the shape geometry
-    MATERIAL material;      ///< The material of the object
+    SHAPE_TYPE shape;           ///< Key representing the type of geometry
+    void *data;                 ///< Pointer to the shape geometry
+    const MATERIAL *material;   ///< The material of the object
 } SHAPE;
 
 /**********************************************************//**

@@ -36,7 +36,12 @@ int shape_CreateSphere(SHAPE *shape, const SPHERE *sphere, const MATERIAL *mater
     memcpy(shape->data, sphere, sizeof(SPHERE));
     
     // Copy material into shape
-    memcpy(&shape->material, material, sizeof(MATERIAL));
+    if (NULL == (shape->material = material)) {
+#ifdef VERBOSE
+        fprintf(stderr, "shape_CreateSphere failed: No material specified\n");
+#endif
+        return FAILURE;
+    }
     return SUCCESS;
 }
 
@@ -55,7 +60,12 @@ int shape_CreateEllipsoid(SHAPE *shape, const ELLIPSOID *ellipsoid, const MATERI
     memcpy(shape->data, ellipsoid, sizeof(ELLIPSOID));
     
     // Copy material into shape
-    memcpy(&shape->material, material, sizeof(MATERIAL));
+    if (NULL == (shape->material = material)) {
+#ifdef VERBOSE
+        fprintf(stderr, "shape_CreateEllipsoid failed: No material specified\n");
+#endif
+        return FAILURE;
+    }
     return SUCCESS;
 }
 
@@ -74,7 +84,7 @@ void shape_Destroy(SHAPE *shape) {
  * Shape accessors
  *============================================================*/
 const MATERIAL *shape_GetMaterial(const SHAPE *shape) {
-    return &shape->material;
+    return shape->material;
 }
 
 const SPHERE *shape_GetSphere(const SHAPE *shape) {
@@ -277,7 +287,7 @@ static int ellipsoid_Collide(const ELLIPSOID *ellipsoid, const LINE *ray, COLLIS
 int shape_Collide(const SHAPE *shape, const LINE *ray, COLLISION *result) {
     
     // Get collision material
-    result->material = &shape->material;
+    result->material = shape->material;
     
     // Map to specific collision checking functions
     switch (shape->shape) {

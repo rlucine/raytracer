@@ -360,7 +360,7 @@ int scene_Decode(SCENE *scene, const char *filename) {
     scene->lights = NULL;
     
     // Set up data arrays
-    ARRAYLIST shapes, lights;
+    ARRAYLIST shapes, lights, materials;
     if (arraylist_Create(&shapes, sizeof(SHAPE), 8) != SUCCESS) {
 #ifdef VERBOSE
         fprintf(stderr, "scene_Decode failed: Cannot allocate shape data\n");
@@ -373,6 +373,12 @@ int scene_Decode(SCENE *scene, const char *filename) {
 #endif
         return FAILURE;
     }
+    if (arraylist_Create(&materials, sizeof(MATERIAL), 8) != SUCCESS) {
+#ifdef VERBOSE
+        fprintf(stderr, "scene_Decode failed: Cannot allocate material data\n");
+#endif
+        return FAILURE;
+    }
     
     // Shapes to unpack
     SHAPE shape;
@@ -380,6 +386,7 @@ int scene_Decode(SCENE *scene, const char *filename) {
     SPHERE sphere;
     MATERIAL material;
     LIGHT light;
+    MATERIAL *current_material = NULL;
     
     // Parser flags
     int flags = 0;
@@ -479,6 +486,18 @@ int scene_Decode(SCENE *scene, const char *filename) {
             material.diffuse = line.argv[7];
             material.specular = line.argv[8];
             material.exponent = (int)line.argv[9];
+            
+            // Add material to list
+            if (arraylist_Append(&materials, &material) != SUCCESS) {
+#ifdef VERBOSE
+                fprintf(stderr, "scene_Decode failed: Unable to store new material\n");
+#endif
+                failure = 1;
+                continue;
+            }
+            
+            // Set up current material
+            current_material = (MATERIAL *)arraylist_At(&materials, arraylist_Length(&materials)-1);
             break;
         
         case FLAG_SPHERE:
@@ -489,7 +508,7 @@ int scene_Decode(SCENE *scene, const char *filename) {
             sphere.radius = line.argv[3];
             
             // Generate shape to copy in to list
-            if (shape_CreateSphere(&shape, &sphere, &material) != SUCCESS) {
+            if (shape_CreateSphere(&shape, &sphere, current_material) != SUCCESS) {
 #ifdef VERBOSE
                 fprintf(stderr, "scene_Decode failed: Unable to allocate new sphere\n");
 #endif
@@ -517,7 +536,7 @@ int scene_Decode(SCENE *scene, const char *filename) {
             ellipsoid.dimension.z = line.argv[5];
             
             // Generate shape to copy in to list
-            if (shape_CreateEllipsoid(&shape, &ellipsoid, &material) != SUCCESS) {
+            if (shape_CreateEllipsoid(&shape, &ellipsoid, current_material) != SUCCESS) {
 #ifdef VERBOSE
                 fprintf(stderr, "scene_Decode failed: Unable to allocate new ellipsoid\n");
 #endif
@@ -610,6 +629,10 @@ int scene_Decode(SCENE *scene, const char *filename) {
     arraylist_Compress(&lights);
     scene->nlights = arraylist_Length(&lights);
     scene->lights = (LIGHT *)arraylist_GetData(&lights);
+    
+    // Move materials into scene
+    arraylist_Compress(&materials);
+    scene->materials = (MATERIAL *)arraylist_GetData(&materials);
 
      // Check any failure here to standardize cleanup
     if (failure) {

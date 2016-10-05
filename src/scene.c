@@ -69,9 +69,9 @@ const LIGHT *scene_GetLight(const SCENE *scene, int index) {
  * Scene destructor
  *============================================================*/
 void scene_Destroy(SCENE *scene) {
-    int i;
     
     // Free all the allocated shape data
+    int i;
     for (i = 0; i < scene->nshapes; i++) {
         shape_Destroy(&scene->shapes[i]);
     }
@@ -88,6 +88,12 @@ void scene_Destroy(SCENE *scene) {
         free(scene->lights);
         scene->nlights = 0;
         scene->lights = NULL;
+    }
+    
+    // Free all the materials
+    if (scene->materials) {
+        free(scene->materials);
+        scene->materials = NULL;
     }
 }
 
