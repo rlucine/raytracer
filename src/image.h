@@ -40,6 +40,15 @@ typedef struct {
 typedef IMAGE TEXTURE;
 
 /**********************************************************//**
+ * @struct TEXCOORD
+ * @brief Struct for texture coordinates.
+ **************************************************************/
+typedef struct {
+    double u;
+    double v;
+} TEXCOORD;
+
+/**********************************************************//**
  * @brief Allocate space for an image
  * @param image: Pointer to an uninitialized IMAGE struct. You
  * need to use image_Destroy on this parameter if the function
@@ -80,7 +89,7 @@ extern int image_SetPixel(IMAGE *image, int x, int y, const RGB *color);
  * @param color: Pointer to buffer to write the color in.
  * @return SUCCESS or FAILURE
  **************************************************************/
-extern int image_GetTexture(const TEXTURE *texture, double u, double v, COLOR *color, int flags);
+extern int image_GetTexture(const TEXTURE *texture, const TEXCOORD *coord, COLOR *color, int flags);
 
 /**********************************************************//**
  * @brief Get the width of the image data
