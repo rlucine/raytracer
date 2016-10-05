@@ -79,11 +79,15 @@ void scene_Destroy(SCENE *scene) {
     // Free allocated array
     if (scene->nshapes > 0 && scene->shapes) {
         free(scene->shapes);
+        scene->nshapes = 0;
+        scene->shapes = NULL;
     }
     
     // Free all the lights
     if (scene->nlights > 0 && scene->lights) {
         free(scene->lights);
+        scene->nlights = 0;
+        scene->lights = NULL;
     }
 }
 

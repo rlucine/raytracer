@@ -136,6 +136,7 @@ void *arraylist_GetData(ARRAYLIST *list) {
 void arraylist_Destroy(ARRAYLIST *list) {
     if (list->data) {
         free(list->data);
+        list->data = NULL;
     }
     return;
 }

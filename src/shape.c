@@ -65,6 +65,7 @@ int shape_CreateEllipsoid(SHAPE *shape, const ELLIPSOID *ellipsoid, const MATERI
 void shape_Destroy(SHAPE *shape) {
     if (shape->data) {
         free(shape->data);
+        shape->data = NULL;
     }
     return;
 }

@@ -121,22 +121,22 @@ int image_SetPixel(IMAGE *image, int x, int y, const RGB *color) {
 /*============================================================*
  * Texturing
  *============================================================*/
-int image_GetTexture(const TEXTURE *texture, double u, double v, COLOR *color, int flags) {
+int image_GetTexture(const TEXTURE *texture, const TEXCOORD *coord, COLOR *color, int flags) {
     
     // Mapping to pixels
-    int x = (int)(u * texture->width);
-    int y = (int)(v * texture->height);
-    double dx = (u * texture->width) - x;
-    double dy = (v * texture->height) - y;
+    int x = (int)(coord->u * texture->width);
+    int y = (int)(coord->v * texture->height);
+    double dx = (coord->u * texture->width) - x;
+    double dy = (coord->v * texture->height) - y;
     
     // Error check coordinates
-    if (u < 0.0 || u > 1.0) {
+    if (coord->u < 0.0 || coord->u > 1.0) {
 #ifdef VERBOSE
         fprintf(stderr, "image_GetTexture failed: Invalud u coordinate.\n");
 #endif
         return FAILURE;
     }
-    if (v < 0.0 || v > 1.0) {
+    if (coord->v < 0.0 || coord->v > 1.0) {
 #ifdef VERBOSE
         fprintf(stderr, "image_GetTexture failed: Invalud v coordinate.\n");
 #endif
@@ -200,6 +200,7 @@ int image_GetHeight(const IMAGE *image) {
 void image_Destroy(IMAGE *image) {
     if (image->data) {
         free(image->data);
+        image->data = NULL;
     }
     return;
 }
