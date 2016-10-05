@@ -119,6 +119,71 @@ int image_SetPixel(IMAGE *image, int x, int y, const RGB *color) {
 }
 
 /*============================================================*
+ * Texturing
+ *============================================================*/
+int image_GetTexture(const TEXTURE *texture, double u, double v, COLOR *color, int flags) {
+    
+    // Mapping to pixels
+    int x = (int)(u * texture->width);
+    int y = (int)(v * texture->height);
+    double dx = (u * texture->width) - x;
+    double dy = (v * texture->height) - y;
+    
+    // Error check coordinates
+    if (u < 0.0 || u > 1.0) {
+#ifdef VERBOSE
+        fprintf(stderr, "image_GetTexture failed: Invalud u coordinate.\n");
+#endif
+        return FAILURE;
+    }
+    if (v < 0.0 || v > 1.0) {
+#ifdef VERBOSE
+        fprintf(stderr, "image_GetTexture failed: Invalud v coordinate.\n");
+#endif
+        return FAILURE;
+    }
+    
+    // Collect colors from image
+    const RGB *rgb;
+    if (flags & TEXTURE_INTERPOLATE) {
+        // Zero out the color
+        COLOR temp;
+        color->x = color->y = color->z = 0.0;
+        
+        // Interpolate all components of nearby colors
+        // Skip colors that don't exist - will this cause
+        // the edges to become darker?
+        if ((rgb = image_GetPixel(texture, x, y)) != NULL) {
+            rgb_ToColor(&temp, rgb);
+            vector_Multiply(&temp, &temp, (1-dx)*(1-dy));
+            vector_Add(color, color, &temp);
+        }
+        if ((rgb = image_GetPixel(texture, x+1, y)) != NULL) {
+            rgb_ToColor(&temp, rgb);
+            vector_Multiply(&temp, &temp, dx*(1-dy));
+            vector_Add(color, color, &temp);
+        }
+        if ((rgb = image_GetPixel(texture, x, y+1)) != NULL) {
+            rgb_ToColor(&temp, rgb);
+            vector_Multiply(&temp, &temp, (1-dx)*dy);
+            vector_Add(color, color, &temp);
+        }
+        if ((rgb = image_GetPixel(texture, x+1, y+1)) != NULL) {
+            rgb_ToColor(&temp, rgb);
+            vector_Multiply(&temp, &temp, dx*dy);
+            vector_Add(color, color, &temp);
+        }
+        
+    } else {
+        // Just do nearest neighbor
+        if ((rgb = image_GetPixel(texture, x, y)) != NULL) {
+            rgb_ToColor(color, rgb);
+        }
+    }
+    return SUCCESS;
+}
+
+/*============================================================*
  * Getters
  *============================================================*/
 int image_GetWidth(const IMAGE *image) {

@@ -11,6 +11,18 @@
 #include "macro.h"
 #include "color.h"
 
+/*============================================================*
+ * Texture flags
+ *============================================================*/
+
+/// @def TEXTURE_NEAREST
+/// @brief Instruct the texture mapper to use nearest neighbor
+#define TEXTURE_NEAREST 0
+
+/// @def TEXTURE_INTERPOLATE
+/// @brief Instruct the texture mapper to blend colors
+#define TEXTURE_INTERPOLATE 1
+
 /**********************************************************//**
  * @struct IMAGE
  * @brief Struct for uncompressed RGB image data
@@ -20,6 +32,12 @@ typedef struct {
     unsigned short height;  ///< Height of the image
     RGB *data;              ///< Do not access this variable
 } IMAGE;
+
+/**********************************************************//**
+ * @typedef TEXTURE
+ * @brief Image format for texture maps
+ **************************************************************/
+typedef IMAGE TEXTURE;
 
 /**********************************************************//**
  * @brief Allocate space for an image
@@ -52,6 +70,17 @@ extern const RGB *image_GetPixel(const IMAGE *image, int x, int y);
  * @return SUCCESS or FAILURE
  **************************************************************/
 extern int image_SetPixel(IMAGE *image, int x, int y, const RGB *color);
+
+/**********************************************************//**
+ * @brief Treating the image as a texture, get the texture
+ * color given texture coordinates.
+ * @param image: The image data to read
+ * @param u: The texture coordinate from 0 to 1
+ * @param v: The texture coordinate from 0 to 1
+ * @param color: Pointer to buffer to write the color in.
+ * @return SUCCESS or FAILURE
+ **************************************************************/
+extern int image_GetTexture(const TEXTURE *texture, double u, double v, COLOR *color, int flags);
 
 /**********************************************************//**
  * @brief Get the width of the image data
