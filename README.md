@@ -3,6 +3,10 @@ Here is the example image for this submission. This was generated using `data/ar
 <br/>
 <img src="image/art.png">
 
+## Extra credit
+The image above uses smooth shadowing extensively. I also implemented a spot light.<br/>
+<img src="image/spotlight.png">
+
 ## Writeup
 The ambient component of the material color increases the lightness of areas of a shape that are not directly illuminated. `0` makes these areas invisible, while `1` makes these areas the same color as the whole shape. The diffuse component increases the intensity of illuminated areas on the shape - `0` removes this entirely and `1` is the maximal intensity. The specular component similarly changes the intensity of reflected light from the shape, using the shape's highlight color instead of normal color. The specular exponent changes how sharp the area is: `0` is dull and increasing numbers cause the highlight to become smaller.
 
