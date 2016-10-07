@@ -13,15 +13,14 @@
 #include <assert.h>     // assert
 
 // This project
-#include "image.h"
-#include "color.h"
-#include "tracemalloc.h"
+#include "macro.h"      // SUCCESS, FAILURE
+#include "image.h"      // IMAGE
+#include "color.h"      // COLOR, RGB ...
 
-/*============================================================*
- * Constants
- *============================================================*/
-// The maximum height or width of any image
-static const int MAX_DIMENSION = USHRT_MAX;
+// Debugging modules
+#ifdef DEBUG
+#include "tracemalloc.h"
+#endif
 
 /*============================================================*
  * Allocating IMAGE

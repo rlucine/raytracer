@@ -10,9 +10,6 @@
 // Standard library
 #include <stdlib.h>     // size_t
 
-// This project
-#include "macro.h"
-
 /**********************************************************//**
  * @struct ARRAYLIST
  * @brief Struct containing variable length array of any

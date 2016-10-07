@@ -8,9 +8,8 @@
 #define _RAYTRACE_H_
 
 // This project
-#include "macro.h"
-#include "image.h"
-#include "scene.h"
+#include "image.h"  // IMAGE
+#include "scene.h"  // SCENE
 
 /**********************************************************//**
  * @brief Render the SCENE using a raytracing algorithm

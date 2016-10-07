@@ -8,8 +8,7 @@
 #define _PARSER_H_
 
 // This project
-#include "macro.h"
-#include "scene.h"
+#include "scene.h"  // SCENE
 
 /**********************************************************//**
  * @brief Load a scene from a file. If this function succeeds

@@ -8,17 +8,20 @@
 #define _LIGHT_H_
 
 // This project
-#include "macro.h"
-#include "color.h"
-#include "vector.h"
-#include "shape.h"
+#include "color.h"      // COLOR
+#include "vector.h"     // VECTOR
+#include "shape.h"      // COLLISION
 
-/// @def MAX_ANGLE
-/// @brief The maximum angle for a spotlight
+/**********************************************************//**
+ * @def MAX_ANGLE
+ * @brief The maximum angle for a spotlight
+ **************************************************************/
 #define MAX_ANGLE 360
 
-/// @def MIN_ANGLE
-/// @brief The minimum angle for a spotlight
+/**********************************************************//**
+ * @def MIN_ANGLE
+ * @brief The minimum angle for a spotlight
+ **************************************************************/
 #define MIN_ANGLE 0
 
 /**********************************************************//**

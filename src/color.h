@@ -8,26 +8,30 @@
 #define _COLOR_H_
 
 // This project
-#include "vector.h"
+#include "vector.h"     // VECTOR
 
-/*============================================================*
- * Constants
- *============================================================*/
-
-/// @def RGB_MAX
-/// @brief The maximum value for an RGB color
+/**********************************************************//**
+ * @def RGB_MAX
+ * @brief The maximum value for an RGB color
+ **************************************************************/
 #define RGB_MAX 255
 
-/// @def RGB_MIN
-/// @brief The minimum value for an RGB color
+/**********************************************************//**
+ * @def RGB_MIN
+ * @brief The minimum value for an RGB color
+ **************************************************************/
 #define RGB_MIN 0
 
-/// @def COLOR_MAX
-/// @brief The maximum value for a COLOR component
+/**********************************************************//**
+ * @def COLOR_MAX
+ * @brief The maximum value for a COLOR component
+ **************************************************************/
 #define COLOR_MAX 1.0
 
-/// @def COLOR_MIN
-/// @brief The minimum value for a COLOR component
+/**********************************************************//**
+ * @def COLOR_MIN
+ * @brief The minimum value for a COLOR component
+ **************************************************************/
 #define COLOR_MIN 0.0
 
 /**********************************************************//**

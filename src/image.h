@@ -7,20 +7,28 @@
 #ifndef _IMAGE_H_
 #define _IMAGE_H_
 
+// Standard library
+#include <limits.h> // USHRT_MAX
+
 // This project
-#include "macro.h"
-#include "color.h"
+#include "color.h"  // COLOR
 
-/*============================================================*
- * Texture flags
- *============================================================*/
+/**********************************************************//**
+ * @def MAX_DIMENSION
+ * @brief The largest image dimension
+ **************************************************************/
+#define MAX_DIMENSION USHRT_MAX
 
-/// @def TEXTURE_NEAREST
-/// @brief Instruct the texture mapper to use nearest neighbor
+/**********************************************************//**
+ * @def TEXTURE_NEAREST
+ * @brief Instruct the texture mapper to use nearest neighbor
+ **************************************************************/
 #define TEXTURE_NEAREST 0
 
-/// @def TEXTURE_INTERPOLATE
-/// @brief Instruct the texture mapper to blend colors
+/**********************************************************//**
+ * @def TEXTURE_INTERPOLATE
+ * @brief Instruct the texture mapper to blend colors
+ **************************************************************/
 #define TEXTURE_INTERPOLATE 1
 
 /**********************************************************//**

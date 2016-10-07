@@ -11,12 +11,17 @@
 #include <ctype.h>      // isspace
 
 // This project
-#include "image.h"
-#include "vector.h"
-#include "shape.h"
-#include "scene.h"
-#include "light.h"
+#include "macro.h"      // SUCCESS, FAILURE
+#include "image.h"      // IMAGE
+#include "vector.h"     // VECTOR
+#include "shape.h"      // SHAPE
+#include "scene.h"      // SCENE
+#include "light.h"      // LIGHT
+
+// Debugging modules
+#ifdef DEBUG
 #include "tracemalloc.h"
+#endif
 
 /*============================================================*
  * Scene getters

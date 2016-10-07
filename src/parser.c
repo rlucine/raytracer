@@ -11,15 +11,19 @@
 #include <ctype.h>      // isspace
 
 // This project
-#include "color.h"
-#include "ppm.h"
-#include "image.h"
-#include "vector.h"
-#include "shape.h"
-#include "scene.h"
-#include "arraylist.h"
-#include "scanner.h"
+#include "macro.h"      // SUCCESS, FAILURE
+#include "vector.h"     // VECTOR
+#include "ppm.h"        // ppm_Decode
+#include "image.h"      // IMAGE
+#include "shape.h"      // SHAPE, shape_CreateSphere ...
+#include "scene.h"      // SCENE
+#include "arraylist.h"  // ARRAYLIST, arraylist_Compress ...
+#include "scanner.h"    // scanner_ParseDouble ...
+
+// Debugging modules
+#ifdef DEBUG
 #include "tracemalloc.h"
+#endif
 
 /**********************************************************//**
  * @enum PARSER_FLAG

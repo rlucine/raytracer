@@ -9,11 +9,11 @@
 #include <stdio.h>  // stderr, fprintf
 
 // This project
-#include "macro.h"
-#include "light.h"
-#include "color.h"
-#include "vector.h"
-#include "shape.h"
+#include "macro.h"  // SUCCESS, FAILURE
+#include "light.h"  // LIGHT
+#include "color.h"  // COLOR, color_Clamp ...
+#include "vector.h" // VECTOR
+#include "shape.h"  // SHAPE
 
 /*============================================================*
  * Direction

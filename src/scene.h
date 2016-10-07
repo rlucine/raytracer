@@ -8,30 +8,33 @@
 #define _SCENE_H_
 
 // This project
-#include "macro.h"
-#include "image.h"
-#include "vector.h"
-#include "shape.h"
-#include "light.h"
+#include "image.h"      // IMAGE
+#include "vector.h"     // VECTOR
+#include "shape.h"      // SHAPE
+#include "light.h"      // LIGHT
 
-/*============================================================*
- * Constants
- *============================================================*/
-
-/// @def MIN_FOV
-/// @brief The minimum field of view
+/**********************************************************//**
+ * @def MIN_FOV
+ * @brief The minimum field of view
+ **************************************************************/
 #define MIN_FOV 0.0
 
-/// @def MAX_FOV
-/// @brief The maximum field of view
+/**********************************************************//**
+ * @def MAX_FOV
+ * @brief The maximum field of view
+ **************************************************************/
 #define MAX_FOV 180.0
 
-/// @def PROJECT_PARALLEL
-/// @brief Render the scene with paralllel projection
+/**********************************************************//**
+ * @def PROJECT_PARALLEL
+ * @brief Render the scene with paralllel projection
+ **************************************************************/
 #define PROJECT_PARALLEL 1
 
-/// @def PROJECT_PERSPECTIVE
-/// @brief Render the scene with perspective projection
+/**********************************************************//**
+ * @def PROJECT_PERSPECTIVE
+ * @brief Render the scene with perspective projection
+ **************************************************************/
 #define PROJECT_PERSPECTIVE 0
 
 /**********************************************************//**

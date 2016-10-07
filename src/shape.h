@@ -8,9 +8,8 @@
 #define _SHAPE_H_
 
 // This project
-#include "macro.h"
-#include "image.h"
-#include "vector.h"
+#include "image.h"      // TEXTURE, TEXCOORD
+#include "vector.h"     // VECTOR
 
 /**********************************************************//**
  * @enum SHAPE_TYPE

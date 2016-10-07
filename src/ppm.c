@@ -4,9 +4,6 @@
  * @author Alec Shinomiya
  **************************************************************/
 
-// NOTE: documentation for the functions implemented here
-// resides in the header file ppm.h
-
 // Standard library
 #include <stdlib.h>     // malloc, free, size_t
 #include <stdio.h>      // fopen, fclose, fprintf, getline ...
@@ -16,20 +13,14 @@
 #include <assert.h>     // assert
 
 // This project
-#include "image.h"
-#include "ppm.h"
+#include "macro.h"      // SUCCESS, FAILURE
+#include "image.h"      // IMAGE
+#include "ppm.h"        // PPM_MAX_COLOR ...
+
+// Debugging modules
+#ifdef DEBUG
 #include "tracemalloc.h"
-
-/*============================================================*
- * Constants
- *============================================================*/
-static const char *PPM_MAGIC_NUMBER = "P3";
-
-// The maximum value for any color (r, g, b) value
-static const int PPM_MAX_COLOR = 255;
-
-// The maximum amount of characters on any line of a PPM
-static const int PPM_MAX_LINE = 70;
+#endif
 
 /*============================================================*
  * Encoding PPM
@@ -47,7 +38,7 @@ int ppm_Encode(const IMAGE *ppm, const char *filename) {
     }
     
     // Encode the PPM header
-    fprintf(file, "%s\n%d %d\n%d\n", PPM_MAGIC_NUMBER, ppm->width, ppm->height, PPM_MAX_COLOR);
+    fprintf(file, "P3 %d %d %d\n", ppm->width, ppm->height, PPM_MAX_COLOR);
     
     // Encode the color data
     int index = 0;
@@ -152,7 +143,7 @@ int ppm_Decode(IMAGE *ppm, const char *filename) {
     }
     
     // Header check
-    if (header[0] != PPM_MAGIC_NUMBER[0] || header[1] != PPM_MAGIC_NUMBER[1]) {
+    if (header[0] != 'P' || header[1] != '3') {
 #ifdef VERBOSE
         fprintf(stderr, "ppm_Decode failed: Missing PPM magic number\n");
 #endif

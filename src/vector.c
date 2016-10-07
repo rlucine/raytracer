@@ -9,7 +9,7 @@
 #include <math.h>       // sqrt, acos, fabs, fmod ...
 
 // This project
-#include "vector.h"
+#include "vector.h" // VECTOR
 
 /*============================================================*
  * Zero Checking

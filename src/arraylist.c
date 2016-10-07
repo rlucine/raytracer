@@ -10,9 +10,13 @@
 #include <string.h>     // memcpy
 
 // This project
-#include "macro.h"
-#include "arraylist.h"
+#include "macro.h"      // SUCCESS, FAILURE
+#include "arraylist.h"  // ARRAYLIST
+
+// Debugging modules
+#ifdef DEBUG
 #include "tracemalloc.h"
+#endif
 
 /*============================================================*
  * Creation function

@@ -13,11 +13,11 @@
 #include <float.h>      // DBL_EPSILON
 
 // This project
-#include "image.h"
-#include "vector.h"
-#include "shape.h"
-#include "scene.h"
-#include "raytrace.h"
+#include "macro.h"      // SUCCESS, FAILURE
+#include "image.h"      // IMAGE
+#include "vector.h"     // VECTOR
+#include "shape.h"      // SHAPE
+#include "scene.h"      // SCENE
 
 /*============================================================*
  * Constants

@@ -8,9 +8,6 @@
 #include <stdio.h>      // sscanf
 #include <ctype.h>      // isspace
 
-// This project
-#include "scanner.h"
-
 /*============================================================*
  * Parsing double
  *============================================================*/
