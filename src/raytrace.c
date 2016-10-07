@@ -210,9 +210,9 @@ int raytrace_Shadow(const POINT *where, const LIGHT *light, const SCENE *scene, 
         }
         
         // Perturb the origin of the ray
-        perturb.x = uniform(0.0, PERTURB_DISTANCE);
-        perturb.y = uniform(0.0, PERTURB_DISTANCE);
-        perturb.z = uniform(0.0, PERTURB_DISTANCE);
+        perturb.x = uniform(-PERTURB_DISTANCE, PERTURB_DISTANCE);
+        perturb.y = uniform(-PERTURB_DISTANCE, PERTURB_DISTANCE);
+        perturb.z = uniform(-PERTURB_DISTANCE, PERTURB_DISTANCE);
         vector_Add(&ray.origin, where, &perturb);
         nrays++;
     }
