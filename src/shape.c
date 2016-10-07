@@ -15,8 +15,9 @@
 // This project
 #include "macro.h"      // SUCCESS, FAILURE
 #include "image.h"      // IMAGE
-#include "vector.h"     // VECTOR
+#include "vector.h"     // VECTOR, PLANE ...
 #include "shape.h"      // SHAPE
+#include "mesh.h"       // MESH, FACE ...
 
 // Debugging modules
 #ifdef DEBUG
@@ -74,6 +75,30 @@ int shape_CreateEllipsoid(SHAPE *shape, const ELLIPSOID *ellipsoid, const MATERI
     return SUCCESS;
 }
 
+int shape_CreatePlane(SHAPE *shape, const PLANE *plane, const MATERIAL *material) {
+    // Initialize a new infinite plane
+    shape->shape = SHAPE_PLANE;
+    
+    // Copy data into the shape
+    shape->data = malloc(sizeof(PLANE));
+    if (!shape->data) {
+#ifdef VERBOSE
+        fprintf(stderr, "shape_CreatePlane failed: Out of memory\n");
+#endif
+        return FAILURE;
+    }
+    memcpy(shape->data, plane, sizeof(PLANE));
+    
+    // Copy material into shape
+    if (NULL == (shape->material = material)) {
+#ifdef VERBOSE
+        fprintf(stderr, "shape_CreatePlane failed: No material specified\n");
+#endif
+        return FAILURE;
+    }
+    return SUCCESS;
+}
+
 /*============================================================*
  * Shape destruction
  *============================================================*/
@@ -106,26 +131,11 @@ const ELLIPSOID *shape_GetEllipsoid(const SHAPE *shape) {
     return NULL;
 }
 
-/*============================================================*
- * Sphere accessors
- *============================================================*/
-static const POINT *sphere_GetCenter(const SPHERE *sphere) {
-    return &sphere->center;
-}
-
-static double sphere_GetRadius(const SPHERE *sphere) {
-    return sphere->radius;
-}
-
-/*============================================================*
- * Ellipsoid accessors
- *============================================================*/
-static const POINT *ellipsoid_GetCenter(const ELLIPSOID *ellipsoid) {
-    return &ellipsoid->center;
-}
-
-static const VECTOR *ellipsoid_GetDimension(const ELLIPSOID *ellipsoid) {
-    return &ellipsoid->dimension;
+const PLANE *shape_GetPlane(const SHAPE *shape) {
+    if (shape->shape == SHAPE_PLANE) {
+        return (PLANE *)shape->data;
+    }
+    return NULL;
 }
 
 /*============================================================*
@@ -140,7 +150,7 @@ static int sphere_Collide(const SPHERE *sphere, const LINE *ray, COLLISION *resu
 #endif
         return FAILURE;
     }
-    if (sphere_GetRadius(sphere) <= 0.0) {
+    if (sphere->radius <= 0.0) {
 #ifdef VERBOSE
         fprintf(stderr, "sphere_Collide failed: Sphere radius nonpositive\n");
 #endif
@@ -192,7 +202,7 @@ static int sphere_Collide(const SPHERE *sphere, const LINE *ray, COLLISION *resu
     vector_Add(&result->where, &result->where, &ray->origin);
     
     // Get normal vector at collision
-    vector_Subtract(&result->normal, &result->where, sphere_GetCenter(sphere));
+    vector_Subtract(&result->normal, &result->where, &sphere->center);
     vector_Normalize(&result->normal, &result->normal);
     
     // Done!
@@ -212,7 +222,7 @@ static int ellipsoid_Collide(const ELLIPSOID *ellipsoid, const LINE *ray, COLLIS
         return FAILURE;
     }
     
-    const VECTOR *dimension = ellipsoid_GetDimension(ellipsoid);
+    const VECTOR *dimension = &ellipsoid->dimension;
     if (dimension->x <= 0.0 || dimension->y <= 0.0 || dimension->z <= 0.0) {
 #ifdef VERBOSE
         fprintf(stderr, "ellipsoid_Collide failed: Ellipsoid with negative dimension\n");
@@ -276,13 +286,74 @@ static int ellipsoid_Collide(const ELLIPSOID *ellipsoid, const LINE *ray, COLLIS
     vector_Add(&result->where, &result->where, &ray->origin);
     
     // Get the normal vector at the collision site
-    vector_Subtract(&result->normal, &result->where, ellipsoid_GetCenter(ellipsoid));
+    vector_Subtract(&result->normal, &result->where, &ellipsoid->center);
     result->normal.x *= 2.0 / (dimension->x * dimension->x);
     result->normal.y *= 2.0 / (dimension->y * dimension->y);
     result->normal.z *= 2.0 / (dimension->z * dimension->z);
     vector_Normalize(&result->normal, &result->normal);
     
     // Done
+    return SUCCESS;
+}
+
+/*============================================================*
+ * Plane geometry
+ *============================================================*/
+int plane_Collide(const PLANE *plane, const LINE *ray, COLLISION *result) {
+    
+    // Collide the ray with the plane
+    if (vector_IsZero(&ray->direction)) {
+#ifdef VERBOSE
+        fprintf(stderr, "plane_Collide failed: direction is the null vector\n");
+#endif
+        return FAILURE;
+    }
+    
+    // Get the unit direction of the ray
+    VECTOR unit;
+    vector_Normalize(&unit, &ray->direction);
+    
+    // Get the plane's normal vector
+    VECTOR normal;
+    vector_Cross(&normal, &plane->u, &plane->v);
+    vector_Normalize(&normal, &normal);
+    
+    // Get the plane's D value (Ax + By + Cz - D == 0)
+    double d = vector_Dot(&normal, &plane->origin);
+    
+    // Determine where the ray and plane intersect
+    double denominator = vector_Dot(&normal, &unit);
+    if (fabs(denominator) < DBL_EPSILON) {
+        // They do not intersect!
+        result->how = COLLISION_NONE;
+        return SUCCESS;
+    }
+    
+    double numerator = d - vector_Dot(&normal, &ray->origin);
+    double tclosest = numerator / denominator;
+    if (tclosest < -DBL_EPSILON) {
+        // The plane is behind the viewer - miss!
+        result->how = COLLISION_NONE;
+        return SUCCESS;
+    } else if (tclosest < DBL_EPSILON) {
+        // The viewer is in the plane!
+        result->how = COLLISION_INSIDE;
+    } else {
+        result->how = COLLISION_SURFACE;
+    }
+    
+    // Determine where the collision is
+    result->distance = tclosest;
+    vector_Multiply(&result->where, &unit, tclosest);
+    vector_Add(&result->where, &result->where, &ray->origin);
+    
+    // Determine normal at collision site
+    if (vector_Angle(&normal, &ray->direction) > (M_PI / 2.0)) {
+        // Normal is facing in the same direction as our ray! Fix it.
+        vector_Negate(&result->normal, &normal);
+    } else {
+        vector_Copy(&result->normal, &normal);
+    }
     return SUCCESS;
 }
 
@@ -301,6 +372,9 @@ int shape_Collide(const SHAPE *shape, const LINE *ray, COLLISION *result) {
         
     case SHAPE_ELLIPSOID:
         return ellipsoid_Collide((ELLIPSOID *)shape->data, ray, result);
+        
+    case SHAPE_PLANE:
+        return plane_Collide((PLANE *)shape->data, ray, result);
     
     case SHAPE_NONE:
     default:

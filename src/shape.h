@@ -19,6 +19,8 @@ typedef enum {
     SHAPE_NONE = 0,     ///< The shape is not initialized
     SHAPE_SPHERE,       ///< The shape is a sphere
     SHAPE_ELLIPSOID,    ///< The shape is an ellipsoid
+    SHAPE_PLANE,        ///< The shape is a flat plane
+    SHAPE_MESH,         ///< The shape is a polygon mesh
 } SHAPE_TYPE;
 
 /**********************************************************//**
@@ -116,6 +118,19 @@ extern int shape_CreateSphere(SHAPE *shape, const SPHERE *sphere, const MATERIAL
 extern int shape_CreateEllipsoid(SHAPE *shape, const ELLIPSOID *ellipsoid, const MATERIAL *material);
 
 /**********************************************************//**
+ * @brief Construct a plane with the given properties.
+ * @param shape: The shape to construct. It must be destroyed
+ * with shape_Destroy if this function is successful. If this
+ * function is not successful, it will clean up any memory
+ * allocations and shape_Destroy will not work.
+ * @param plane: Pointer to a PLANE definition.
+ * @param material: Pointer to the material properties. The
+ * data pointed to may be destroyed after calling this function.
+ * @return SUCCESS or FAILURE
+ **************************************************************/
+extern int shape_CreatePlane(SHAPE *shape, const PLANE *plane, const MATERIAL *material);
+
+/**********************************************************//**
  * @brief Destroy a shape struct that has been initialized by
  * shape_Create. You cannot destroy a shape that has not
  * been initialized, and you cannot destroy a shape twice.
@@ -146,6 +161,14 @@ extern const SPHERE *shape_GetSphere(const SHAPE *shape);
  * the shape is not an ellipsoid.
  **************************************************************/
 extern const ELLIPSOID *shape_GetEllipsoid(const SHAPE *shape);
+
+/**********************************************************//**
+ * @brief Get the PLANE data embedded in the shape.
+ * @param shape: The shape to read
+ * @return Pointer to a PLANE struct on success, or NULL if
+ * the shape is not a plane.
+ **************************************************************/
+extern const PLANE *shape_GetPlane(const SHAPE *shape);
 
 /**********************************************************//**
  * @brief Generalized collision function for all SHAPE_TYPE

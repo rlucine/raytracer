@@ -278,6 +278,7 @@ static const char *parse_Material(PARSER_DATA *data, const char *string) {
     }
     
     // Set up material texture
+    material.exponent = (int)exponent;
     material.texture = data->texture;
     
     // Store material in buffer
@@ -527,11 +528,55 @@ static const char *parse_Parallel(PARSER_DATA *data, const char *string) {
     return string;
 }
 
+/*============================================================*
+ * Parsing ellipsoid
+ *============================================================*/
+static const char *parse_Plane(PARSER_DATA *data, const char *string) {
+    const char *where = string;
+    SHAPE shape;
+    PLANE plane;
+    
+    if ((where = parse_Vector(where, &plane.origin)) == NULL) {
+        return NULL;
+    }
+    if ((where = parse_Vector(where, &plane.u)) == NULL) {
+        return NULL;
+    }
+    if ((where = parse_Vector(where, &plane.v)) == NULL) {
+        return NULL;
+    }
+    if (vector_IsColinear(&plane.u, &plane.v)) {
+#ifdef VERBOSE
+        fprintf(stderr, "parse_Plane failed: Basis vectors are colinear\n");
+#endif
+        return NULL;
+    }
+    
+    // Set up shape
+    if (shape_CreatePlane(&shape, &plane, data->material) != SUCCESS) {
+#ifdef VERBOSE
+        fprintf(stderr, "parse_Ellipsoid failed: Unable to allocate new plane\n");
+#endif
+        return NULL;
+    }
+    
+    // Add shape to list
+    if (arraylist_Append(&data->shapes, &shape) != SUCCESS) {
+#ifdef VERBOSE
+        fprintf(stderr, "parse_Ellipsoid failed: Unable to store new plane\n");
+#endif
+        shape_Destroy(&shape);
+        return NULL;
+    }
+    
+    return where;
+}
+
 /**********************************************************//**
  * @def N_KEYWORDS
  * @brief The number of distinct keywords
  **************************************************************/
-#define N_KEYWORDS 17
+#define N_KEYWORDS 18
 
 /**********************************************************//**
  * @typedef PARSER
@@ -563,6 +608,9 @@ static const char *KEYWORDS[N_KEYWORDS] = {
     "f",
     "vn",
     "vt",
+    
+    // Unnecessary keywords
+    "plane",
 };
 
 /**********************************************************//**
@@ -588,6 +636,9 @@ static const PARSER PARSERS[N_KEYWORDS] = {
     NULL,
     NULL,
     NULL,
+    
+    // Unnecessary keywords
+    &parse_Plane,
 };
 
 /**********************************************************//**
@@ -749,10 +800,18 @@ int scene_Decode(SCENE *scene, const char *filename) {
     data.scene->nlights = arraylist_Length(&data.lights);
     data.scene->lights = (LIGHT *)arraylist_GetData(&data.lights);
     
+    if (data.material) {
+        printf("First: %lf\n", data.material->color.x);
+    }
+    
     // Move materials into scene
     arraylist_Compress(&data.materials);
     data.scene->nmaterials = arraylist_Length(&data.materials);
     data.scene->materials = (MATERIAL *)arraylist_GetData(&data.materials);
+    
+    if (data.material) {
+        printf("First: %lf\n", data.material->color.x);
+    }
     
     // Move textures into scene
     arraylist_Compress(&data.textures);
@@ -794,7 +853,7 @@ int scene_Decode(SCENE *scene, const char *filename) {
         
         default:
             fprintf(stderr, "parser_Validate: Shape %d is undefined\n", n);
-            continue;
+            break;
         }
         
         // Print material properties
