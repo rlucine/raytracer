@@ -72,6 +72,13 @@ void *arraylist_At(ARRAYLIST *list, int index) {
         return NULL;
     }
     
+    if (index < 0 || index >= list->length) {
+#ifdef VERBOSE
+        fprintf(stderr, "arraylist_At failed: Index %d out of bounds\n", index);
+#endif
+        return NULL;
+    }
+    
     temp += index * list->itemsize;
     return (void *)temp;
 }
