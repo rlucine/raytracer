@@ -12,6 +12,7 @@
 
 // This project
 #include "color.h"  // COLOR
+#include "vector.h" // VECTOR
 
 /**********************************************************//**
  * @def MAX_DIMENSION
@@ -48,13 +49,10 @@ typedef struct {
 typedef IMAGE TEXTURE;
 
 /**********************************************************//**
- * @struct TEXCOORD
+ * @typedef TEXCOORD
  * @brief Struct for texture coordinates.
  **************************************************************/
-typedef struct {
-    double u;
-    double v;
-} TEXCOORD;
+typedef VECTOR TEXCOORD;
 
 /**********************************************************//**
  * @brief Allocate space for an image

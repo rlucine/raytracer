@@ -123,21 +123,21 @@ int image_SetPixel(IMAGE *image, int x, int y, const RGB *color) {
 int image_GetTexture(const TEXTURE *texture, const TEXCOORD *coord, COLOR *color, int flags) {
     
     // Mapping to pixels
-    int x = (int)(coord->u * texture->width);
-    int y = (int)(coord->v * texture->height);
-    double dx = (coord->u * texture->width) - x;
-    double dy = (coord->v * texture->height) - y;
+    int x = (int)(coord->x * texture->width);
+    int y = (int)(coord->y * texture->height);
+    double dx = (coord->x * texture->width) - x;
+    double dy = (coord->y * texture->height) - y;
     
     // Error check coordinates
-    if (coord->u < 0.0 || coord->u > 1.0) {
+    if (coord->x < 0.0 || coord->x > 1.0) {
 #ifdef VERBOSE
-        fprintf(stderr, "image_GetTexture failed: Invalud u coordinate.\n");
+        fprintf(stderr, "image_GetTexture failed: Invalud x coordinate.\n");
 #endif
         return FAILURE;
     }
-    if (coord->v < 0.0 || coord->v > 1.0) {
+    if (coord->y < 0.0 || coord->y > 1.0) {
 #ifdef VERBOSE
-        fprintf(stderr, "image_GetTexture failed: Invalud v coordinate.\n");
+        fprintf(stderr, "image_GetTexture failed: Invalud y coordinate.\n");
 #endif
         return FAILURE;
     }
