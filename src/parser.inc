@@ -52,14 +52,14 @@ typedef enum {
  * parser funcitons.
  **************************************************************/
 typedef struct {
-    PARSER_FLAG flags;          ///< Ensure all required keywords found
-    ARRAYLIST shapes;           ///< List of all shapes defined
-    ARRAYLIST lights;           ///< List of all lights defined
-    ARRAYLIST materials;        ///< List of all materials defined
-    const MATERIAL *material;   ///< The most recently defined material
-    ARRAYLIST textures;         ///< List of all textures defined
-    const TEXTURE *texture;     ///< The most recently defined texture
-    SCENE *scene;               ///< The SCENE to read data into
+    PARSER_FLAG flags;      ///< Ensure all required keywords found
+    ARRAYLIST shapes;       ///< List of all shapes defined
+    ARRAYLIST lights;       ///< List of all lights defined
+    ARRAYLIST materials;    ///< List of all materials defined
+    MATERIAL *material;     ///< The most recently defined material
+    ARRAYLIST textures;     ///< List of all textures defined
+    TEXTURE *texture;       ///< The most recently defined texture
+    SCENE *scene;           ///< The SCENE to read data into
 } PARSER_DATA;
 
 /**********************************************************//**
@@ -316,6 +316,7 @@ static const char *parse_Sphere(PARSER_DATA *data, const char *string) {
 #ifdef VERBOSE
         fprintf(stderr, "parse_Sphere failed: Unable to store new sphere\n");
 #endif
+        shape_Destroy(&shape);
         return NULL;
     }
     
@@ -356,6 +357,7 @@ static const char *parse_Ellipsoid(PARSER_DATA *data, const char *string) {
 #ifdef VERBOSE
         fprintf(stderr, "parse_Ellipsoid failed: Unable to store new ellipsoid\n");
 #endif
+        shape_Destroy(&shape);
         return NULL;
     }
     
@@ -458,6 +460,54 @@ static const char *parse_Spotlight(PARSER_DATA *data, const char *string) {
     return where;
 }
 
+/*============================================================*
+ * Parsing texture
+ *============================================================*/
+static const char *parse_Texture(PARSER_DATA *data, const char *string) {
+    size_t size = 256;
+    char filename[size];
+    const char *where = NULL;
+    
+    if ((where = scanner_ParseString(string, size, filename)) == NULL) {
+        return NULL;
+    }
+    
+    // Try loading the file as a texture
+    TEXTURE texture;
+    if (ppm_Decode(&texture, filename) != SUCCESS) {
+#ifdef VERBOSE
+        fprintf(stderr, "parse_Texture failed: Failed to decode \"%s\"\n", filename);
+#endif
+        return NULL;
+    }
+
+    // Install texture
+    if (arraylist_Append(&data->textures, &texture) != SUCCESS) {
+#ifdef VERBOSE
+        fprintf(stderr, "parse_Texture failed: Unable to store new texture\n");
+#endif
+        image_Destroy(&texture);
+        return NULL;
+    }
+    data->texture = (TEXTURE *)arraylist_At(&data->textures, arraylist_Length(&data->textures)-1);
+
+    // Generating a new texture means we have to push a new material
+    if (data->material) {
+        if (arraylist_Append(&data->materials, data->material) != SUCCESS) {
+#ifdef VERBOSE
+            fprintf(stderr, "parse_Texture failed: Unable to store new material\n");
+#endif
+            image_Destroy(&texture);
+            return NULL;
+        }
+        data->material = (MATERIAL *)arraylist_At(&data->materials, arraylist_Length(&data->materials)-1);
+        
+        // Update the new material with the new texture
+        data->material->texture = data->texture;
+    }
+    return where;
+}
+
 /**********************************************************//**
  * @def N_KEYWORDS
  * @brief The number of distinct keywords
@@ -513,7 +563,7 @@ static const PARSER PARSERS[N_KEYWORDS] = {
     &parse_Ellipsoid,
     &parse_Light,
     &parse_Spotlight,
-    NULL,
+    &parse_Texture,
     NULL,
     NULL,
     NULL,
@@ -543,7 +593,7 @@ static int parser_ParseLine(PARSER_DATA *data, const char *line) {
     if (keyword[0] == '#') {
         return SUCCESS;
     }
-    
+
     // Check which keyword the line has
     const char *result;
     PARSER parser;

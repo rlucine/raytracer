@@ -38,6 +38,9 @@ const char *scanner_ParseInteger(const char *string, int *output) {
 const char *scanner_ParseString(const char *string, size_t size, char *output) {
     char *where = (char *)string;
     size_t i = 0;
+    while (*where && isspace(*where)) {
+        where++;
+    }
     while (*where && i < size-1 && !isspace(*where)) {
         *output++ = *where++;
         i++;
