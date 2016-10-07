@@ -18,28 +18,7 @@
 #include "vector.h"     // VECTOR
 #include "shape.h"      // SHAPE
 #include "scene.h"      // SCENE
-
-/*============================================================*
- * Constants
- *============================================================*/
-
-// Distance of viewing plane from eye
-#define VIEW_DISTANCE 1.0
-
-// Considered completely dark if under this value
-// because 0.003 < (1 / 255)
-#define SHADOW_THRESHOLD 0.003
-
-// Only consider collisions greater than this distance for
-// shadow casting.
-#define COLLISION_THRESHOLD DBL_EPSILON
-
-// Perturb the ray origin by this amount for more precise
-// shadow casting.
-#define PERTURB_DISTANCE 0.02
-
-// Number of shadow rays to shoot
-#define SHADOW_PRECISION 50
+#include "raytrace.h"   // SHADOW_THRESHOLD ...
 
 /*============================================================*
  * Viewing plane
@@ -111,7 +90,7 @@ static int raytrace_GetView(VIEWPLANE *view, const SCENE *scene) {
 /*============================================================*
  * Cast one ray
  *============================================================*/
-static int raytrace_Cast(COLLISION *closest, const LINE *ray, const SCENE *scene) {
+int raytrace_Cast(COLLISION *closest, const LINE *ray, const SCENE *scene) {
     
     // Collision detectors
     COLLISION current;
@@ -197,7 +176,7 @@ static double uniform(double a, double b) {
     return a + (b - a)*unit;
 }
 
-static int raytrace_Shadow(const POINT *where, const LIGHT *light, const SCENE *scene, double *shadows) {
+int raytrace_Shadow(const POINT *where, const LIGHT *light, const SCENE *scene, double *shadows) {
     
     // Set up ray pointing to light
     LINE ray;
@@ -245,7 +224,7 @@ static int raytrace_Shadow(const POINT *where, const LIGHT *light, const SCENE *
 /*============================================================*
  * Shader
  *============================================================*/
-static int raytrace_Shade(COLOR *color, const COLLISION *collision, const SCENE *scene) {
+int raytrace_Shade(COLOR *color, const COLLISION *collision, const SCENE *scene) {
     
     // Set the ambient color of the object
     const MATERIAL *material = collision->material;
