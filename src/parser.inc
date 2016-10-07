@@ -766,6 +766,10 @@ void parser_Destroy(PARSER_DATA *data) {
         image_Destroy((IMAGE *)arraylist_At(&data->textures, i));
     }
     arraylist_Destroy(&data->textures);
+    
+    // Destroy the index tables
+    arraylist_Destroy(&data->shape_materials);
+    arraylist_Destroy(&data->material_textures);
 }
 
 /*============================================================*
@@ -852,19 +856,34 @@ int scene_Decode(SCENE *scene, const char *filename) {
     // the material and texture tables to pointers and put them in the shapes.
     int i;
     int *pointer;
+    int index;
     
     // Map the texture index table down to pointers and put them
     // in each material
     for (i = 0; i < data.scene->nmaterials; i++) {
         pointer = (int *)arraylist_At(&data.material_textures, i);
-        data.scene->materials[i].texture = &data.scene->textures[*pointer];
+        index = *pointer;
+        if (index >= 0) {
+            data.scene->materials[i].texture = &data.scene->textures[*pointer];
+        } else {
+            data.scene->materials[i].texture = NULL;
+        }
     }
     
     // Map the material index table down to pointers and put them
     // in each shape
     for (i = 0; i < data.scene->nshapes; i++) {
         pointer = (int *)arraylist_At(&data.shape_materials, i);
-        shape_SetMaterial(&data.scene->shapes[i], &data.scene->materials[*pointer]);
+        index = *pointer;
+        if (index >= 0) {
+            shape_SetMaterial(&data.scene->shapes[i], &data.scene->materials[*pointer]);
+        } else {
+#ifdef VERBOSE
+            fprintf(stderr, "scene_Decode failed: Shape %d without material color\n", i);
+#endif
+            parser_Destroy(&data);
+            return FAILURE;
+        }
     }
     
     // Done with the index tables
