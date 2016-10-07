@@ -96,6 +96,17 @@ static int parser_Create(PARSER_DATA *data, SCENE *scene) {
         return FAILURE;
     }
     
+    // Set up scene properties
+    scene->nshapes = 0;
+    scene->shapes = NULL;
+    scene->nlights = 0;
+    scene->lights = NULL;
+    scene->nmaterials = 0;
+    scene->materials = NULL;
+    scene->ntextures = 0;
+    scene->textures = NULL;
+    scene->flags = 0;
+    
     // Set up current properties
     data->flags = FLAG_NONE;
     data->material = NULL;
@@ -508,6 +519,14 @@ static const char *parse_Texture(PARSER_DATA *data, const char *string) {
     return where;
 }
 
+/*============================================================*
+ * Parsing parallel
+ *============================================================*/
+static const char *parse_Parallel(PARSER_DATA *data, const char *string) {
+    data->scene->flags |= PROJECT_PARALLEL;
+    return string;
+}
+
 /**********************************************************//**
  * @def N_KEYWORDS
  * @brief The number of distinct keywords
@@ -564,7 +583,7 @@ static const PARSER PARSERS[N_KEYWORDS] = {
     &parse_Light,
     &parse_Spotlight,
     &parse_Texture,
-    NULL,
+    &parse_Parallel,
     NULL,
     NULL,
     NULL,
