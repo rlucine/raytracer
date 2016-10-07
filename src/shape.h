@@ -147,6 +147,13 @@ extern void shape_Destroy(SHAPE *shape);
 extern const MATERIAL *shape_GetMaterial(const SHAPE *shape);
 
 /**********************************************************//**
+ * @brief Set the material properties of the shape
+ * @param shape: The shape to set
+ * @param material: Pointer to the material struct
+ **************************************************************/
+extern void shape_SetMaterial(SHAPE *shape, const MATERIAL *material);
+
+/**********************************************************//**
  * @brief Get the SPHERE data embedded in the shape.
  * @param shape: The shape to read
  * @return Pointer to a SPHERE struct on success, or NULL if

@@ -42,12 +42,7 @@ int shape_CreateSphere(SHAPE *shape, const SPHERE *sphere, const MATERIAL *mater
     memcpy(shape->data, sphere, sizeof(SPHERE));
     
     // Copy material into shape
-    if (NULL == (shape->material = material)) {
-#ifdef VERBOSE
-        fprintf(stderr, "shape_CreateSphere failed: No material specified\n");
-#endif
-        return FAILURE;
-    }
+    shape->material = material;
     return SUCCESS;
 }
 
@@ -66,12 +61,7 @@ int shape_CreateEllipsoid(SHAPE *shape, const ELLIPSOID *ellipsoid, const MATERI
     memcpy(shape->data, ellipsoid, sizeof(ELLIPSOID));
     
     // Copy material into shape
-    if (NULL == (shape->material = material)) {
-#ifdef VERBOSE
-        fprintf(stderr, "shape_CreateEllipsoid failed: No material specified\n");
-#endif
-        return FAILURE;
-    }
+    shape->material = material;
     return SUCCESS;
 }
 
@@ -90,12 +80,7 @@ int shape_CreatePlane(SHAPE *shape, const PLANE *plane, const MATERIAL *material
     memcpy(shape->data, plane, sizeof(PLANE));
     
     // Copy material into shape
-    if (NULL == (shape->material = material)) {
-#ifdef VERBOSE
-        fprintf(stderr, "shape_CreatePlane failed: No material specified\n");
-#endif
-        return FAILURE;
-    }
+    shape->material = material;
     return SUCCESS;
 }
 
@@ -115,6 +100,10 @@ void shape_Destroy(SHAPE *shape) {
  *============================================================*/
 const MATERIAL *shape_GetMaterial(const SHAPE *shape) {
     return shape->material;
+}
+
+void shape_SetMaterial(SHAPE *shape, const MATERIAL *material) {
+    shape->material = material;
 }
 
 const SPHERE *shape_GetSphere(const SHAPE *shape) {
@@ -363,6 +352,12 @@ int plane_Collide(const PLANE *plane, const LINE *ray, COLLISION *result) {
 int shape_Collide(const SHAPE *shape, const LINE *ray, COLLISION *result) {
     
     // Get collision material
+    if (shape->material == NULL) {
+#ifdef VERBOSE
+        fprintf(stderr, "shape_Collide failed: No material defined for this shape\n");
+#endif
+        return FAILURE;
+    }
     result->material = shape->material;
     
     // Map to specific collision checking functions
