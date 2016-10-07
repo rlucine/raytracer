@@ -26,11 +26,23 @@
 /// @brief The maximum field of view
 #define MAX_FOV 180.0
 
+/// @def PROJECT_PARALLEL
+/// @brief Render the scene with paralllel projection
+#define PROJECT_PARALLEL 1
+
+/// @def PROJECT_PERSPECTIVE
+/// @brief Render the scene with perspective projection
+#define PROJECT_PERSPECTIVE 0
+
 /**********************************************************//**
  * @struct SCENE
  * @brief Struct for storing all scene data
  **************************************************************/
 typedef struct {
+    // Bit flags
+    int flags;      ///< Rendering flags
+    
+    // Required components
     POINT eye;          ///< Position of the eye in the scene
     VECTOR view;        ///< Direction the eye is pointing
     VECTOR up;          ///< Rotation of the camera
@@ -38,14 +50,20 @@ typedef struct {
     int width;          ///< Width of the image plane
     int height;         ///< Height of the image plane
     COLOR background;   ///< The default background color
-    int nshapes;        ///< How many shapes are in the scene
-    SHAPE *shapes;      ///< Array of all shapes in the scene
-    int nlights;        ///< How many lights are in the scene
-    LIGHT *lights;      ///< Array of all lights in the scene
-    int nmaterials;     ///< How many materials?
-    MATERIAL *materials;///< Buffer shared SHAPE materials here
-    int ntextures;      ///< How many textures?
-    TEXTURE *textures;  ///< Buffer shared TEXTURE here
+    
+    // Shapes
+    int nshapes;    ///< How many shapes are in the scene
+    SHAPE *shapes;  ///< Array of all shapes in the scene
+    
+    // Lights
+    int nlights;    ///< How many lights are in the scene
+    LIGHT *lights;  ///< Array of all lights in the scene
+    
+    // Onboard data storage for shapes
+    int nmaterials;         ///< How many materials?
+    MATERIAL *materials;    ///< Buffer shared SHAPE materials here
+    int ntextures;          ///< How many textures?
+    TEXTURE *textures;      ///< Buffer shared TEXTURE here
 } SCENE;
 
 /**********************************************************//**
