@@ -16,9 +16,9 @@ DEBUG := -DDEBUG -DVERBOSE -UTRACE
 
 #===== Compiler / linker setup =====#
 CC := gcc
-CFLAGS := -s -O3 -Wall -std=gnu99
+CFLAGS := -g -O3 -Wall -std=gnu99
 DFLAGS := -MP -MMD
-LFLAGS := -s -lm
+LFLAGS := -g -lm
 INCLUDE := 
 LIBRARY := 
 

@@ -11,6 +11,7 @@
 #include <math.h>       // fabs
 
 // This project
+#include "macro.h"
 #include "scene.h"
 #include "vector.h"
 #include "image.h"

@@ -12,6 +12,7 @@
 #include <stdio.h>      // fprintf, stderr, fopen, fclose ...
 #include <string.h>     // strcmp
 #include <ctype.h>      // isspace
+#include <assert.h>     // assert
 
 // This project
 #include "macro.h"      // SUCCESS, FAILURE
@@ -56,10 +57,12 @@ typedef struct {
     ARRAYLIST shapes;       ///< List of all shapes defined
     ARRAYLIST lights;       ///< List of all lights defined
     ARRAYLIST materials;    ///< List of all materials defined
-    MATERIAL *material;     ///< The most recently defined material
+    int material;           ///< The index of the current material
     ARRAYLIST textures;     ///< List of all textures defined
-    TEXTURE *texture;       ///< The most recently defined texture
+    int texture;            ///< Current texture index
     SCENE *scene;           ///< The SCENE to read data into
+    ARRAYLIST shape_materials;   ///< List of shape's material indexes
+    ARRAYLIST material_textures;    ///< List of material's texture indices
 } PARSER_DATA;
 
 /**********************************************************//**
@@ -95,6 +98,18 @@ static int parser_Create(PARSER_DATA *data, SCENE *scene) {
 #endif
         return FAILURE;
     }
+    if (arraylist_Create(&data->shape_materials, sizeof(int), 8) != SUCCESS) {
+#ifdef VERBOSE
+        fprintf(stderr, "parser_Create failed: Cannot allocate material index table\n");
+#endif
+        return FAILURE;
+    }
+    if (arraylist_Create(&data->material_textures, sizeof(int), 8) != SUCCESS) {
+#ifdef VERBOSE
+        fprintf(stderr, "parser_Create failed: Cannot allocate texture index table\n");
+#endif
+        return FAILURE;
+    }
     
     // Set up scene properties
     scene->nshapes = 0;
@@ -109,8 +124,8 @@ static int parser_Create(PARSER_DATA *data, SCENE *scene) {
     
     // Set up current properties
     data->flags = FLAG_NONE;
-    data->material = NULL;
-    data->texture = NULL;
+    data->material = -1;
+    data->texture = -1;
     data->scene = scene;
     return SUCCESS;
 }
@@ -279,9 +294,10 @@ static const char *parse_Material(PARSER_DATA *data, const char *string) {
     
     // Set up material texture
     material.exponent = (int)exponent;
-    material.texture = data->texture;
+    material.texture = NULL;
     
     // Store material in buffer
+    assert(data->materials.itemsize == sizeof(MATERIAL));
     if (arraylist_Append(&data->materials, &material) != SUCCESS) {
 #ifdef VERBOSE
         fprintf(stderr, "parse_Material failed: Unable to store new material\n");
@@ -290,7 +306,8 @@ static const char *parse_Material(PARSER_DATA *data, const char *string) {
     }
     
     // Set up current material
-    data->material = (MATERIAL *)arraylist_At(&data->materials, arraylist_Length(&data->materials)-1);
+    data->material++;
+    arraylist_Append(&data->material_textures, &data->texture);
     return where;
 }
 
@@ -316,7 +333,7 @@ static const char *parse_Sphere(PARSER_DATA *data, const char *string) {
     }
     
     // Set up shape
-    if (shape_CreateSphere(&shape, &sphere, data->material) != SUCCESS) {
+    if (shape_CreateSphere(&shape, &sphere, NULL) != SUCCESS) {
 #ifdef VERBOSE
         fprintf(stderr, "parse_Sphere failed: Unable to allocate new sphere\n");
 #endif
@@ -327,6 +344,13 @@ static const char *parse_Sphere(PARSER_DATA *data, const char *string) {
     if (arraylist_Append(&data->shapes, &shape) != SUCCESS) {
 #ifdef VERBOSE
         fprintf(stderr, "parse_Sphere failed: Unable to store new sphere\n");
+#endif
+        shape_Destroy(&shape);
+        return NULL;
+    }
+    if (arraylist_Append(&data->shape_materials, &data->material) != SUCCESS) {
+#ifdef VERBOSE
+        fprintf(stderr, "parse_Sphere failed: Unable to store new material index\n");
 #endif
         shape_Destroy(&shape);
         return NULL;
@@ -357,7 +381,7 @@ static const char *parse_Ellipsoid(PARSER_DATA *data, const char *string) {
     }
     
     // Set up shape
-    if (shape_CreateEllipsoid(&shape, &ellipsoid, data->material) != SUCCESS) {
+    if (shape_CreateEllipsoid(&shape, &ellipsoid, NULL) != SUCCESS) {
 #ifdef VERBOSE
         fprintf(stderr, "parse_Ellipsoid failed: Unable to allocate new ellipsoid\n");
 #endif
@@ -368,6 +392,13 @@ static const char *parse_Ellipsoid(PARSER_DATA *data, const char *string) {
     if (arraylist_Append(&data->shapes, &shape) != SUCCESS) {
 #ifdef VERBOSE
         fprintf(stderr, "parse_Ellipsoid failed: Unable to store new ellipsoid\n");
+#endif
+        shape_Destroy(&shape);
+        return NULL;
+    }
+    if (arraylist_Append(&data->shape_materials, &data->material) != SUCCESS) {
+#ifdef VERBOSE
+        fprintf(stderr, "parse_Ellipsoid failed: Unable to store new material index\n");
 #endif
         shape_Destroy(&shape);
         return NULL;
@@ -501,21 +532,21 @@ static const char *parse_Texture(PARSER_DATA *data, const char *string) {
         image_Destroy(&texture);
         return NULL;
     }
-    data->texture = (TEXTURE *)arraylist_At(&data->textures, arraylist_Length(&data->textures)-1);
 
     // Generating a new texture means we have to push a new material
     if (data->material) {
-        if (arraylist_Append(&data->materials, data->material) != SUCCESS) {
+        MATERIAL *material = arraylist_At(&data->materials, arraylist_Length(&data->materials)-1);
+        if (arraylist_Append(&data->materials, material) != SUCCESS) {
 #ifdef VERBOSE
             fprintf(stderr, "parse_Texture failed: Unable to store new material\n");
 #endif
             image_Destroy(&texture);
             return NULL;
         }
-        data->material = (MATERIAL *)arraylist_At(&data->materials, arraylist_Length(&data->materials)-1);
-        
+
         // Update the new material with the new texture
-        data->material->texture = data->texture;
+        data->texture++;
+        arraylist_Append(&data->material_textures, &data->texture);
     }
     return where;
 }
@@ -553,7 +584,7 @@ static const char *parse_Plane(PARSER_DATA *data, const char *string) {
     }
     
     // Set up shape
-    if (shape_CreatePlane(&shape, &plane, data->material) != SUCCESS) {
+    if (shape_CreatePlane(&shape, &plane, NULL) != SUCCESS) {
 #ifdef VERBOSE
         fprintf(stderr, "parse_Ellipsoid failed: Unable to allocate new plane\n");
 #endif
@@ -564,6 +595,13 @@ static const char *parse_Plane(PARSER_DATA *data, const char *string) {
     if (arraylist_Append(&data->shapes, &shape) != SUCCESS) {
 #ifdef VERBOSE
         fprintf(stderr, "parse_Ellipsoid failed: Unable to store new plane\n");
+#endif
+        shape_Destroy(&shape);
+        return NULL;
+    }
+    if (arraylist_Append(&data->shape_materials, &data->material) != SUCCESS) {
+#ifdef VERBOSE
+        fprintf(stderr, "parse_Plane failed: Unable to store new material index\n");
 #endif
         shape_Destroy(&shape);
         return NULL;
@@ -789,7 +827,7 @@ int scene_Decode(SCENE *scene, const char *filename) {
         parser_Destroy(&data);
         return FAILURE;
     }
-    
+
     // Move shapes arraylist into scene
     arraylist_Compress(&data.shapes);
     data.scene->nshapes = arraylist_Length(&data.shapes);
@@ -800,23 +838,38 @@ int scene_Decode(SCENE *scene, const char *filename) {
     data.scene->nlights = arraylist_Length(&data.lights);
     data.scene->lights = (LIGHT *)arraylist_GetData(&data.lights);
     
-    if (data.material) {
-        printf("First: %lf\n", data.material->color.x);
-    }
-    
     // Move materials into scene
     arraylist_Compress(&data.materials);
     data.scene->nmaterials = arraylist_Length(&data.materials);
     data.scene->materials = (MATERIAL *)arraylist_GetData(&data.materials);
     
-    if (data.material) {
-        printf("First: %lf\n", data.material->color.x);
-    }
-    
     // Move textures into scene
     arraylist_Compress(&data.textures);
     data.scene->ntextures = arraylist_Length(&data.textures);
     data.scene->textures = (TEXTURE *)arraylist_GetData(&data.textures);
+    
+    // Now that all the pointer moving is permanently done, let's re-map
+    // the material and texture tables to pointers and put them in the shapes.
+    int i;
+    int *pointer;
+    
+    // Map the texture index table down to pointers and put them
+    // in each material
+    for (i = 0; i < data.scene->nmaterials; i++) {
+        pointer = (int *)arraylist_At(&data.material_textures, i);
+        data.scene->materials[i].texture = &data.scene->textures[*pointer];
+    }
+    
+    // Map the material index table down to pointers and put them
+    // in each shape
+    for (i = 0; i < data.scene->nshapes; i++) {
+        pointer = (int *)arraylist_At(&data.shape_materials, i);
+        shape_SetMaterial(&data.scene->shapes[i], &data.scene->materials[*pointer]);
+    }
+    
+    // Done with the index tables
+    arraylist_Destroy(&data.shape_materials);
+    arraylist_Destroy(&data.material_textures);
 
 #ifdef DEBUG
     // Echo all information in the scene

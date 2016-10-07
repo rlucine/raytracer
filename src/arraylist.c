@@ -72,7 +72,7 @@ void *arraylist_At(ARRAYLIST *list, int index) {
         return NULL;
     }
     
-    if (index < 0 || index >= list->length) {
+    if (index < 0 || index >= list->maxlength) {
 #ifdef VERBOSE
         fprintf(stderr, "arraylist_At failed: Index %d out of bounds\n", index);
 #endif

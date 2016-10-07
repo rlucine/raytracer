@@ -9,6 +9,7 @@
 #include <assert.h>     // assert
 
 // This project
+#include "macro.h"
 #include "image.h"
 #include "ppm.h"
 
