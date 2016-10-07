@@ -38,7 +38,7 @@ int ppm_Encode(const IMAGE *ppm, const char *filename) {
     }
     
     // Encode the PPM header
-    fprintf(file, "P3 %d %d %d\n", ppm->width, ppm->height, PPM_MAX_COLOR);
+    fprintf(file, "P3\n%d %d\n%d\n", ppm->width, ppm->height, PPM_MAX_COLOR);
     
     // Encode the color data
     int index = 0;
