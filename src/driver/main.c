@@ -18,7 +18,6 @@
 #include "image.h"
 #include "ppm.h"
 #include "scene.h"
-#include "parser.h"
 #include "raytrace.h"
 #include "tracemalloc.h"
 

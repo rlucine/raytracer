@@ -12,7 +12,6 @@
 
 // This project
 #include "scene.h"
-#include "parser.h"
 #include "vector.h"
 #include "image.h"
 #include "shape.h"

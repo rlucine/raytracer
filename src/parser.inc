@@ -1,8 +1,11 @@
 /**********************************************************//**
- * @file parser.c
+ * @file parser.inc
  * @brief Implementation of scene file parser
  * @author Alec Shinomiya
  **************************************************************/
+
+#ifndef _PARSER_INC_
+#define _PARSER_INC_
 
 // Standard library
 #include <stdlib.h>     // malloc, free, realloc, size_t ...
@@ -774,3 +777,4 @@ int scene_Decode(SCENE *scene, const char *filename) {
 }
 
 /*============================================================*/
+#endif // _PARSER_INC_
