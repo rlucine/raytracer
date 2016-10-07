@@ -13,6 +13,14 @@
 #include "vector.h"
 #include "shape.h"
 
+/// @def MAX_ANGLE
+/// @brief The maximum angle for a spotlight
+#define MAX_ANGLE 360
+
+/// @def MIN_ANGLE
+/// @brief The minimum angle for a spotlight
+#define MIN_ANGLE 0
+
 /**********************************************************//**
  * @enum LIGHT_TYPE
  * @brief Keys representing every kind of LIGHT distribution
