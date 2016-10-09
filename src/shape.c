@@ -24,6 +24,8 @@
 #include "tracemalloc.h"
 #endif
 
+#define PLANE_HEIGHT 1e-4
+
 /*============================================================*
  * Shape creation
  *============================================================*/
@@ -307,25 +309,24 @@ int plane_Collide(const PLANE *plane, const LINE *ray, COLLISION *result) {
     vector_Cross(&normal, &plane->u, &plane->v);
     vector_Normalize(&normal, &normal);
     
-    // Get the plane's D value (Ax + By + Cz - D == 0)
-    double d = vector_Dot(&normal, &plane->origin);
+    // Get the plane's D value (Ax + By + Cz + D == 0)
+    double d = -vector_Dot(&normal, &plane->origin);
     
     // Determine where the ray and plane intersect
     double denominator = vector_Dot(&normal, &unit);
-    if (fabs(denominator) < DBL_EPSILON) {
+    if (fabs(denominator) <= DBL_EPSILON) {
         // They do not intersect!
         result->how = COLLISION_NONE;
         return SUCCESS;
     }
     
-    double numerator = d - vector_Dot(&normal, &ray->origin);
+    double numerator = -(d + vector_Dot(&normal, &ray->origin));
     double tclosest = numerator / denominator;
-    if (tclosest < -DBL_EPSILON) {
+    if (tclosest < -PLANE_HEIGHT) {
         // The plane is behind the viewer - miss!
         result->how = COLLISION_NONE;
         return SUCCESS;
-    } else if (tclosest < DBL_EPSILON) {
-        // The viewer is in the plane!
+    } else if (tclosest < PLANE_HEIGHT) {
         result->how = COLLISION_INSIDE;
     } else {
         result->how = COLLISION_SURFACE;
@@ -337,12 +338,7 @@ int plane_Collide(const PLANE *plane, const LINE *ray, COLLISION *result) {
     vector_Add(&result->where, &result->where, &ray->origin);
     
     // Determine normal at collision site
-    if (vector_Angle(&normal, &ray->direction) > (M_PI / 2.0)) {
-        // Normal is facing in the same direction as our ray! Fix it.
-        vector_Negate(&result->normal, &normal);
-    } else {
-        vector_Copy(&result->normal, &normal);
-    }
+    vector_Normalize(&result->normal, &normal);
     return SUCCESS;
 }
 

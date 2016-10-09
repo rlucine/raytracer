@@ -126,7 +126,7 @@ int raytrace_Cast(COLLISION *closest, const LINE *ray, const SCENE *scene) {
         switch(current.how) {
         case COLLISION_SURFACE:
         case COLLISION_INSIDE:
-            if (n == 0 || (current.distance >= 0.0 && current.distance < closest->distance)) {
+            if (current.distance >= COLLISION_THRESHOLD && (n == 0 || current.distance < closest->distance)) {
                 memcpy(closest, &current, sizeof(COLLISION));
                 who = n;
             }
@@ -192,9 +192,8 @@ int raytrace_Shadow(const POINT *where, const LIGHT *light, const SCENE *scene, 
     // Fire all the rays
     COLLISION collision;
     VECTOR perturb;
-    int hits = 0;
-    int nrays = 0;
-    while (nrays < SHADOW_PRECISION) {
+    int nrays, hits = 0;
+    for (nrays=0; nrays < SHADOW_PRECISION; nrays++) {
         // Shoot one ray - the first one is always unperturbed
         if (raytrace_Cast(&collision, &ray, scene) != SUCCESS) {
 #ifdef VERBOSE
@@ -213,8 +212,14 @@ int raytrace_Shadow(const POINT *where, const LIGHT *light, const SCENE *scene, 
         perturb.x = uniform(-PERTURB_DISTANCE, PERTURB_DISTANCE);
         perturb.y = uniform(-PERTURB_DISTANCE, PERTURB_DISTANCE);
         perturb.z = uniform(-PERTURB_DISTANCE, PERTURB_DISTANCE);
-        vector_Add(&ray.origin, where, &perturb);
-        nrays++;
+        
+        // Check that we only perturb in the hemisphere towards the collision
+        // No clipping behind the object!
+        if (vector_Dot(&perturb, &ray.direction) > 0) {
+            vector_Add(&ray.origin, where, &perturb);
+        } else {
+            vector_Subtract(&ray.origin, where, &perturb);
+        }
     }
     
     *shadows = 1.0 - ((double)hits / (double)SHADOW_PRECISION);

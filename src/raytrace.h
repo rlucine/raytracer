@@ -31,7 +31,7 @@
  * @brief Only consider collisions greater than this distance
  * for shadow casting.
  **************************************************************/
-#define COLLISION_THRESHOLD DBL_EPSILON
+#define COLLISION_THRESHOLD 0.001
 
 /**********************************************************//**
  * @def PERTURB_DISTANCE
@@ -44,7 +44,7 @@
  * @def SHADOW_PRECISION
  * @brief Number of shadow rays to shoot
  **************************************************************/
-#define SHADOW_PRECISION 50
+#define SHADOW_PRECISION 1
 
 /**********************************************************//**
  * @brief Shoot one ray into the scene and get a COLLISION.
