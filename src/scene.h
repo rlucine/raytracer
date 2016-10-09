@@ -12,6 +12,7 @@
 #include "vector.h"     // VECTOR
 #include "shape.h"      // SHAPE
 #include "light.h"      // LIGHT
+#include "mesh.h"       // MESH
 
 /**********************************************************//**
  * @def MIN_FOV
@@ -57,6 +58,7 @@ typedef struct {
     // Shapes
     int nshapes;    ///< How many shapes are in the scene
     SHAPE *shapes;  ///< Array of all shapes in the scene
+    MESH mesh;      ///< Container for all FACE data
     
     // Lights
     int nlights;    ///< How many lights are in the scene

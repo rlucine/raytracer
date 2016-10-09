@@ -18,11 +18,12 @@
 #include "macro.h"      // SUCCESS, FAILURE
 #include "vector.h"     // VECTOR
 #include "ppm.h"        // ppm_Decode
-#include "image.h"      // IMAGE
+#include "image.h"      // IMAGE, TEXCOORD
 #include "shape.h"      // SHAPE, shape_CreateSphere ...
 #include "scene.h"      // SCENE
 #include "arraylist.h"  // ARRAYLIST, arraylist_Compress ...
 #include "scanner.h"    // scanner_ParseDouble ...
+#include "mesh.h"       // MESH, FACE, VERTEX ...
 
 // Debugging modules
 #ifdef DEBUG
@@ -54,15 +55,24 @@ typedef enum {
  **************************************************************/
 typedef struct {
     PARSER_FLAG flags;      ///< Ensure all required keywords found
+    
+    // Shape definitions
     ARRAYLIST shapes;       ///< List of all shapes defined
     ARRAYLIST lights;       ///< List of all lights defined
     ARRAYLIST materials;    ///< List of all materials defined
-    int material;           ///< The index of the current material
     ARRAYLIST textures;     ///< List of all textures defined
+    
+    // Indexing together shapes, materials, and textures
+    int material;           ///< The index of the current material
     int texture;            ///< Current texture index
     SCENE *scene;           ///< The SCENE to read data into
-    ARRAYLIST shape_materials;   ///< List of shape's material indexes
+    ARRAYLIST shape_materials;      ///< List of shape's material indexes
     ARRAYLIST material_textures;    ///< List of material's texture indices
+    
+    // Mesh data
+    ARRAYLIST vertices;     ///< All vertices loaded
+    ARRAYLIST normals;      ///< All normals loaded
+    ARRAYLIST texcoords;    ///< All texture coordinates loaded
 } PARSER_DATA;
 
 /**********************************************************//**
@@ -107,6 +117,24 @@ static int parser_Create(PARSER_DATA *data, SCENE *scene) {
     if (arraylist_Create(&data->material_textures, sizeof(int), 8) != SUCCESS) {
 #ifdef VERBOSE
         fprintf(stderr, "parser_Create failed: Cannot allocate texture index table\n");
+#endif
+        return FAILURE;
+    }
+    if (arraylist_Create(&data->vertices, sizeof(POINT), 8) != SUCCESS) {
+#ifdef VERBOSE
+        fprintf(stderr, "parser_Create failed: Cannot allocate vertex table\n");
+#endif
+        return FAILURE;
+    }
+    if (arraylist_Create(&data->normals, sizeof(VECTOR), 8) != SUCCESS) {
+#ifdef VERBOSE
+        fprintf(stderr, "parser_Create failed: Cannot allocate normal table\n");
+#endif
+        return FAILURE;
+    }
+    if (arraylist_Create(&data->normals, sizeof(TEXCOORD), 8) != SUCCESS) {
+#ifdef VERBOSE
+        fprintf(stderr, "parser_Create failed: Cannot allocate texture coordinate table\n");
 #endif
         return FAILURE;
     }
@@ -560,8 +588,9 @@ static const char *parse_Parallel(PARSER_DATA *data, const char *string) {
 }
 
 /*============================================================*
- * Parsing ellipsoid
+ * Parsing plane
  *============================================================*/
+#ifdef DEBUG
 static const char *parse_Plane(PARSER_DATA *data, const char *string) {
     const char *where = string;
     SHAPE shape;
@@ -586,7 +615,7 @@ static const char *parse_Plane(PARSER_DATA *data, const char *string) {
     // Set up shape
     if (shape_CreatePlane(&shape, &plane, NULL) != SUCCESS) {
 #ifdef VERBOSE
-        fprintf(stderr, "parse_Ellipsoid failed: Unable to allocate new plane\n");
+        fprintf(stderr, "parse_Plane failed: Unable to allocate new plane\n");
 #endif
         return NULL;
     }
@@ -594,7 +623,7 @@ static const char *parse_Plane(PARSER_DATA *data, const char *string) {
     // Add shape to list
     if (arraylist_Append(&data->shapes, &shape) != SUCCESS) {
 #ifdef VERBOSE
-        fprintf(stderr, "parse_Ellipsoid failed: Unable to store new plane\n");
+        fprintf(stderr, "parse_Plane failed: Unable to store new plane\n");
 #endif
         shape_Destroy(&shape);
         return NULL;
@@ -609,12 +638,148 @@ static const char *parse_Plane(PARSER_DATA *data, const char *string) {
     
     return where;
 }
+#endif
+
+/*============================================================*
+ * Parsing vertex
+ *============================================================*/
+static const char *parse_Vertex(PARSER_DATA *data, const char *string) {
+    const char *where = string;
+    POINT vertex;
+    
+    if ((where = parse_Vector(where, &vertex)) == NULL) {
+        return NULL;
+    }
+    
+    // Add vertex to our vertex list
+    if (arraylist_Append(&data->vertices, &vertex) != SUCCESS) {
+#ifdef VERBOSE
+        fprintf(stderr, "parse_Vertex failed: Unable to store new vertex\n");
+#endif
+        return NULL;
+    }
+    return where;
+}
+
+/*============================================================*
+ * Parsing vertex normal
+ *============================================================*/
+static const char *parse_Normal(PARSER_DATA *data, const char *string) {
+    const char *where = string;
+    VECTOR normal;
+    
+    if ((where = parse_Vector(where, &normal)) == NULL) {
+        return NULL;
+    }
+    
+    // Add normal to our normal list
+    if (arraylist_Append(&data->normals, &normal) != SUCCESS) {
+#ifdef VERBOSE
+        fprintf(stderr, "parse_Normal failed: Unable to store new normal\n");
+#endif
+        return NULL;
+    }
+    return where;
+}
+
+/*============================================================*
+ * Parsing texture coordinate
+ *============================================================*/
+static const char *parse_TexCoord(PARSER_DATA *data, const char *string) {
+    const char *where = string;
+    TEXCOORD tex;
+    
+    if ((where = scanner_ParseDouble(where, &tex.x)) == NULL) {
+        return NULL;
+    }
+    if ((where = scanner_ParseDouble(where, &tex.y)) == NULL) {
+        return NULL;
+    }
+    
+    // Add texture coordinate to list
+    if (arraylist_Append(&data->texcoords, &tex) != SUCCESS) {
+#ifdef VERBOSE
+        fprintf(stderr, "parse_TexCoord failed: Unable to store new texture coordinate\n");
+#endif
+        return NULL;
+    }
+    return where;
+}
+
+/*============================================================*
+ * Parsing a face
+ *============================================================*/
+static const char *parse_Face(PARSER_DATA *data, const char *string) {
+    const char *where = string;
+    FACE face;
+    
+    // Initialize face mesh
+    face.mesh = &data->scene->mesh;
+    
+    // Get face vertex values
+    int delta;
+    int i;
+    VERTEX *vertex;
+    for (i = 0; i < N_VERTICES; where += delta, i++) {
+        vertex = &face.vertices[i];
+        
+        // 3 formats for each vertex
+        if (sscanf(where, "%d/%d/%d%n", &vertex->vertex, &vertex->normal, &vertex->texture, &delta) == 3) {
+            continue;
+        }
+        if (sscanf(where, "%d//%d%n", &vertex->vertex, &vertex->texture, &delta) == 2) {
+            continue;
+        }
+        if (sscanf(where, "%d/%d%n", &vertex->vertex, &vertex->normal, &delta) == 2) {
+            continue;
+        }
+        if (sscanf(where, "%d%n", &vertex->vertex, &delta) == 1) {
+            continue;
+        }
+#ifdef VERBOSE
+        fprintf(stderr, "parse_Face failed: Invalid vertex format\n");
+#endif
+        return NULL;
+    }
+    
+    // Set up shape
+    SHAPE shape;
+    if (shape_CreateFace(&shape, &face, NULL) != SUCCESS) {
+#ifdef VERBOSE
+        fprintf(stderr, "parse_Face failed: Unable to allocate new face\n");
+#endif
+        return NULL;
+    }
+    
+    // Install face
+    if (arraylist_Append(&data->shapes, &shape) != SUCCESS) {
+#ifdef VERBOSE
+        fprintf(stderr, "parse_Face failed: Unable to store new plane\n");
+#endif
+        shape_Destroy(&shape);
+        return NULL;
+    }
+    if (arraylist_Append(&data->shape_materials, &data->material) != SUCCESS) {
+#ifdef VERBOSE
+        fprintf(stderr, "parse_Face failed: Unable to store new material index\n");
+#endif
+        shape_Destroy(&shape);
+        return NULL;
+    }
+    
+    return SUCCESS;
+}
 
 /**********************************************************//**
  * @def N_KEYWORDS
- * @brief The number of distinct keywords
+ * @brief The number of distinct keywords. There exist keywords
+ * that are usable only in DEBUG mode.
  **************************************************************/
+#ifdef DEBUG
 #define N_KEYWORDS 18
+#else
+#define N_KEYWORDS 17
+#endif
 
 /**********************************************************//**
  * @typedef PARSER
@@ -647,8 +812,10 @@ static const char *KEYWORDS[N_KEYWORDS] = {
     "vn",
     "vt",
     
+#ifdef DEBUG
     // Unnecessary keywords
     "plane",
+#endif
 };
 
 /**********************************************************//**
@@ -670,13 +837,15 @@ static const PARSER PARSERS[N_KEYWORDS] = {
     &parse_Spotlight,
     &parse_Texture,
     &parse_Parallel,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
+    &parse_Vertex,
+    &parse_Normal,
+    &parse_TexCoord,
+    &parse_Face,
     
+#ifdef DEBUG
     // Unnecessary keywords
     &parse_Plane,
+#endif
 };
 
 /**********************************************************//**
