@@ -10,6 +10,7 @@
 // This project
 #include "image.h"      // TEXTURE, TEXCOORD
 #include "vector.h"     // VECTOR
+#include "mesh.h"       // FACE
 
 /**********************************************************//**
  * @enum SHAPE_TYPE
@@ -20,7 +21,7 @@ typedef enum {
     SHAPE_SPHERE,       ///< The shape is a sphere
     SHAPE_ELLIPSOID,    ///< The shape is an ellipsoid
     SHAPE_PLANE,        ///< The shape is a flat plane
-    SHAPE_MESH,         ///< The shape is a polygon mesh
+    SHAPE_FACE,         ///< The shape is a triangle
 } SHAPE_TYPE;
 
 /**********************************************************//**
@@ -131,6 +132,19 @@ extern int shape_CreateEllipsoid(SHAPE *shape, const ELLIPSOID *ellipsoid, const
 extern int shape_CreatePlane(SHAPE *shape, const PLANE *plane, const MATERIAL *material);
 
 /**********************************************************//**
+ * @brief Construct a triangular face for a polygon.
+ * @param shape: The shape to construct. It must be destroyed
+ * with shape_Destroy if this function is successful. If this
+ * function is not successful, it will clean up any memory
+ * allocations and shape_Destroy will not work.
+ * @param face: Pointer to a FACE definition.
+ * @param material: Pointer to the material properties. The
+ * data pointed to may be destroyed after calling this function.
+ * @return SUCCESS or FAILURE
+ **************************************************************/
+extern int shape_CreateFace(SHAPE *shape, const FACE *face, const MATERIAL *material);
+
+/**********************************************************//**
  * @brief Destroy a shape struct that has been initialized by
  * shape_Create. You cannot destroy a shape that has not
  * been initialized, and you cannot destroy a shape twice.
@@ -176,6 +190,14 @@ extern const ELLIPSOID *shape_GetEllipsoid(const SHAPE *shape);
  * the shape is not a plane.
  **************************************************************/
 extern const PLANE *shape_GetPlane(const SHAPE *shape);
+
+/**********************************************************//**
+ * @brief Get the FACE data embedded in the shape.
+ * @param shape: The shape to read
+ * @return Pointer to a FACE struct on success, or NULL if
+ * the shape is not a face.
+ **************************************************************/
+extern const FACE *shape_GetFace(const SHAPE *shape);
 
 /**********************************************************//**
  * @brief Generalized collision function for all SHAPE_TYPE

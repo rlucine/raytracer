@@ -84,6 +84,25 @@ int shape_CreatePlane(SHAPE *shape, const PLANE *plane, const MATERIAL *material
     return SUCCESS;
 }
 
+int shape_CreateFace(SHAPE *shape, const FACE *face, const MATERIAL *material) {
+    // Initialize a new triangle face
+    shape->shape = SHAPE_FACE;
+    
+    // Copy data into the shape
+    shape->data = malloc(sizeof(FACE));
+    if (!shape->data) {
+#ifdef VERBOSE
+        fprintf(stderr, "shape_CreateFace failed: Out of memory\n");
+#endif
+        return FAILURE;
+    }
+    memcpy(shape->data, face, sizeof(FACE));
+    
+    // Copy material into shape
+    shape->material = material;
+    return SUCCESS;
+}
+
 /*============================================================*
  * Shape destruction
  *============================================================*/
@@ -123,6 +142,13 @@ const ELLIPSOID *shape_GetEllipsoid(const SHAPE *shape) {
 const PLANE *shape_GetPlane(const SHAPE *shape) {
     if (shape->shape == SHAPE_PLANE) {
         return (PLANE *)shape->data;
+    }
+    return NULL;
+}
+
+const FACE *shape_GetFace(const SHAPE *shape) {
+    if (shape->shape == SHAPE_FACE) {
+        return (FACE *)shape->data;
     }
     return NULL;
 }
@@ -288,7 +314,7 @@ static int ellipsoid_Collide(const ELLIPSOID *ellipsoid, const LINE *ray, COLLIS
 /*============================================================*
  * Plane geometry
  *============================================================*/
-int plane_Collide(const PLANE *plane, const LINE *ray, COLLISION *result) {
+static int plane_Collide(const PLANE *plane, const LINE *ray, COLLISION *result) {
     
     // Collide the ray with the plane
     if (vector_IsZero(&ray->direction)) {
@@ -349,6 +375,42 @@ int plane_Collide(const PLANE *plane, const LINE *ray, COLLISION *result) {
 }
 
 /*============================================================*
+ * Face geometry
+ *============================================================*/
+static int face_Collide(const FACE *face, const LINE *ray, COLLISION *result) {
+    
+    // Get the plane of the face
+    PLANE plane;
+    face_GetPlane(face, &plane);
+    
+    // Determine collision with the plane
+    if (plane_Collide(&plane, ray, result) != SUCCESS) {
+#ifdef VERBOSE
+        fprintf(stderr, "face_Collide failed: Unable to collide with face plane\n");
+#endif
+        return FAILURE;
+    }
+    
+    // Determine if the point is in the face
+    if (result->how != COLLISION_NONE) {
+        if (!face_Contains(face, &result->where)) {
+            // It isn't actually in the face even though we collided the plane
+            result->how = COLLISION_NONE;
+            return SUCCESS;
+        }
+        
+        // Need to set up the proper collision normal now
+        if (face_GetNormalAt(face, &result->where, &result->normal) != SUCCESS) {
+#ifdef VERBOSE
+            fprintf(stderr, "face_Collide failed: Unable to interpolate face normal\n");
+#endif
+            return FAILURE;
+        }
+    }
+    return SUCCESS;
+}
+
+/*============================================================*
  * Generalized geometry
  *============================================================*/
 int shape_Collide(const SHAPE *shape, const LINE *ray, COLLISION *result) {
@@ -372,6 +434,9 @@ int shape_Collide(const SHAPE *shape, const LINE *ray, COLLISION *result) {
         
     case SHAPE_PLANE:
         return plane_Collide((PLANE *)shape->data, ray, result);
+        
+    case SHAPE_FACE:
+        return face_Collide((FACE *)shape->data, ray, result);
     
     case SHAPE_NONE:
     default:
