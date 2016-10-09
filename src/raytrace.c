@@ -176,13 +176,13 @@ static double uniform(double a, double b) {
     return a + (b - a)*unit;
 }
 
-int raytrace_Shadow(const POINT *where, const LIGHT *light, const SCENE *scene, double *shadows) {
+int raytrace_Shadow(double *shadows, const COLLISION *collision, const LIGHT *light, const SCENE *scene) {
     
     // Set up ray pointing to light
     LINE ray;
     double distance;
-    memcpy(&ray.origin, where, sizeof(POINT));
-    if (light_GetDirection(light, where, &ray.direction, &distance) != SUCCESS) {
+    memcpy(&ray.origin, &collision->where, sizeof(POINT));
+    if (light_GetDirection(light, &collision->where, &ray.direction, &distance) != SUCCESS) {
 #ifdef VERBOSE
         fprintf(stderr, "raytrace_Shadow failed: Invalid light\n");
 #endif
@@ -190,12 +190,12 @@ int raytrace_Shadow(const POINT *where, const LIGHT *light, const SCENE *scene, 
     }
     
     // Fire all the rays
-    COLLISION collision;
+    COLLISION shadow;
     VECTOR perturb;
     int nrays, hits = 0;
     for (nrays=0; nrays < SHADOW_PRECISION; nrays++) {
         // Shoot one ray - the first one is always unperturbed
-        if (raytrace_Cast(&collision, &ray, scene) != SUCCESS) {
+        if (raytrace_Cast(&shadow, &ray, scene) != SUCCESS) {
 #ifdef VERBOSE
             fprintf(stderr, "raytrace_Shadow failed: Failed to shoot shadow ray\n");
 #endif
@@ -203,7 +203,7 @@ int raytrace_Shadow(const POINT *where, const LIGHT *light, const SCENE *scene, 
         }
         
         // Check collisions
-        if ((collision.how != COLLISION_NONE) && (collision.distance < distance) && (collision.distance > COLLISION_THRESHOLD)) {
+        if ((shadow.how != COLLISION_NONE) && (shadow.distance < distance) && (shadow.distance > COLLISION_THRESHOLD)) {
             // Something in between the light and us, and it isn't ourself!
             hits++;
         }
@@ -215,10 +215,10 @@ int raytrace_Shadow(const POINT *where, const LIGHT *light, const SCENE *scene, 
         
         // Check that we only perturb in the hemisphere towards the collision
         // No clipping behind the object!
-        if (vector_Dot(&perturb, &ray.direction) > 0) {
-            vector_Add(&ray.origin, where, &perturb);
+        if (vector_Dot(&perturb, &collision->normal) > 0) {
+            vector_Add(&ray.origin, &collision->where, &perturb);
         } else {
-            vector_Subtract(&ray.origin, where, &perturb);
+            vector_Subtract(&ray.origin, &collision->where, &perturb);
         }
     }
     
@@ -248,7 +248,7 @@ int raytrace_Shade(COLOR *color, const COLLISION *collision, const SCENE *scene)
         light = scene_GetLight(scene, i);
         
         // Get shadows and check float 
-        if (raytrace_Shadow(&collision->where, light, scene, &shadows) != SUCCESS) {
+        if (raytrace_Shadow(&shadows, collision, light, scene) != SUCCESS) {
 #ifdef VERBOSE
             fprintf(stderr, "raytrace_Shade failed: Failed to check shadows\n");
 #endif

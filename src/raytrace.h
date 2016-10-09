@@ -44,7 +44,7 @@
  * @def SHADOW_PRECISION
  * @brief Number of shadow rays to shoot
  **************************************************************/
-#define SHADOW_PRECISION 1
+#define SHADOW_PRECISION 50
 
 /**********************************************************//**
  * @brief Shoot one ray into the scene and get a COLLISION.
@@ -64,7 +64,7 @@ extern int raytrace_Cast(COLLISION *closest, const LINE *ray, const SCENE *scene
  * @param shadows: Location to write the shadow amount to
  * @return SUCCESS or FAILURE
  **************************************************************/
-extern int raytrace_Shadow(const POINT *where, const LIGHT *light, const SCENE *scene, double *shadows);
+extern int raytrace_Shadow(double *shadows, const COLLISION *collision, const LIGHT *light, const SCENE *scene);
 
 /**********************************************************//**
  * @brief Determine the color at the given collision
