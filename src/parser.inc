@@ -906,6 +906,7 @@ int scene_Decode(SCENE *scene, const char *filename) {
     const MATERIAL *material;
     const SPHERE *sphere;
     const ELLIPSOID *ellipsoid;
+    const PLANE *plane;
     while (n < scene->nshapes) {
         shape = scene_GetShape(scene, n);
         switch (shape->shape) {
@@ -921,6 +922,14 @@ int scene_Decode(SCENE *scene, const char *filename) {
             ellipsoid = shape_GetEllipsoid(shape);
             fprintf(stderr, "parser_Validate: Dimensions are (%lf, %lf, %lf)\n", ellipsoid->dimension.x, ellipsoid->dimension.y, ellipsoid->dimension.z);
             fprintf(stderr, "parser_Validate: Center is (%lf, %lf, %lf)\n", ellipsoid->center.x, ellipsoid->center.y, ellipsoid->center.z);
+            break;
+            
+        case SHAPE_PLANE:
+            fprintf(stderr, "parser_Validate: Shape %d is a plane\n", n);
+            plane = shape_GetPlane(shape);
+            fprintf(stderr, "parser_Validate: Origin is (%lf, %lf, %lf)\n", plane->origin.x, plane->origin.y, plane->origin.z);
+            fprintf(stderr, "parser_Validate: Basis u is (%lf, %lf, %lf)\n", plane->u.x, plane->u.y, plane->u.z);
+            fprintf(stderr, "parser_Validate: Basis v is (%lf, %lf, %lf)\n", plane->v.x, plane->v.y, plane->v.z);
             break;
         
         default:

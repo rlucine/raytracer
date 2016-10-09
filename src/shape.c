@@ -24,8 +24,6 @@
 #include "tracemalloc.h"
 #endif
 
-#define PLANE_HEIGHT 1e-4
-
 /*============================================================*
  * Shape creation
  *============================================================*/
@@ -309,24 +307,32 @@ int plane_Collide(const PLANE *plane, const LINE *ray, COLLISION *result) {
     vector_Cross(&normal, &plane->u, &plane->v);
     vector_Normalize(&normal, &normal);
     
-    // Get the plane's D value (Ax + By + Cz + D == 0)
-    double d = -vector_Dot(&normal, &plane->origin);
-    
     // Determine where the ray and plane intersect
-    double denominator = vector_Dot(&normal, &unit);
+    VECTOR offset;
+    vector_Subtract(&offset, &plane->origin, &ray->origin);
+    double tclosest, numerator, denominator = vector_Dot(&normal, &unit);
     if (fabs(denominator) <= DBL_EPSILON) {
-        // They do not intersect!
-        result->how = COLLISION_NONE;
-        return SUCCESS;
+        if (fabs(vector_Dot(&offset, &normal)) <= DBL_EPSILON) {
+            // Inside plane
+            numerator = 0.0;
+            tclosest = 0.0;
+        } else {
+            // Paralell to plane - no collision
+            result->how = COLLISION_NONE;
+            return SUCCESS;
+        }
+    } else {
+        numerator = vector_Dot(&normal, &offset);
+        tclosest = numerator / denominator;
     }
     
-    double numerator = -(d + vector_Dot(&normal, &ray->origin));
-    double tclosest = numerator / denominator;
-    if (tclosest < -PLANE_HEIGHT) {
+    // Determine collision location
+    if (tclosest < 0.0) {
         // The plane is behind the viewer - miss!
         result->how = COLLISION_NONE;
         return SUCCESS;
-    } else if (tclosest < PLANE_HEIGHT) {
+    } else if (tclosest == 0.0) {
+        // Rarely happens
         result->how = COLLISION_INSIDE;
     } else {
         result->how = COLLISION_SURFACE;
@@ -338,7 +344,7 @@ int plane_Collide(const PLANE *plane, const LINE *ray, COLLISION *result) {
     vector_Add(&result->where, &result->where, &ray->origin);
     
     // Determine normal at collision site
-    vector_Normalize(&result->normal, &normal);
+    vector_Copy(&result->normal, &normal);
     return SUCCESS;
 }
 
