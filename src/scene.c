@@ -114,6 +114,23 @@ void scene_Destroy(SCENE *scene) {
         scene->ntextures = 0;
         scene->textures = NULL;
     }
+    
+    // Free all the mesh data
+    if (scene->mesh.nvertices > 0 && scene->mesh.vertices) {
+        free(scene->mesh.vertices);
+        scene->mesh.nvertices = 0;
+        scene->mesh.vertices = NULL;
+    }
+    if (scene->mesh.nnormals > 0 && scene->mesh.normals) {
+        free(scene->mesh.normals);
+        scene->mesh.nnormals = 0;
+        scene->mesh.normals = NULL;
+    }
+    if (scene->mesh.ntextures > 0 && scene->mesh.texture) {
+        free(scene->mesh.texture);
+        scene->mesh.ntextures = 0;
+        scene->mesh.texture = NULL;
+    }
 }
 
 /*============================================================*/
