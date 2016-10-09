@@ -7,6 +7,7 @@
 // Standard library
 #include <stdlib.h> // NULL
 #include <stdio.h>  // fprintf, stderr ...
+#include <float.h>  // DBL_EPSILON
 
 // This project
 #include "macro.h"  // SUCCESS, FAILURE
@@ -25,7 +26,7 @@ static const POINT *face_GetVertex(const FACE *face, int index) {
     if (vertex < 1 || vertex > face->mesh->nvertices) {
         return NULL;
     }
-    return &face->mesh->vertices[vertex];
+    return &face->mesh->vertices[vertex-1];
 }
 
 static const VECTOR *face_GetNormal(const FACE *face, int index) {
@@ -36,7 +37,7 @@ static const VECTOR *face_GetNormal(const FACE *face, int index) {
     if (normal == NO_NORMAL || normal < 1 || normal > face->mesh->nnormals) {
         return NULL;
     }
-    return &face->mesh->normals[normal];
+    return &face->mesh->normals[normal-1];
 }
 
 static const TEXCOORD *face_GetTexture(const FACE *face, int index) {
@@ -67,29 +68,39 @@ static int face_GetBarycentricCoordinates(const FACE *face, const POINT *where, 
         return FAILURE;
     }
     
+#ifdef DEBUG
+    fprintf(stderr, "face_GetBarycentricCoordinates: v0 is (%lf, %lf, %lf)\n", v0->x, v0->y, v0->z);
+    fprintf(stderr, "face_GetBarycentricCoordinates: v1 is (%lf, %lf, %lf)\n", v1->x, v1->y, v1->z);
+    fprintf(stderr, "face_GetBarycentricCoordinates: v2 is (%lf, %lf, %lf)\n", v2->x, v2->y, v2->z);
+#endif
+    
     vector_Subtract(&u, v1, v0);
     vector_Subtract(&v, v2, v0);
     vector_Cross(&temp, &u, &v);
     double total_area = vector_Magnitude(&temp) / 2.0;
     
     // Get each sub-face area
+    vector_Subtract(&u, where, v0);
+    vector_Subtract(&v, v2, v0);
+    vector_Cross(&temp, &u, &v);
+    double b = vector_Magnitude(&temp) / 2.0;
+    
+    vector_Subtract(&u, v1, v0);
+    vector_Subtract(&v, where, v0);
+    vector_Cross(&temp, &u, &v);
+    double c = vector_Magnitude(&temp) / 2.0;
+    
     vector_Subtract(&u, v1, where);
     vector_Subtract(&v, v2, where);
     vector_Cross(&temp, &u, &v);
     double a = vector_Magnitude(&temp) / 2.0;
     
-    vector_Subtract(&u, v0, where);
-    vector_Subtract(&v, v2, where);
-    vector_Cross(&temp, &u, &v);
-    double b = vector_Magnitude(&temp) / 2.0;
-    
-    vector_Subtract(&u, v0, where);
-    vector_Subtract(&v, v1, where);
-    vector_Cross(&temp, &u, &v);
-    double c = vector_Magnitude(&temp) / 2.0;
+#ifdef DEBUG
+    fprintf(stderr, "face_GetBarycentricCoordinates: a=%lf, b=%lf, c=%lf, A=%lf\n", a, b, c, total_area);
+#endif
     
     // Determine if the point actually in the face
-    if ((a+b+c) > total_area) {
+    if ((a+b+c) > total_area+DBL_EPSILON) {
         return FAILURE;
     }
     
@@ -135,11 +146,7 @@ int face_Contains(const FACE *face, const POINT *where) {
  * Interpolation across the face
  *============================================================*/
 int face_GetNormalAt(const FACE *face, const POINT *where, VECTOR *normal) {
-    VECTOR barycentric;
-    if (face_GetBarycentricCoordinates(face, where, &barycentric) != SUCCESS) {
-        return FAILURE;
-    }
-    
+
     // If no vertex normals, just use face normal
     const VECTOR *n0, *n1, *n2;
     n0 = face_GetNormal(face, 0);
@@ -153,6 +160,11 @@ int face_GetNormalAt(const FACE *face, const POINT *where, VECTOR *normal) {
         vector_Cross(normal, &plane.u, &plane.v);
         vector_Normalize(normal, normal);
         return SUCCESS;
+    }
+    
+    VECTOR barycentric;
+    if (face_GetBarycentricCoordinates(face, where, &barycentric) != SUCCESS) {
+        return FAILURE;
     }
     
     // Have valid coordinates
@@ -171,10 +183,6 @@ int face_GetNormalAt(const FACE *face, const POINT *where, VECTOR *normal) {
 }
 
 int face_GetTextureAt(const FACE *face, const POINT *where, TEXCOORD *tex) {
-    VECTOR barycentric;
-    if (face_GetBarycentricCoordinates(face, where, &barycentric) != SUCCESS) {
-        return FAILURE;
-    }
     
     // Check if the face even has texture
     const VECTOR *t0, *t1, *t2;
@@ -182,6 +190,11 @@ int face_GetTextureAt(const FACE *face, const POINT *where, TEXCOORD *tex) {
     t1 = face_GetTexture(face, 1);
     t2 = face_GetTexture(face, 2);
     if (t0 == NULL || t1 == NULL || t2 == NULL) {
+        return FAILURE;
+    }
+    
+    VECTOR barycentric;
+    if (face_GetBarycentricCoordinates(face, where, &barycentric) != SUCCESS) {
         return FAILURE;
     }
     

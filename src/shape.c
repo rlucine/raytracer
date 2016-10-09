@@ -398,6 +398,9 @@ static int face_Collide(const FACE *face, const LINE *ray, COLLISION *result) {
     
     // Determine if the point is in the face
     if (result->how != COLLISION_NONE) {
+#ifdef DEBUG
+        fprintf(stderr, "face_Collide: Collided plane of face\n");
+#endif
         if (!face_Contains(face, &result->where)) {
             // It isn't actually in the face even though we collided the plane
             result->how = COLLISION_NONE;
