@@ -100,7 +100,7 @@ static int face_GetBarycentricCoordinates(const FACE *face, const POINT *where, 
 #endif
     
     // Determine if the point actually in the face
-    if ((a+b+c) > total_area+DBL_EPSILON) {
+    if ((a+b+c) > total_area+(3*DBL_EPSILON)) {
         return FAILURE;
     }
     
