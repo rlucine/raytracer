@@ -132,7 +132,7 @@ static int parser_Create(PARSER_DATA *data, SCENE *scene) {
 #endif
         return FAILURE;
     }
-    if (arraylist_Create(&data->normals, sizeof(TEXCOORD), 8) != SUCCESS) {
+    if (arraylist_Create(&data->texcoords, sizeof(TEXCOORD), 8) != SUCCESS) {
 #ifdef VERBOSE
         fprintf(stderr, "parser_Create failed: Cannot allocate texture coordinate table\n");
 #endif
@@ -714,11 +714,15 @@ static const char *parse_Face(PARSER_DATA *data, const char *string) {
     FACE face;
     
     // Initialize face mesh
+    int i;
     face.mesh = &data->scene->mesh;
+    for (i = 0; i < N_VERTICES; i++) {
+        face.vertices[i].normal = NO_NORMAL;
+        face.vertices[i].texture = NO_TEXTURE;
+    }
     
     // Get face vertex values
     int delta;
-    int i;
     VERTEX *vertex;
     for (i = 0; i < N_VERTICES; where += delta, i++) {
         vertex = &face.vertices[i];
@@ -767,7 +771,7 @@ static const char *parse_Face(PARSER_DATA *data, const char *string) {
         return NULL;
     }
     
-    return SUCCESS;
+    return where;
 }
 
 /**********************************************************//**
@@ -808,9 +812,9 @@ static const char *KEYWORDS[N_KEYWORDS] = {
     "texture",
     "parallel",
     "v",
-    "f",
     "vn",
     "vt",
+    "f",
     
 #ifdef DEBUG
     // Unnecessary keywords
@@ -1003,23 +1007,43 @@ int scene_Decode(SCENE *scene, const char *filename) {
 
     // Move shapes arraylist into scene
     arraylist_Compress(&data.shapes);
-    data.scene->nshapes = arraylist_Length(&data.shapes);
-    data.scene->shapes = (SHAPE *)arraylist_GetData(&data.shapes);
+    scene->nshapes = arraylist_Length(&data.shapes);
+    if (scene->nshapes) {
+        scene->shapes = (SHAPE *)arraylist_GetData(&data.shapes);
+    } else {
+        arraylist_Destroy(&data.shapes);
+        scene->shapes = NULL;
+    }
     
     // Move lights into scene
     arraylist_Compress(&data.lights);
-    data.scene->nlights = arraylist_Length(&data.lights);
-    data.scene->lights = (LIGHT *)arraylist_GetData(&data.lights);
+    scene->nlights = arraylist_Length(&data.lights);
+    if (scene->nlights) {
+        scene->lights = (LIGHT *)arraylist_GetData(&data.lights);
+    } else {
+        arraylist_Destroy(&data.lights);
+        scene->lights = NULL;
+    }
     
     // Move materials into scene
     arraylist_Compress(&data.materials);
-    data.scene->nmaterials = arraylist_Length(&data.materials);
-    data.scene->materials = (MATERIAL *)arraylist_GetData(&data.materials);
+    scene->nmaterials = arraylist_Length(&data.materials);
+    if (scene->nmaterials) {
+        scene->materials = (MATERIAL *)arraylist_GetData(&data.materials);
+    } else {
+        arraylist_Destroy(&data.materials);
+        scene->materials = NULL;
+    }
     
     // Move textures into scene
     arraylist_Compress(&data.textures);
-    data.scene->ntextures = arraylist_Length(&data.textures);
-    data.scene->textures = (TEXTURE *)arraylist_GetData(&data.textures);
+    scene->ntextures = arraylist_Length(&data.textures);
+    if (scene->ntextures) {
+        scene->textures = (TEXTURE *)arraylist_GetData(&data.textures);
+    } else {
+        arraylist_Destroy(&data.textures);
+        scene->textures = NULL;
+    }
     
     // Now that all the pointer moving is permanently done, let's re-map
     // the material and texture tables to pointers and put them in the shapes.
@@ -1029,23 +1053,23 @@ int scene_Decode(SCENE *scene, const char *filename) {
     
     // Map the texture index table down to pointers and put them
     // in each material
-    for (i = 0; i < data.scene->nmaterials; i++) {
+    for (i = 0; i < scene->nmaterials; i++) {
         pointer = (int *)arraylist_At(&data.material_textures, i);
         index = *pointer;
         if (index >= 0) {
-            data.scene->materials[i].texture = &data.scene->textures[*pointer];
+            scene->materials[i].texture = &scene->textures[*pointer];
         } else {
-            data.scene->materials[i].texture = NULL;
+            scene->materials[i].texture = NULL;
         }
     }
     
     // Map the material index table down to pointers and put them
     // in each shape
-    for (i = 0; i < data.scene->nshapes; i++) {
+    for (i = 0; i < scene->nshapes; i++) {
         pointer = (int *)arraylist_At(&data.shape_materials, i);
         index = *pointer;
         if (index >= 0) {
-            shape_SetMaterial(&data.scene->shapes[i], &data.scene->materials[*pointer]);
+            shape_SetMaterial(&scene->shapes[i], &scene->materials[*pointer]);
         } else {
 #ifdef VERBOSE
             fprintf(stderr, "scene_Decode failed: Shape %d without material color\n", i);
@@ -1053,6 +1077,26 @@ int scene_Decode(SCENE *scene, const char *filename) {
             parser_Destroy(&data);
             return FAILURE;
         }
+    }
+    
+    // Place all mesh data into the mesh
+    if ((scene->mesh.nvertices = arraylist_Length(&data.vertices)) > 0) {
+        scene->mesh.vertices = (POINT *)arraylist_GetData(&data.vertices);
+    } else {
+        arraylist_Destroy(&data.vertices);
+        scene->mesh.vertices = NULL;
+    }
+    if ((scene->mesh.nnormals = arraylist_Length(&data.normals)) > 0) {
+        scene->mesh.normals = (VECTOR *)arraylist_GetData(&data.normals);
+    } else {
+        arraylist_Destroy(&data.normals);
+        scene->mesh.normals = NULL;
+    }
+    if ((scene->mesh.ntextures = arraylist_Length(&data.texcoords)) > 0) {
+        scene->mesh.texture = (TEXCOORD *)arraylist_GetData(&data.texcoords);
+    } else {
+        arraylist_Destroy(&data.texcoords);
+        scene->mesh.texture = NULL;
     }
     
     // Done with the index tables
@@ -1068,6 +1112,21 @@ int scene_Decode(SCENE *scene, const char *filename) {
     fprintf(stderr, "parser_Validate: Image size is (%d, %d)\n", scene->width, scene->height);
     fprintf(stderr, "parser_Validate: Background color is (%lf, %lf, %lf)\n", scene->background.x, scene->background.y, scene->background.z);
     
+    // Printing mesh
+    int m;
+    fprintf(stderr, "parser_Validate: %d vertices\n", scene->mesh.nvertices);
+    for (m = 0; m < scene->mesh.nvertices; m++) {
+        fprintf(stderr, "parser_Validate: Vertex %d is (%lf, %lf, %lf)\n", m+1, scene->mesh.vertices[m].x, scene->mesh.vertices[m].y, scene->mesh.vertices[m].z);
+    }
+    fprintf(stderr, "parser_Validate: %d normals\n", scene->mesh.nnormals);
+    for (m = 0; m < scene->mesh.nnormals; m++) {
+        fprintf(stderr, "parser_Validate: Normal %d is (%lf, %lf, %lf)\n", m+1, scene->mesh.normals[m].x, scene->mesh.normals[m].y, scene->mesh.normals[m].z);
+    }
+    fprintf(stderr, "parser_Validate: %d texture coordinates\n", scene->mesh.ntextures);
+    for (m = 0; m < scene->mesh.ntextures; m++) {
+        fprintf(stderr, "parser_Validate: Texture coordinate %d is (%lf, %lf)\n", m+1, scene->mesh.texture[m].x, scene->mesh.texture[m].y);
+    }
+    
     // Printing shapes
     fprintf(stderr, "parser_Validate: Number of shapes is %d\n", scene->nshapes);
     int n = 0;
@@ -1076,6 +1135,7 @@ int scene_Decode(SCENE *scene, const char *filename) {
     const SPHERE *sphere;
     const ELLIPSOID *ellipsoid;
     const PLANE *plane;
+    const FACE *face;
     while (n < scene->nshapes) {
         shape = scene_GetShape(scene, n);
         switch (shape->shape) {
@@ -1099,6 +1159,15 @@ int scene_Decode(SCENE *scene, const char *filename) {
             fprintf(stderr, "parser_Validate: Origin is (%lf, %lf, %lf)\n", plane->origin.x, plane->origin.y, plane->origin.z);
             fprintf(stderr, "parser_Validate: Basis u is (%lf, %lf, %lf)\n", plane->u.x, plane->u.y, plane->u.z);
             fprintf(stderr, "parser_Validate: Basis v is (%lf, %lf, %lf)\n", plane->v.x, plane->v.y, plane->v.z);
+            break;
+            
+        case SHAPE_FACE:
+            fprintf(stderr, "parser_Validate: Shape %d is a face\n", n);
+            face = shape_GetFace(shape);
+            int vertex;
+            for (vertex = 0; vertex < N_VERTICES; vertex++) {
+                fprintf(stderr, "parser_Validate: Vertex %d is %d/%d/%d\n", vertex, face->vertices[vertex].vertex, face->vertices[vertex].normal, face->vertices[vertex].texture);
+            }
             break;
         
         default:
