@@ -381,7 +381,12 @@ static int face_Collide(const FACE *face, const LINE *ray, COLLISION *result) {
     
     // Get the plane of the face
     PLANE plane;
-    face_GetPlane(face, &plane);
+    if (face_GetPlane(face, &plane) != SUCCESS) {
+#ifdef VERBOSE
+        fprintf(stderr, "face_Collide failed: Unable to generate face plane\n");
+#endif
+        return FAILURE;
+    }
     
     // Determine collision with the plane
     if (plane_Collide(&plane, ray, result) != SUCCESS) {

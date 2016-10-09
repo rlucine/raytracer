@@ -17,14 +17,29 @@
 #define N_VERTICES 3
 
 /**********************************************************//**
+ * @def NO_NORMAL
+ * @brief The vertex has no normal specified
+ **************************************************************/
+#define NO_NORMAL 0
+
+/**********************************************************//**
+ * @def NO_TEXTURE
+ * @brief The vertex has no texture coordinate specified
+ **************************************************************/
+#define NO_TEXTURE 0
+
+/**********************************************************//**
  * @struct MESH
  * @brief Struct for storing triangle mesh data. One SCENE
  * should have just one mesh which defines every face, but each
  * FACE may reside in its own SHAPE.
  **************************************************************/
 typedef struct {
+    int nvertices;      ///< Number of vertices
     POINT *vertices;    ///< Actual vertex point data
+    int nnormals;       ///< Number of normals
     VECTOR *normals;    ///< Actual normal vector data
+    int ntextures;      ///< Number of texture coordinates
     TEXCOORD *texture;  ///< Actual texture coordinate data
 } MESH;
 
@@ -52,7 +67,7 @@ typedef struct {
  * @param face: The face to read.
  * @param plane: The location to output the plane.
  **************************************************************/
-extern void face_GetPlane(const FACE *face, PLANE *plane);
+extern int face_GetPlane(const FACE *face, PLANE *plane);
 
 /**********************************************************//**
  * @brief Check if the face contains the point.
