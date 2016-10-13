@@ -21,7 +21,7 @@
 /*============================================================*
  * Creation function
  *============================================================*/
-int arraylist_Create(ARRAYLIST *list, size_t itemsize, size_t maxlength) {
+int arraylist_Create(ARRAYLIST *list, size_t itemsize, int maxlength) {
     // Error checking
     if (itemsize <= 0) {
 #ifdef VERBOSE
@@ -55,8 +55,8 @@ int arraylist_Create(ARRAYLIST *list, size_t itemsize, size_t maxlength) {
 /*============================================================*
  * Getter
  *============================================================*/
-size_t arraylist_Length(const ARRAYLIST *list) {
-    return list->length;
+int arraylist_Length(const ARRAYLIST *list) {
+    return (int)list->length;
 }
 
 /*============================================================*

@@ -29,14 +29,14 @@ typedef struct {
  * @param maxlength: The capacity of the arraylist
  * @return SUCCESS or FAILURE
  **************************************************************/
-extern int arraylist_Create(ARRAYLIST *list, size_t itemsize, size_t maxlength);
+extern int arraylist_Create(ARRAYLIST *list, size_t itemsize, int maxlength);
 
 /**********************************************************//**
  * @brief Get the number of items in the arraylist
  * @param list: The arraylist to check
  * @return The number of items in the list
  **************************************************************/
-extern size_t arraylist_Length(const ARRAYLIST *list);
+extern int arraylist_Length(const ARRAYLIST *list);
 
 /**********************************************************//**
  * @brief Get a pointer to the given item in the arraylist
