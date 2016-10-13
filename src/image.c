@@ -18,7 +18,7 @@
 #include "color.h"      // COLOR, RGB ...
 
 // Debugging modules
-#ifdef DEBUG
+#ifdef TRACE
 #include "tracemalloc.h"
 #endif
 

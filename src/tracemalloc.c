@@ -20,7 +20,6 @@ void *trace_malloc(size_t size, const char *where) {
 void trace_free(void *ptr, const char *where) {
     fprintf(stderr, "free\t0x%p (function %s)\n", ptr, where);
     free(ptr);
-    fprintf(stderr, "free succeeded\n");
 }
 
 void *trace_calloc(size_t nmemb, size_t size, const char *where) {

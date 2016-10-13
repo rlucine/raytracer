@@ -20,7 +20,7 @@
 #include "mesh.h"       // MESH, FACE ...
 
 // Debugging modules
-#ifdef DEBUG
+#ifdef TRACE
 #include "tracemalloc.h"
 #endif
 

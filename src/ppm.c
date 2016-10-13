@@ -18,7 +18,7 @@
 #include "ppm.h"        // PPM_MAX_COLOR ...
 
 // Debugging modules
-#ifdef DEBUG
+#ifdef TRACE
 #include "tracemalloc.h"
 #endif
 

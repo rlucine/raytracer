@@ -15,14 +15,16 @@
 // Standard library
 #include <stdlib.h>     // size_t
 
+#define WHERE __FUNCTION__
+
 /*============================================================*
  * Overrides
  *============================================================*/
 #ifdef TRACE
-#define malloc(size) trace_malloc(size, __FUNCTION__)
-#define free(ptr) trace_free(ptr, __FUNCTION__)
-#define calloc(nmemb, size) trace_calloc(nmemb, size, __FUNCTION__)
-#define realloc(ptr, size) trace_realloc(ptr, size, __FUNCTION__)
+#define malloc(size) trace_malloc(size, WHERE)
+#define free(ptr) trace_free(ptr, WHERE)
+#define calloc(nmemb, size) trace_calloc(nmemb, size, WHERE)
+#define realloc(ptr, size) trace_realloc(ptr, size, WHERE)
 #endif
 
 /**********************************************************//**

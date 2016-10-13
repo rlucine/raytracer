@@ -14,7 +14,7 @@
 #include "arraylist.h"  // ARRAYLIST
 
 // Debugging modules
-#ifdef DEBUG
+#ifdef TRACE
 #include "tracemalloc.h"
 #endif
 

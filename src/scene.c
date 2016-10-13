@@ -19,7 +19,7 @@
 #include "light.h"      // LIGHT
 
 // Debugging modules
-#ifdef DEBUG
+#ifdef TRACE
 #include "tracemalloc.h"
 #endif
 

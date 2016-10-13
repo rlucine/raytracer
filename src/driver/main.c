@@ -19,7 +19,11 @@
 #include "ppm.h"
 #include "scene.h"
 #include "raytrace.h"
+
+// Debugging libraries
+#ifdef TRACE
 #include "tracemalloc.h"
+#endif
 
 /**********************************************************//**
  * @brief Driver function for raytracer
@@ -51,7 +55,6 @@ int main(int argc, char **argv) {
     SCENE scene;
     if (scene_Decode(&scene, filename) != SUCCESS) {
         printf("Failed to decode the scene file \"%s\"\n", filename);
-
         return -1;
     }
     
