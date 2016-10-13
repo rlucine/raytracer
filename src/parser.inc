@@ -148,7 +148,7 @@ static int parser_Create(PARSER_DATA *data, SCENE *scene) {
     scene->materials = NULL;
     scene->ntextures = 0;
     scene->textures = NULL;
-    scene->flags = 0;
+    scene->flags = FLAG_NONE;
     
     // Set up current properties
     data->flags = FLAG_NONE;
@@ -196,7 +196,7 @@ static const char *parse_View(PARSER_DATA *data, const char *string) {
 #endif
         return NULL;
     }
-    if (data->flags & FLAG_VIEW && vector_IsColinear(&data->scene->up, &data->scene->view)) {
+    if (data->flags & FLAG_UP && vector_IsColinear(&data->scene->up, &data->scene->view)) {
 #ifdef VERBOSE
         fprintf(stderr, "parse_Up failed: Up vector parallel to view vector\n");
 #endif
