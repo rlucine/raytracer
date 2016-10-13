@@ -1066,6 +1066,7 @@ int scene_Decode(SCENE *scene, const char *filename) {
 #ifdef VERBOSE
         fprintf(stderr, "scene_Decode failed: Failed to allocate parser data block\n");
 #endif
+        fclose(file);
         return FAILURE;
     }
 
@@ -1080,6 +1081,7 @@ int scene_Decode(SCENE *scene, const char *filename) {
             fprintf(stderr, "scene_Decode failed: Parse error on line %d\n", line);
 #endif
             parser_Destroy(&data);
+            fclose(file);
             return FAILURE;
         }
     }
