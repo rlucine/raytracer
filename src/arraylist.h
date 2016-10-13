@@ -47,6 +47,20 @@ extern size_t arraylist_Length(const ARRAYLIST *list);
 extern void *arraylist_At(ARRAYLIST *list, int index);
 
 /**********************************************************//**
+ * @brief Get a pointer to the first item in the arraylist
+ * @param list: The arraylist to check
+ * @return Pointer to the item or NULL on failure
+ **************************************************************/
+extern void *arraylist_Begin(ARRAYLIST *list);
+
+/**********************************************************//**
+ * @brief Get a pointer to the last item in the arraylist
+ * @param list: The arraylist to check
+ * @return Pointer to the item or NULL on failure
+ **************************************************************/
+extern void *arraylist_End(ARRAYLIST *list);
+
+/**********************************************************//**
  * @brief Append the new item to the end of the arraylist.
  * This function may grow the arraylist.
  * @param list: The arraylist to append to

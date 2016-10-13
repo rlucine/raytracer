@@ -84,6 +84,21 @@ void *arraylist_At(ARRAYLIST *list, int index) {
 }
 
 /*============================================================*
+ * Iterator
+ *============================================================*/
+void *arraylist_Begin(ARRAYLIST *list) {
+    return arraylist_At(list, 0);
+}
+
+void *arraylist_End(ARRAYLIST *list) {
+    int index = list->length - 1;
+    if (index < 0) {
+        return NULL;
+    }
+    return arraylist_At(list, index);
+}
+
+/*============================================================*
  * Appending function
  *============================================================*/
 int arraylist_Append(ARRAYLIST *list, const void *item) {
