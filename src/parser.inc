@@ -26,7 +26,7 @@
 #include "mesh.h"       // MESH, FACE, VERTEX ...
 
 // Debugging modules
-#ifdef DEBUG
+#ifdef TRACE
 #include "tracemalloc.h"
 #endif
 
@@ -995,34 +995,47 @@ static int parser_ParseLine(PARSER_DATA *data, const char *line) {
  **************************************************************/
 void parser_Destroy(PARSER_DATA *data) {
     int i;
+    void *location;
     
     // Destroy all the shapes
     SHAPE *shape;
     for (i = 0; i < arraylist_Length(&data->shapes); i++) {
-        shape = arraylist_At(&data->shapes, i);
-        shape_Destroy(shape);
-        free(shape);
+        location = arraylist_At(&data->shapes, i);
+        if (location) {
+            shape = *(SHAPE **)location;
+            shape_Destroy(shape);
+            free(shape);
+        }
     }
     arraylist_Destroy(&data->shapes);
     
     // Destroy all the lights
     for (i = 0; i < arraylist_Length(&data->lights); i++) {
-        free(arraylist_At(&data->lights, i));
+        location = arraylist_At(&data->lights, i);
+        if (location) {
+            free(*(LIGHT **)location);
+        }
     }
     arraylist_Destroy(&data->lights);
     
     // Destory all the materials
     for (i = 0; i < arraylist_Length(&data->materials); i++) {
-        free(arraylist_At(&data->materials, i));
+        location = arraylist_At(&data->materials, i);
+        if (location) {
+            free(*(MATERIAL **)location);
+        }
     }
     arraylist_Destroy(&data->materials);
     
     // Destroy all the textures
     TEXTURE *texture;
     for (i = 0; i < arraylist_Length(&data->textures); i++) {
-        texture = arraylist_At(&data->textures, i);
-        image_Destroy(texture);
-        free(texture);
+        location = arraylist_At(&data->textures, i);
+        if (location) {
+            texture = *(TEXTURE **)location;
+            image_Destroy(texture);
+            free(texture);
+        }
     }
     arraylist_Destroy(&data->textures);
     
