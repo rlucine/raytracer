@@ -67,7 +67,7 @@ void *arraylist_At(ARRAYLIST *list, int index) {
     char *temp = list->data;
     if (sizeof(char) != 1) {
 #ifdef VERBOSE
-        fprintf(stderr, "arraylist_At failed: sizeof(char) is %d on this system\n", sizeof(char));
+        fprintf(stderr, "arraylist_At failed: sizeof(char) is %d on this system\n", (int)sizeof(char));
 #endif
         return NULL;
     }
