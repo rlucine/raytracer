@@ -56,19 +56,19 @@ typedef struct {
     COLOR background;   ///< The default background color
     
     // Shapes
-    int nshapes;    ///< How many shapes are in the scene
-    SHAPE *shapes;  ///< Array of all shapes in the scene
-    MESH mesh;      ///< Container for all FACE data
+    int nshapes;        ///< How many shapes are in the scene
+    SHAPE **shapes;     ///< Array of all shapes in the scene
+    MESH mesh;          ///< Container for all FACE data
     
     // Lights
-    int nlights;    ///< How many lights are in the scene
-    LIGHT *lights;  ///< Array of all lights in the scene
+    int nlights;        ///< How many lights are in the scene
+    LIGHT **lights;     ///< Array of all lights in the scene
     
     // Onboard data storage for shapes
     int nmaterials;         ///< How many materials?
-    MATERIAL *materials;    ///< Buffer shared SHAPE materials here
+    MATERIAL **materials;   ///< Buffer shared SHAPE materials here
     int ntextures;          ///< How many textures?
-    TEXTURE *textures;      ///< Buffer shared TEXTURE here
+    TEXTURE **textures;     ///< Buffer shared TEXTURE here
 } SCENE;
 
 /**********************************************************//**

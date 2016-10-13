@@ -55,21 +55,13 @@ typedef enum {
  **************************************************************/
 typedef struct {
     PARSER_FLAG flags;      ///< Ensure all required keywords found
+    SCENE *scene;           ///< The SCENE to read data into
     
     // Shape definitions
     ARRAYLIST shapes;       ///< List of all shapes defined
     ARRAYLIST lights;       ///< List of all lights defined
     ARRAYLIST materials;    ///< List of all materials defined
     ARRAYLIST textures;     ///< List of all textures defined
-    
-    // Indexing together shapes, materials, and textures
-    int material;           ///< The index of the current material
-    int texture;            ///< Current texture index
-    SCENE *scene;           ///< The SCENE to read data into
-    ARRAYLIST shape_materials;      ///< List of shape's material indexes
-    ARRAYLIST material_textures;    ///< List of material's texture indices
-    
-    // Mesh data
     ARRAYLIST vertices;     ///< All vertices loaded
     ARRAYLIST normals;      ///< All normals loaded
     ARRAYLIST texcoords;    ///< All texture coordinates loaded
@@ -83,43 +75,33 @@ typedef struct {
  **************************************************************/
 static int parser_Create(PARSER_DATA *data, SCENE *scene) {
     
-    // Set up data arrays
-    if (arraylist_Create(&data->shapes, sizeof(SHAPE), 8) != SUCCESS) {
+    // Shape data arrays
+    if (arraylist_Create(&data->shapes, sizeof(SHAPE *), 8) != SUCCESS) {
 #ifdef VERBOSE
         fprintf(stderr, "parser_Create failed: Cannot allocate shape data\n");
 #endif
         return FAILURE;
     }
-    if (arraylist_Create(&data->lights, sizeof(LIGHT), 8) != SUCCESS) {
+    if (arraylist_Create(&data->lights, sizeof(LIGHT *), 8) != SUCCESS) {
 #ifdef VERBOSE
         fprintf(stderr, "parser_Create failed: Cannot allocate light data\n");
 #endif
         return FAILURE;
     }
-    if (arraylist_Create(&data->materials, sizeof(MATERIAL), 8) != SUCCESS) {
+    if (arraylist_Create(&data->materials, sizeof(MATERIAL *), 8) != SUCCESS) {
 #ifdef VERBOSE
         fprintf(stderr, "parser_Create failed: Cannot allocate material data\n");
 #endif
         return FAILURE;
     }
-    if (arraylist_Create(&data->textures, sizeof(TEXTURE), 8) != SUCCESS) {
+    if (arraylist_Create(&data->textures, sizeof(TEXTURE *), 8) != SUCCESS) {
 #ifdef VERBOSE
         fprintf(stderr, "parser_Create failed: Cannot allocate texture data\n");
 #endif
         return FAILURE;
     }
-    if (arraylist_Create(&data->shape_materials, sizeof(int), 8) != SUCCESS) {
-#ifdef VERBOSE
-        fprintf(stderr, "parser_Create failed: Cannot allocate material index table\n");
-#endif
-        return FAILURE;
-    }
-    if (arraylist_Create(&data->material_textures, sizeof(int), 8) != SUCCESS) {
-#ifdef VERBOSE
-        fprintf(stderr, "parser_Create failed: Cannot allocate texture index table\n");
-#endif
-        return FAILURE;
-    }
+    
+    // Mesh data arrays
     if (arraylist_Create(&data->vertices, sizeof(POINT), 8) != SUCCESS) {
 #ifdef VERBOSE
         fprintf(stderr, "parser_Create failed: Cannot allocate vertex table\n");
@@ -148,12 +130,10 @@ static int parser_Create(PARSER_DATA *data, SCENE *scene) {
     scene->materials = NULL;
     scene->ntextures = 0;
     scene->textures = NULL;
-    scene->flags = FLAG_NONE;
+    scene->flags = PROJECT_PERSPECTIVE;
     
     // Set up current properties
     data->flags = FLAG_NONE;
-    data->material = -1;
-    data->texture = -1;
     data->scene = scene;
     return SUCCESS;
 }
@@ -169,6 +149,24 @@ static const char *parse_Vector(const char *string, VECTOR *vector) {
         return string + delta;
     }
     return NULL;
+}
+
+static MATERIAL *last_Material(PARSER_DATA *data) {
+    // Get the last material from the data
+    void *location = arraylist_End(&data->materials);
+    if (!location) {
+        return NULL;
+    }
+    return *((MATERIAL **)location);
+}
+
+static TEXTURE *last_Texture(PARSER_DATA *data) {
+    // Get the last material from the data
+    void *location = arraylist_End(&data->textures);
+    if (!location) {
+        return NULL;
+    }
+    return *((TEXTURE **)location);
 }
 
 /*============================================================*
@@ -298,44 +296,43 @@ static const char *parse_Background(PARSER_DATA *data, const char *string) {
  *============================================================*/
 static const char *parse_Material(PARSER_DATA *data, const char *string) {
     const char *where = string;
-    MATERIAL material;
     double exponent;
     
-    if ((where = parse_Vector(where, &material.color)) == NULL) {
-        return NULL;
-    }
-    if ((where = parse_Vector(where, &material.highlight)) == NULL) {
-        return NULL;
-    }
-    if ((where = scanner_ParseDouble(where, &material.ambient)) == NULL) {
-        return NULL;
-    }
-    if ((where = scanner_ParseDouble(where, &material.diffuse)) == NULL) {
-        return NULL;
-    }
-    if ((where = scanner_ParseDouble(where, &material.specular)) == NULL) {
-        return NULL;
-    }
-    if ((where = scanner_ParseDouble(where, &exponent)) == NULL) {
-        return NULL;
-    }
-    
-    // Set up material texture
-    material.exponent = (int)exponent;
-    material.texture = NULL;
-    
-    // Store material in buffer
-    assert(data->materials.itemsize == sizeof(MATERIAL));
-    if (arraylist_Append(&data->materials, &material) != SUCCESS) {
+    // Allocate new material
+    MATERIAL *material = (MATERIAL *)malloc(sizeof(MATERIAL));
+    if (!material) {
 #ifdef VERBOSE
-        fprintf(stderr, "parse_Material failed: Unable to store new material\n");
+        fprintf(stderr, "parse_Material failed: Out of memory\n");
 #endif
         return NULL;
     }
     
-    // Set up current material
-    data->material++;
-    arraylist_Append(&data->material_textures, &data->texture);
+    // Parse out material properties
+    int failure = 0;
+    failure = failure || (where = parse_Vector(where, &material->color)) == NULL;
+    failure = failure || (where = parse_Vector(where, &material->highlight)) == NULL;
+    failure = failure || (where = scanner_ParseDouble(where, &material->ambient)) == NULL;
+    failure = failure || (where = scanner_ParseDouble(where, &material->diffuse)) == NULL;
+    failure = failure || (where = scanner_ParseDouble(where, &material->specular)) == NULL;
+    failure = failure || (where = scanner_ParseDouble(where, &exponent)) == NULL;
+    if (failure) {
+        free(material);
+        return NULL;
+    }
+    
+    // Set up material texture (double to int)
+    material->exponent = (int)exponent;
+    material->texture = last_Texture(data);
+    
+    // Add new material to array
+    assert(sizeof(MATERIAL *) == data->materials.itemsize);
+    if (arraylist_Append(&data->materials, &material) != SUCCESS) {
+#ifdef VERBOSE
+        fprintf(stderr, "parse_Material failed: Unable to store new material\n");
+#endif
+        free(material);
+        return NULL;
+    }
     return where;
 }
 
@@ -344,13 +341,13 @@ static const char *parse_Material(PARSER_DATA *data, const char *string) {
  *============================================================*/
 static const char *parse_Sphere(PARSER_DATA *data, const char *string) {
     const char *where = string;
-    SHAPE shape;
-    SPHERE sphere;
     
-    if ((where = parse_Vector(where, &sphere.center)) == NULL) {
-        return NULL;
-    }
-    if ((where = scanner_ParseDouble(where, &sphere.radius)) == NULL) {
+    // Parse data fields
+    SPHERE sphere;
+    int failure = 0;
+    failure = failure || (where = parse_Vector(where, &sphere.center)) == NULL;
+    failure = failure || (where = scanner_ParseDouble(where, &sphere.radius)) == NULL;
+    if (failure) {
         return NULL;
     }
     if (sphere.radius < 0) {
@@ -360,30 +357,41 @@ static const char *parse_Sphere(PARSER_DATA *data, const char *string) {
         return NULL;
     }
     
+    // Set up material
+    MATERIAL *material = last_Material(data);
+    if (!material) {
+#ifdef VERBOSE
+        fprintf(stderr, "parse_Ellipsoid failed: Missing material definition\n");
+#endif
+        return NULL;
+    }
+    
     // Set up shape
-    if (shape_CreateSphere(&shape, &sphere, NULL) != SUCCESS) {
+    SHAPE *shape = (SHAPE *)malloc(sizeof(SHAPE));
+    if (!shape) {
+#ifdef VERBOSE
+        fprintf(stderr, "parse_Sphere failed: Out of memory\n");
+#endif
+        return NULL;
+    }
+    if (shape_CreateSphere(shape, &sphere, material) != SUCCESS) {
 #ifdef VERBOSE
         fprintf(stderr, "parse_Sphere failed: Unable to allocate new sphere\n");
 #endif
+        free(shape);
         return NULL;
     }
     
     // Add shape to list
+    assert(sizeof(SHAPE *) == data->shapes.itemsize);
     if (arraylist_Append(&data->shapes, &shape) != SUCCESS) {
 #ifdef VERBOSE
         fprintf(stderr, "parse_Sphere failed: Unable to store new sphere\n");
 #endif
-        shape_Destroy(&shape);
+        shape_Destroy(shape);
+        free(shape);
         return NULL;
     }
-    if (arraylist_Append(&data->shape_materials, &data->material) != SUCCESS) {
-#ifdef VERBOSE
-        fprintf(stderr, "parse_Sphere failed: Unable to store new material index\n");
-#endif
-        shape_Destroy(&shape);
-        return NULL;
-    }
-    
     return where;
 }
 
@@ -392,13 +400,13 @@ static const char *parse_Sphere(PARSER_DATA *data, const char *string) {
  *============================================================*/
 static const char *parse_Ellipsoid(PARSER_DATA *data, const char *string) {
     const char *where = string;
-    SHAPE shape;
-    ELLIPSOID ellipsoid;
     
-    if ((where = parse_Vector(where, &ellipsoid.center)) == NULL) {
-        return NULL;
-    }
-    if ((where = parse_Vector(where, &ellipsoid.dimension)) == NULL) {
+    // Parse out fields
+    ELLIPSOID ellipsoid;
+    int failure = 0;
+    failure = failure || (where = parse_Vector(where, &ellipsoid.center)) == NULL;
+    failure = failure || (where = parse_Vector(where, &ellipsoid.dimension)) == NULL;
+    if (failure) {
         return NULL;
     }
     if (ellipsoid.dimension.x < 0 || ellipsoid.dimension.y < 0 || ellipsoid.dimension.z < 0) {
@@ -408,30 +416,41 @@ static const char *parse_Ellipsoid(PARSER_DATA *data, const char *string) {
         return NULL;
     }
     
+    // Set up material
+    MATERIAL *material = last_Material(data);
+    if (!material) {
+#ifdef VERBOSE
+        fprintf(stderr, "parse_Ellipsoid failed: Missing material definition\n");
+#endif
+        return NULL;
+    }
+    
     // Set up shape
-    if (shape_CreateEllipsoid(&shape, &ellipsoid, NULL) != SUCCESS) {
+    SHAPE *shape = (SHAPE *)malloc(sizeof(SHAPE));
+    if (!shape) {
+#ifdef VERBOSE
+        fprintf(stderr, "parse_Ellipsoid failed: Out of memory\n");
+#endif
+        return NULL;
+    }
+    if (shape_CreateEllipsoid(shape, &ellipsoid, material) != SUCCESS) {
 #ifdef VERBOSE
         fprintf(stderr, "parse_Ellipsoid failed: Unable to allocate new ellipsoid\n");
 #endif
+        free(shape);
         return NULL;
     }
     
     // Add shape to list
+    assert(sizeof(SHAPE *) == data->shapes.itemsize);
     if (arraylist_Append(&data->shapes, &shape) != SUCCESS) {
 #ifdef VERBOSE
         fprintf(stderr, "parse_Ellipsoid failed: Unable to store new ellipsoid\n");
 #endif
-        shape_Destroy(&shape);
+        shape_Destroy(shape);
+        free(shape);
         return NULL;
     }
-    if (arraylist_Append(&data->shape_materials, &data->material) != SUCCESS) {
-#ifdef VERBOSE
-        fprintf(stderr, "parse_Ellipsoid failed: Unable to store new material index\n");
-#endif
-        shape_Destroy(&shape);
-        return NULL;
-    }
-    
     return where;
 }
 
@@ -440,50 +459,59 @@ static const char *parse_Ellipsoid(PARSER_DATA *data, const char *string) {
  *============================================================*/
 static const char *parse_Light(PARSER_DATA *data, const char *string) {
     const char *where = string;
-    LIGHT light;
     VECTOR temp;
     double directed;
     
-    if ((where = parse_Vector(where, &temp)) == NULL) {
-        return NULL;
-    }
-    if ((where = scanner_ParseDouble(where, &directed)) == NULL) {
-        return NULL;
-    }
-    if ((where = parse_Vector(where, &light.color)) == NULL) {
+    // Set up light
+    LIGHT *light = (LIGHT *)malloc(sizeof(LIGHT));
+    if (!light) {
+#ifdef VERBOSE
+        fprintf(stderr, "parse_Light failed: Out of memory\n");
+#endif
         return NULL;
     }
     
-    // Validate directed light
+    // Parse out fields
+    int failure = 0;
+    failure = failure || (where = parse_Vector(where, &temp)) == NULL;
+    failure = failure || (where = scanner_ParseDouble(where, &directed)) == NULL;
+    failure = failure || (where = parse_Vector(where, &light->color)) == NULL;
+    if (failure) {
+        free(light);
+        return NULL;
+    }
     if (directed == 0.0) {
-        light.type = LIGHT_DIRECTED;
-        memcpy(&light.direction, &temp, sizeof(VECTOR));
-        if (vector_IsZero(&light.direction)) {
+        light->type = LIGHT_DIRECTED;
+        memcpy(&light->direction, &temp, sizeof(VECTOR));
+        if (vector_IsZero(&light->direction)) {
 #ifdef VERBOSE
             fprintf(stderr, "parse_Light failed: Direction cannot be zero\n");
 #endif
+            free(light);
             return NULL;
         }
         
     } else if (directed == 1.0) {
-        light.type = LIGHT_POINT;
-        memcpy(&light.where, &temp, sizeof(VECTOR));
+        light->type = LIGHT_POINT;
+        memcpy(&light->where, &temp, sizeof(VECTOR));
         
     } else {
 #ifdef VERBOSE
         fprintf(stderr, "parse_Light failed: Invalid homogeneous coordinate %lf\n", directed);
 #endif
+        free(light);
         return NULL;
     }
     
     // Add light to list
+    assert(sizeof(LIGHT *) == data->lights.itemsize);
     if (arraylist_Append(&data->lights, &light) != SUCCESS) {
 #ifdef VERBOSE
         fprintf(stderr, "parse_Light failed: Unable to store new light\n");
 #endif
+        free(light);
         return NULL;
     }
-    
     return where;
 }
 
@@ -492,42 +520,50 @@ static const char *parse_Light(PARSER_DATA *data, const char *string) {
  *============================================================*/
 static const char *parse_Spotlight(PARSER_DATA *data, const char *string) {
     const char *where = string;
-    LIGHT light;
     
-    if ((where = parse_Vector(where, &light.where)) == NULL) {
-        return NULL;
-    }
-    if ((where = parse_Vector(where, &light.direction)) == NULL) {
-        return NULL;
-    }
-    if ((where = scanner_ParseDouble(where, &light.angle)) == NULL) {
-        return NULL;
-    }
-    if ((where = parse_Vector(where, &light.color)) == NULL) {
+    // Set up light
+    LIGHT *light = (LIGHT *)malloc(sizeof(LIGHT));
+    if (!light) {
+#ifdef VERBOSE
+        fprintf(stderr, "parse_Light failed: Out of memory\n");
+#endif
         return NULL;
     }
     
-    if (vector_IsZero(&light.direction)) {
+    // Parse fields
+    int failure = 0;
+    failure = failure || (where = parse_Vector(where, &light->where)) == NULL;
+    failure = failure || (where = parse_Vector(where, &light->direction)) == NULL;
+    failure = failure || (where = scanner_ParseDouble(where, &light->angle)) == NULL;
+    failure = failure || (where = parse_Vector(where, &light->color)) == NULL;
+    if (failure) {
+        free(light);
+        return NULL;
+    }
+    if (vector_IsZero(&light->direction)) {
 #ifdef VERBOSE
         fprintf(stderr, "parse_Spotlight failed: Direction cannot be zero\n");
 #endif
+        free(light);
         return NULL;
     }
-    if (light.angle > MAX_ANGLE || light.angle < MIN_ANGLE) {
+    if (light->angle > MAX_ANGLE || light->angle < MIN_ANGLE) {
 #ifdef VERBOSE
-        fprintf(stderr, "parse_Light failed: Invalid angle %lf\n", light.angle);
+        fprintf(stderr, "parse_Light failed: Invalid angle %lf\n", light->angle);
 #endif
+        free(light);
         return NULL;
     }
     
     // Add light to list
+    assert(sizeof(LIGHT *) == data->lights.itemsize);
     if (arraylist_Append(&data->lights, &light) != SUCCESS) {
 #ifdef VERBOSE
         fprintf(stderr, "parse_Light failed: Unable to store new light\n");
 #endif
+        free(light);
         return NULL;
     }
-    
     return where;
 }
 
@@ -535,20 +571,30 @@ static const char *parse_Spotlight(PARSER_DATA *data, const char *string) {
  * Parsing texture
  *============================================================*/
 static const char *parse_Texture(PARSER_DATA *data, const char *string) {
+    const char *where = string;
+    
+    // Parse fields
     size_t size = 256;
     char filename[size];
-    const char *where = NULL;
+    if ((where = scanner_ParseString(where, size, filename)) == NULL) {
+        return NULL;
+    }
     
-    if ((where = scanner_ParseString(string, size, filename)) == NULL) {
+    // Load texture
+    TEXTURE *texture = (TEXTURE *)malloc(sizeof(TEXTURE));
+    if (!texture) {
+#ifdef VERBOSE
+        fprintf(stderr, "parse_Texture failed: Out of memory\n");
+#endif
         return NULL;
     }
     
     // Try loading the file as a texture
-    TEXTURE texture;
-    if (ppm_Decode(&texture, filename) != SUCCESS) {
+    if (ppm_Decode(texture, filename) != SUCCESS) {
 #ifdef VERBOSE
         fprintf(stderr, "parse_Texture failed: Failed to decode \"%s\"\n", filename);
 #endif
+        free(texture);
         return NULL;
     }
 
@@ -557,24 +603,31 @@ static const char *parse_Texture(PARSER_DATA *data, const char *string) {
 #ifdef VERBOSE
         fprintf(stderr, "parse_Texture failed: Unable to store new texture\n");
 #endif
-        image_Destroy(&texture);
+        image_Destroy(texture);
+        free(texture);
         return NULL;
     }
 
     // Generating a new texture means we have to push a new material
-    if (data->material) {
-        MATERIAL *material = arraylist_At(&data->materials, arraylist_Length(&data->materials)-1);
-        if (arraylist_Append(&data->materials, material) != SUCCESS) {
+    // But only if materials defined already!
+    if (arraylist_Length(&data->materials) > 0) {
+        // Copying the old material
+        const MATERIAL *old = last_Material(data);
+        MATERIAL *new = (MATERIAL *)malloc(sizeof(MATERIAL));
+        if (!new) {
+            return NULL;
+        }
+        memcpy(new, old, sizeof(MATERIAL));
+        new->texture = texture;
+        
+        // Storing new material copy
+        if (arraylist_Append(&data->materials, &new) != SUCCESS) {
 #ifdef VERBOSE
             fprintf(stderr, "parse_Texture failed: Unable to store new material\n");
 #endif
-            image_Destroy(&texture);
+            // Don't deallocate the texture since it's properly in the array now!
             return NULL;
         }
-
-        // Update the new material with the new texture
-        data->texture++;
-        arraylist_Append(&data->material_textures, &data->texture);
     }
     return where;
 }
@@ -583,6 +636,7 @@ static const char *parse_Texture(PARSER_DATA *data, const char *string) {
  * Parsing parallel
  *============================================================*/
 static const char *parse_Parallel(PARSER_DATA *data, const char *string) {
+    // The string should be empty!
     data->scene->flags |= PROJECT_PARALLEL;
     return string;
 }
@@ -593,16 +647,14 @@ static const char *parse_Parallel(PARSER_DATA *data, const char *string) {
 #ifdef DEBUG
 static const char *parse_Plane(PARSER_DATA *data, const char *string) {
     const char *where = string;
-    SHAPE shape;
-    PLANE plane;
     
-    if ((where = parse_Vector(where, &plane.origin)) == NULL) {
-        return NULL;
-    }
-    if ((where = parse_Vector(where, &plane.u)) == NULL) {
-        return NULL;
-    }
-    if ((where = parse_Vector(where, &plane.v)) == NULL) {
+    // Parsing features
+    PLANE plane;
+    int failure = 0;
+    failure = failure || (where = parse_Vector(where, &plane.origin)) == NULL;
+    failure = failure || (where = parse_Vector(where, &plane.u)) == NULL;
+    failure = failure || (where = parse_Vector(where, &plane.v)) == NULL;
+    if (failure) {
         return NULL;
     }
     if (vector_IsColinear(&plane.u, &plane.v)) {
@@ -612,30 +664,40 @@ static const char *parse_Plane(PARSER_DATA *data, const char *string) {
         return NULL;
     }
     
+    // Set up material
+    MATERIAL *material = last_Material(data);
+    if (!material) {
+#ifdef VERBOSE
+        fprintf(stderr, "parse_Plane failed: Missing material definition\n");
+#endif
+        return NULL;
+    }
+    
     // Set up shape
-    if (shape_CreatePlane(&shape, &plane, NULL) != SUCCESS) {
+    SHAPE *shape = (SHAPE *)malloc(sizeof(SHAPE));
+    if (!shape) {
+#ifdef VERBOSE
+        fprintf(stderr, "parse_Plane failed: Out of memory\n");
+#endif
+        return NULL;
+    }
+    if (shape_CreatePlane(shape, &plane, material) != SUCCESS) {
 #ifdef VERBOSE
         fprintf(stderr, "parse_Plane failed: Unable to allocate new plane\n");
 #endif
+        free(shape);
         return NULL;
     }
     
     // Add shape to list
-    if (arraylist_Append(&data->shapes, &shape) != SUCCESS) {
+    if (arraylist_Append(&data->shapes, shape) != SUCCESS) {
 #ifdef VERBOSE
         fprintf(stderr, "parse_Plane failed: Unable to store new plane\n");
 #endif
-        shape_Destroy(&shape);
+        shape_Destroy(shape);
+        free(shape);
         return NULL;
     }
-    if (arraylist_Append(&data->shape_materials, &data->material) != SUCCESS) {
-#ifdef VERBOSE
-        fprintf(stderr, "parse_Plane failed: Unable to store new material index\n");
-#endif
-        shape_Destroy(&shape);
-        return NULL;
-    }
-    
     return where;
 }
 #endif
@@ -645,8 +707,9 @@ static const char *parse_Plane(PARSER_DATA *data, const char *string) {
  *============================================================*/
 static const char *parse_Vertex(PARSER_DATA *data, const char *string) {
     const char *where = string;
-    POINT vertex;
     
+    // Parse data
+    POINT vertex;
     if ((where = parse_Vector(where, &vertex)) == NULL) {
         return NULL;
     }
@@ -666,8 +729,9 @@ static const char *parse_Vertex(PARSER_DATA *data, const char *string) {
  *============================================================*/
 static const char *parse_Normal(PARSER_DATA *data, const char *string) {
     const char *where = string;
-    VECTOR normal;
     
+    // Parse data
+    VECTOR normal;
     if ((where = parse_Vector(where, &normal)) == NULL) {
         return NULL;
     }
@@ -687,12 +751,13 @@ static const char *parse_Normal(PARSER_DATA *data, const char *string) {
  *============================================================*/
 static const char *parse_TexCoord(PARSER_DATA *data, const char *string) {
     const char *where = string;
-    TEXCOORD tex;
     
-    if ((where = scanner_ParseDouble(where, &tex.x)) == NULL) {
-        return NULL;
-    }
-    if ((where = scanner_ParseDouble(where, &tex.y)) == NULL) {
+    // Parse data
+    TEXCOORD tex;
+    int failure = 0;
+    failure = failure || (where = scanner_ParseDouble(where, &tex.x)) == NULL;
+    failure = failure || (where = scanner_ParseDouble(where, &tex.y)) == NULL;
+    if (failure) {
         return NULL;
     }
     
@@ -711,9 +776,9 @@ static const char *parse_TexCoord(PARSER_DATA *data, const char *string) {
  *============================================================*/
 static const char *parse_Face(PARSER_DATA *data, const char *string) {
     const char *where = string;
-    FACE face;
     
     // Initialize face mesh
+    FACE face;
     int i;
     face.mesh = &data->scene->mesh;
     for (i = 0; i < N_VERTICES; i++) {
@@ -746,12 +811,28 @@ static const char *parse_Face(PARSER_DATA *data, const char *string) {
         return NULL;
     }
     
+    // Set up material
+    MATERIAL *material = last_Material(data);
+    if (!material) {
+#ifdef VERBOSE
+        fprintf(stderr, "parse_Face failed: Missing material definition\n");
+#endif
+        return NULL;
+    }
+    
     // Set up shape
-    SHAPE shape;
-    if (shape_CreateFace(&shape, &face, NULL) != SUCCESS) {
+    SHAPE *shape = (SHAPE *)malloc(sizeof(SHAPE));
+    if (!shape) {
+#ifdef VERBOSE
+        fprintf(stderr, "parse_Face failed: Out of memory\n");
+#endif
+        return NULL;
+    }
+    if (shape_CreateFace(shape, &face, material) != SUCCESS) {
 #ifdef VERBOSE
         fprintf(stderr, "parse_Face failed: Unable to allocate new face\n");
 #endif
+        free(shape);
         return NULL;
     }
     
@@ -760,17 +841,10 @@ static const char *parse_Face(PARSER_DATA *data, const char *string) {
 #ifdef VERBOSE
         fprintf(stderr, "parse_Face failed: Unable to store new plane\n");
 #endif
-        shape_Destroy(&shape);
+        shape_Destroy(shape);
+        free(shape);
         return NULL;
     }
-    if (arraylist_Append(&data->shape_materials, &data->material) != SUCCESS) {
-#ifdef VERBOSE
-        fprintf(stderr, "parse_Face failed: Unable to store new material index\n");
-#endif
-        shape_Destroy(&shape);
-        return NULL;
-    }
-    
     return where;
 }
 
@@ -923,26 +997,39 @@ void parser_Destroy(PARSER_DATA *data) {
     int i;
     
     // Destroy all the shapes
+    SHAPE *shape;
     for (i = 0; i < arraylist_Length(&data->shapes); i++) {
-        shape_Destroy((SHAPE *)arraylist_At(&data->shapes, i));
+        shape = arraylist_At(&data->shapes, i);
+        shape_Destroy(shape);
+        free(shape);
     }
     arraylist_Destroy(&data->shapes);
     
     // Destroy all the lights
+    for (i = 0; i < arraylist_Length(&data->lights); i++) {
+        free(arraylist_At(&data->lights, i));
+    }
     arraylist_Destroy(&data->lights);
     
     // Destory all the materials
+    for (i = 0; i < arraylist_Length(&data->materials); i++) {
+        free(arraylist_At(&data->materials, i));
+    }
     arraylist_Destroy(&data->materials);
     
     // Destroy all the textures
+    TEXTURE *texture;
     for (i = 0; i < arraylist_Length(&data->textures); i++) {
-        image_Destroy((IMAGE *)arraylist_At(&data->textures, i));
+        texture = arraylist_At(&data->textures, i);
+        image_Destroy(texture);
+        free(texture);
     }
     arraylist_Destroy(&data->textures);
     
-    // Destroy the index tables
-    arraylist_Destroy(&data->shape_materials);
-    arraylist_Destroy(&data->material_textures);
+    // Destroy the mesh
+    arraylist_Destroy(&data->vertices);
+    arraylist_Destroy(&data->normals);
+    arraylist_Destroy(&data->texcoords);
 }
 
 /*============================================================*
@@ -969,11 +1056,9 @@ int scene_Decode(SCENE *scene, const char *filename) {
         return FAILURE;
     }
 
-    // Set up reading buffer
+    // Read lines from the file
     const int BUF_SIZE = 255;
     char buf[BUF_SIZE + 1];
-    
-    // Read lines from the file
     int line = 0;
     while (line++, fgets(buf, BUF_SIZE, file)) {
         // Parse this line
@@ -985,8 +1070,6 @@ int scene_Decode(SCENE *scene, const char *filename) {
             return FAILURE;
         }
     }
-    
-    // Clean up
     fclose(file);
     
     // Check that all data is defined
@@ -1007,9 +1090,8 @@ int scene_Decode(SCENE *scene, const char *filename) {
 
     // Move shapes arraylist into scene
     arraylist_Compress(&data.shapes);
-    scene->nshapes = arraylist_Length(&data.shapes);
-    if (scene->nshapes) {
-        scene->shapes = (SHAPE *)arraylist_GetData(&data.shapes);
+    if ((scene->nshapes = arraylist_Length(&data.shapes)) > 0) {
+        scene->shapes = (SHAPE **)arraylist_GetData(&data.shapes);
     } else {
         arraylist_Destroy(&data.shapes);
         scene->shapes = NULL;
@@ -1017,9 +1099,8 @@ int scene_Decode(SCENE *scene, const char *filename) {
     
     // Move lights into scene
     arraylist_Compress(&data.lights);
-    scene->nlights = arraylist_Length(&data.lights);
-    if (scene->nlights) {
-        scene->lights = (LIGHT *)arraylist_GetData(&data.lights);
+    if ((scene->nlights = arraylist_Length(&data.lights)) > 0) {
+        scene->lights = (LIGHT **)arraylist_GetData(&data.lights);
     } else {
         arraylist_Destroy(&data.lights);
         scene->lights = NULL;
@@ -1027,9 +1108,8 @@ int scene_Decode(SCENE *scene, const char *filename) {
     
     // Move materials into scene
     arraylist_Compress(&data.materials);
-    scene->nmaterials = arraylist_Length(&data.materials);
-    if (scene->nmaterials) {
-        scene->materials = (MATERIAL *)arraylist_GetData(&data.materials);
+    if ((scene->nmaterials = arraylist_Length(&data.materials)) > 0) {
+        scene->materials = (MATERIAL **)arraylist_GetData(&data.materials);
     } else {
         arraylist_Destroy(&data.materials);
         scene->materials = NULL;
@@ -1037,46 +1117,11 @@ int scene_Decode(SCENE *scene, const char *filename) {
     
     // Move textures into scene
     arraylist_Compress(&data.textures);
-    scene->ntextures = arraylist_Length(&data.textures);
-    if (scene->ntextures) {
-        scene->textures = (TEXTURE *)arraylist_GetData(&data.textures);
+    if ((scene->ntextures = arraylist_Length(&data.textures)) > 0) {
+        scene->textures = (TEXTURE **)arraylist_GetData(&data.textures);
     } else {
         arraylist_Destroy(&data.textures);
         scene->textures = NULL;
-    }
-    
-    // Now that all the pointer moving is permanently done, let's re-map
-    // the material and texture tables to pointers and put them in the shapes.
-    int i;
-    int *pointer;
-    int index;
-    
-    // Map the texture index table down to pointers and put them
-    // in each material
-    for (i = 0; i < scene->nmaterials; i++) {
-        pointer = (int *)arraylist_At(&data.material_textures, i);
-        index = *pointer;
-        if (index >= 0) {
-            scene->materials[i].texture = &scene->textures[*pointer];
-        } else {
-            scene->materials[i].texture = NULL;
-        }
-    }
-    
-    // Map the material index table down to pointers and put them
-    // in each shape
-    for (i = 0; i < scene->nshapes; i++) {
-        pointer = (int *)arraylist_At(&data.shape_materials, i);
-        index = *pointer;
-        if (index >= 0) {
-            shape_SetMaterial(&scene->shapes[i], &scene->materials[*pointer]);
-        } else {
-#ifdef VERBOSE
-            fprintf(stderr, "scene_Decode failed: Shape %d without material color\n", i);
-#endif
-            parser_Destroy(&data);
-            return FAILURE;
-        }
     }
     
     // Place all mesh data into the mesh
@@ -1098,10 +1143,6 @@ int scene_Decode(SCENE *scene, const char *filename) {
         arraylist_Destroy(&data.texcoords);
         scene->mesh.texture = NULL;
     }
-    
-    // Done with the index tables
-    arraylist_Destroy(&data.shape_materials);
-    arraylist_Destroy(&data.material_textures);
 
 #ifdef DEBUG
     // Echo all information in the scene

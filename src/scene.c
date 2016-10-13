@@ -62,7 +62,7 @@ int scene_GetNumberOfShapes(const SCENE *scene) {
 }
 
 const SHAPE *scene_GetShape(const SCENE *scene, int index) {
-    return &scene->shapes[index];
+    return scene->shapes[index];
 }
 
 int scene_GetNumberOfLights(const SCENE *scene) {
@@ -70,7 +70,7 @@ int scene_GetNumberOfLights(const SCENE *scene) {
 }
 
 const LIGHT *scene_GetLight(const SCENE *scene, int index) {
-    return &scene->lights[index];
+    return scene->lights[index];
 }
 
 /*============================================================*
@@ -84,7 +84,8 @@ void scene_Destroy(SCENE *scene) {
     // Free allocated array
     if (scene->nshapes > 0 && scene->shapes) {
         for (i = 0; i < scene->nshapes; i++) {
-            shape_Destroy(&scene->shapes[i]);
+            shape_Destroy(scene->shapes[i]);
+            free(scene->shapes[i]);
         }
         free(scene->shapes);
         scene->nshapes = 0;
@@ -93,6 +94,9 @@ void scene_Destroy(SCENE *scene) {
     
     // Free all the lights
     if (scene->nlights > 0 && scene->lights) {
+        for (i = 0; i < scene->nlights; i++) {
+            free(scene->lights[i]);
+        }
         free(scene->lights);
         scene->nlights = 0;
         scene->lights = NULL;
@@ -100,6 +104,9 @@ void scene_Destroy(SCENE *scene) {
     
     // Free all the materials
     if (scene->nmaterials > 0 && scene->materials) {
+        for (i = 0; i < scene->nmaterials; i++) {
+            free(scene->materials[i]);
+        }
         free(scene->materials);
         scene->nmaterials = 0;
         scene->materials = NULL;
@@ -108,7 +115,8 @@ void scene_Destroy(SCENE *scene) {
     // Free all the textures
     if (scene->ntextures > 0 && scene->textures) {
         for (i = 0; i < scene->ntextures; i++) {
-            image_Destroy(&scene->textures[i]);
+            image_Destroy(scene->textures[i]);
+            free(scene->textures[i]);
         }
         free(scene->textures);
         scene->ntextures = 0;
