@@ -100,7 +100,9 @@ static int face_GetBarycentricCoordinates(const FACE *face, const POINT *where, 
 #endif
     
     // Determine if the point actually in the face
-    if ((a+b+c) > total_area+(3*DBL_EPSILON)) {
+    // TODO if the image becomes grainy increment the multiple of DBL_EPSILON again!
+    // TODO just make a macro to do this?
+    if ((a+b+c) > total_area+1e-4) {
         return FAILURE;
     }
     
