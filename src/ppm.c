@@ -115,9 +115,9 @@ int ppm_Decode(IMAGE *ppm, const char *filename) {
         fclose(file);
         return FAILURE;
     }
-    if (!strcmp(header, "P3")) {
+    if (header[0] != 'P' || header[1] != '3') {
 #ifdef VERBOSE
-        fprintf(stderr, "ppm_Decode failed: File is not a P3 PPM image\n");
+        fprintf(stderr, "ppm_Decode failed: Corrupt header '%s'\n", header);
 #endif
         fclose(file);
         return FAILURE;
