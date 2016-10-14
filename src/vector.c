@@ -19,6 +19,15 @@ static int double_IsZero(double what) {
 }
 
 /*============================================================*
+ * Setup
+ *============================================================*/
+void vector_Set(VECTOR *output, double x, double y, double z) {
+    output->x = x;
+    output->y = y;
+    output->z = z;
+}
+
+/*============================================================*
  * Copy
  *============================================================*/
 void vector_Copy(VECTOR *output, const VECTOR *input) {

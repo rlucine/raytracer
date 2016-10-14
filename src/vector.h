@@ -50,6 +50,15 @@ typedef struct {
 } PLANE;
 
 /**********************************************************//**
+ * @brief Set the properties of the vector.
+ * @param output: The vector to set.
+ * @param x: The x-coordinate
+ * @param y: The y-coordinate.
+ * @param z: The z coordinate.
+ **************************************************************/
+extern void vector_Set(VECTOR *output, double x, double y, double z);
+
+/**********************************************************//**
  * @brief Copy the input vector to the output vector
  * @param output: The vector to copy to.
  * @param input: The vector to copy.
