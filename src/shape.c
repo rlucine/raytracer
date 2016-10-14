@@ -220,6 +220,11 @@ static int sphere_Collide(const SPHERE *sphere, const LINE *ray, COLLISION *resu
     vector_Subtract(&result->normal, &result->where, &sphere->center);
     vector_Normalize(&result->normal, &result->normal);
     
+    // Get the texture at the collision site
+    result->texture.x = atan2(result->normal.y, result->normal.x);
+    result->texture.y = acos(result->normal.z);
+    result->texture.z = 0.0;
+    
     // Done!
     return SUCCESS;
 }
@@ -307,6 +312,9 @@ static int ellipsoid_Collide(const ELLIPSOID *ellipsoid, const LINE *ray, COLLIS
     result->normal.z *= 2.0 / (dimension->z * dimension->z);
     vector_Normalize(&result->normal, &result->normal);
     
+    // TODO texture an ellipsoid!
+    vector_Set(&result->texture, 0, 0, 0);
+    
     // Done
     return SUCCESS;
 }
@@ -371,6 +379,9 @@ static int plane_Collide(const PLANE *plane, const LINE *ray, COLLISION *result)
     
     // Determine normal at collision site
     vector_Copy(&result->normal, &normal);
+    
+    // TODO Texture the plane!
+    vector_Set(&result->texture, 0, 0, 0);
     return SUCCESS;
 }
 
@@ -414,7 +425,16 @@ static int face_Collide(const FACE *face, const LINE *ray, COLLISION *result) {
 #endif
             return FAILURE;
         }
+        
+        // Set up texture coordinate
+        if (face_GetTextureAt(face, &result->where, &result->texture) != SUCCESS) {
+#ifdef VERBOSE
+            fprintf(stderr, "face_Collide failed: Unable to interpolate face texture coordinate\n");
+#endif
+            return FAILURE;
+        }
     }
+    
     return SUCCESS;
 }
 

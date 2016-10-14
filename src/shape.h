@@ -90,6 +90,7 @@ typedef struct {
     double distance;            ///< How far away the point is
     const MATERIAL *material;   ///< The material that was collided with
     VECTOR normal;              ///< Normal vector at collision site
+    TEXCOORD texture;           ///< Texture coordinate at the collision site
 } COLLISION;
 
 /**********************************************************//**
