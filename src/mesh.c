@@ -16,6 +16,28 @@
 #include "mesh.h"   // FACE, VERTEX
 
 /*============================================================*
+ * Mesh destructor
+ *============================================================*/
+void mesh_Destroy(MESH *mesh) {
+    // Free all the mesh data
+    if (mesh->nvertices > 0 && mesh->vertices) {
+        free(mesh->vertices);
+        mesh->nvertices = 0;
+        mesh->vertices = NULL;
+    }
+    if (mesh->nnormals > 0 && mesh->normals) {
+        free(mesh->normals);
+        mesh->nnormals = 0;
+        mesh->normals = NULL;
+    }
+    if (mesh->ntextures > 0 && mesh->texture) {
+        free(mesh->texture);
+        mesh->ntextures = 0;
+        mesh->texture = NULL;
+    }
+}
+
+/*============================================================*
  * Data structure business
  *============================================================*/
 static const POINT *face_GetVertex(const FACE *face, int index) {

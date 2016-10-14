@@ -63,6 +63,12 @@ typedef struct {
 } FACE;
 
 /**********************************************************//**
+ * @brief Destory the given polygon mesh.
+ * @param mesh: The mesh to destroy.
+ **************************************************************/
+extern void mesh_Destroy(MESH *mesh);
+
+/**********************************************************//**
  * @brief Get the plane containing the face.
  * @param face: The face to read.
  * @param plane: The location to output the plane.
