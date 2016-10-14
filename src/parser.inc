@@ -22,7 +22,6 @@
 #include "shape.h"      // SHAPE, shape_CreateSphere ...
 #include "scene.h"      // SCENE
 #include "arraylist.h"  // ARRAYLIST, arraylist_Compress ...
-#include "scanner.h"    // scanner_ParseDouble ...
 #include "mesh.h"       // MESH, FACE, VERTEX ...
 
 // Debugging modules
@@ -151,6 +150,46 @@ static const char *parse_Vector(const char *string, VECTOR *vector) {
     return NULL;
 }
 
+static const char *scanner_ParseDouble(const char *string, double *output) {
+    int delta;
+    if (sscanf(string, "%lf%n", output, &delta) == 1) {
+        // Successfully parsed the double out
+        return string + delta;
+    }
+    return NULL;
+}
+
+static const char *scanner_ParseString(const char *string, size_t size, char *output) {
+    char *where = (char *)string;
+    size_t i = 0;
+    while (*where && isspace(*where)) {
+        where++;
+    }
+    while (*where && i < size-1 && !isspace(*where)) {
+        *output++ = *where++;
+        i++;
+    }
+    if (i > 0) {
+        // Don't forget this!
+        *output = '\0';
+        return where;
+    }
+    return NULL;
+}
+
+static int scanner_IsEmpty(const char *string) {
+    char *where = (char *)string;
+    while (*where) {
+        if (!isspace(*where++)) {
+            return 0;
+        }
+    }
+    return 1;
+}
+
+/*============================================================*
+ * Lookup functions
+ *============================================================*/
 static MATERIAL *last_Material(PARSER_DATA *data) {
     // Get the last material from the data
     void *location = arraylist_End(&data->materials);
