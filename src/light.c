@@ -16,6 +16,36 @@
 #include "shape.h"  // SHAPE
 
 /*============================================================*
+ * Creation
+ *============================================================*/
+void light_CreatePoint(LIGHT *light, const POINT *where, const COLOR *color) {
+    // Creates a point light
+    vector_Copy(&light->where, where);
+    vector_Copy(&light->color, color);
+    light->type = LIGHT_POINT;
+    light->angle = 0.0;
+    vector_Set(&light->direction, 0, 0, 0);
+}
+
+void light_CreateDirected(LIGHT *light, const VECTOR *direction, const COLOR *color) {
+    // Creates a directional light
+    vector_Copy(&light->direction, direction);
+    vector_Copy(&light->color, color);
+    light->type = LIGHT_DIRECTED;
+    light->angle = 0.0;
+    vector_Set(&light->where, 0, 0, 0);
+}
+
+void light_CreateSpotlight(LIGHT *light, const POINT *where, const VECTOR *direction, double angle, const COLOR *color) {
+    // Creates a spotlight
+    vector_Copy(&light->where, where);
+    vector_Copy(&light->direction, direction);
+    vector_Copy(&light->color, color);
+    light->type = LIGHT_SPOT;
+    light->angle = angle;
+}
+
+/*============================================================*
  * Direction
  *============================================================*/
 int light_GetDirection(const LIGHT *light, const POINT *where, VECTOR *output, double *distance) {

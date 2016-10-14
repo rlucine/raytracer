@@ -50,6 +50,33 @@ typedef struct {
 } LIGHT;
 
 /**********************************************************//**
+ * @brief Set up a new point light.
+ * @param light: The light to initialize.
+ * @param where: The location of the light's center.
+ * @param color: The color the light emits.
+ **************************************************************/
+extern void light_CreatePoint(LIGHT *light, const POINT *where, const COLOR *color);
+
+/**********************************************************//**
+ * @brief Set up a new directional light.
+ * @param light: The light to initialize.
+ * @param direction: The direction the light shines towards.
+ * @param color: The color the light emits.
+ **************************************************************/
+extern void light_CreateDirected(LIGHT *light, const VECTOR *direction, const COLOR *color);
+
+/**********************************************************//**
+ * @brief Set up a new spotlight.
+ * @param light: The light to initialize.
+ * @param where: The location the light shines from.
+ * @param direction: The direction the light shines towards.
+ * @param angle: The light will hit objects within this angle
+ * of the direction parameter.
+ * @param color: The color the light emits.
+ **************************************************************/
+extern void light_CreateSpotlight(LIGHT *light, const POINT *point, const VECTOR *direction, double angle, const COLOR *color);
+
+/**********************************************************//**
  * @brief Get the direction to the light.
  * @param light: The light to calculate shading for
  * @param where: The point to calculate the direction from.
