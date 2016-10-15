@@ -12,7 +12,7 @@ sphere 0 -2.2 0 1.5
 
 # Upper textured sphere
 mtlcolor 0.8 0.2 0.6 1 1 1 0.4 0.9 0.2 15
-texture data/sample4_texture.ppm
+texture data/texture/sample4_texture.ppm
 sphere 0 2.5 4 0.5
 
 # Textured triangle
