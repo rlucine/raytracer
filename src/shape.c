@@ -426,8 +426,8 @@ static int face_Collide(const FACE *face, const LINE *ray, COLLISION *result) {
             return FAILURE;
         }
         
-        // Set up texture coordinate
-        if (face_GetTextureAt(face, &result->where, &result->texture) != SUCCESS) {
+        // Set up texture coordinate if the face is textured at all
+        if (face->mesh->ntextures != 0 && face_GetTextureAt(face, &result->where, &result->texture) != SUCCESS) {
 #ifdef VERBOSE
             fprintf(stderr, "face_Collide failed: Unable to interpolate face texture coordinate\n");
 #endif

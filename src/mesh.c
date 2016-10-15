@@ -158,10 +158,6 @@ static int face_GetBarycentricCoordinates(const FACE *face, const POINT *where, 
     vector_Subtract(&v, where, v0);
     vector_Cross(&temp, &u, &v);
     double c = vector_Magnitude(&temp) / 2.0;
-
-#ifdef DEBUG
-    fprintf(stderr, "face_GetBarycentricCoordinates: a=%lf, b=%lf, c=%lf, A=%lf\n", a, b, c, total_area);
-#endif
     
     // Determine if the point actually in the face
     // TODO if the image becomes grainy increment the multiple of DBL_EPSILON again!
@@ -221,6 +217,9 @@ int face_GetNormalAt(const FACE *face, const POINT *where, VECTOR *normal) {
     if (n0 == NULL || n1 == NULL || n2 == NULL) {
         PLANE plane;
         if (face_GetPlane(face, &plane) != SUCCESS) {
+#ifdef VERBOSE
+            fprintf(stderr, "face_GetNormalAt failed: Unable to generate normal vector.\n");
+#endif
             return FAILURE;
         }
         vector_Cross(normal, &plane.u, &plane.v);
@@ -228,8 +227,12 @@ int face_GetNormalAt(const FACE *face, const POINT *where, VECTOR *normal) {
         return SUCCESS;
     }
     
+    // Interpolate position
     VECTOR barycentric;
     if (face_GetBarycentricCoordinates(face, where, &barycentric) != SUCCESS) {
+#ifdef VERBOSE
+        fprintf(stderr, "face_GetNormalAt failed: Point out of bounds.\n");
+#endif
         return FAILURE;
     }
     
@@ -251,16 +254,29 @@ int face_GetNormalAt(const FACE *face, const POINT *where, VECTOR *normal) {
 int face_GetTextureAt(const FACE *face, const POINT *where, TEXCOORD *tex) {
     
     // Check if the face even has texture
-    const VECTOR *t0, *t1, *t2;
+    if (face->mesh->ntextures == 0) {
+        // No texture coordinate on this face.
+        return FAILURE;
+    }
+    
+    // Make sure alltexture coordinates defined.
+    const TEXCOORD *t0, *t1, *t2;
     t0 = face_GetTexture(face, 0);
     t1 = face_GetTexture(face, 1);
     t2 = face_GetTexture(face, 2);
     if (t0 == NULL || t1 == NULL || t2 == NULL) {
+#ifdef VERBOSE
+        fprintf(stderr, "face_GetTextureAt failed: Missing texture coordinate.\n");
+#endif
         return FAILURE;
     }
     
+    // Interpolate position
     VECTOR barycentric;
     if (face_GetBarycentricCoordinates(face, where, &barycentric) != SUCCESS) {
+#ifdef VERBOSE
+        fprintf(stderr, "face_GetTextureAt failed: Point out of bounds.\n");
+#endif
         return FAILURE;
     }
     
