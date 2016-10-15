@@ -1,5 +1,0 @@
-# Ignore assembled ppm images
-*.ppm
-
-# Also PNG images
-*.png

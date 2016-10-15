@@ -1,0 +1,11 @@
+# Scene that puts the map texture on a sphere
+eye 0 0 4
+viewdir 0 0 -1
+updir 0 1 0
+fovv 60
+imsize 200 200
+bkgcolor 0 0 0
+mtlcolor 0 0.5 0.5 1 1 1 0.1 0.7 0.2 10
+light 0 0 -1 0 1 1 1
+texture data/earth.ppm
+sphere 0 0 0 1
