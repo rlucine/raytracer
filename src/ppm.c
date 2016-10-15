@@ -83,7 +83,7 @@ int ppm_Parse(FILE *file, int *output) {
         // Numeric characters
         default:
             // Due to arbitrary definitions of SUCCESS or FAILURE we need this
-            if (!in_comment && !fseek(file, -1, SEEK_CUR) && fscanf(file, "%d", output) == 1) {
+            if (!in_comment && ungetc(current, file) != EOF && fscanf(file, "%d", output) == 1) {
                 return SUCCESS;
             } else {
                 // Fails because found unparseable things
@@ -97,6 +97,10 @@ int ppm_Parse(FILE *file, int *output) {
 
 int ppm_Decode(IMAGE *ppm, const char *filename) {
     
+#ifdef DEBUG
+    fprintf(stderr, "ppm_Decode: Decoding %s\n", filename);
+#endif
+    
     // File for decoding
     FILE *file = fopen(filename, "r");
     if (!file) {
@@ -107,7 +111,7 @@ int ppm_Decode(IMAGE *ppm, const char *filename) {
     }
     
     // Read the header (always the first two bytes)
-    char header[2];
+    char header[3];
     if (fscanf(file, "%2c", header) != 1) {
 #ifdef VERBOSE
         fprintf(stderr, "ppm_Decode failed: Failed to read header information\n");
@@ -115,6 +119,7 @@ int ppm_Decode(IMAGE *ppm, const char *filename) {
         fclose(file);
         return FAILURE;
     }
+    header[2] = '\0';
     if (header[0] != 'P' || header[1] != '3') {
 #ifdef VERBOSE
         fprintf(stderr, "ppm_Decode failed: Corrupt header '%s'\n", header);
@@ -122,6 +127,10 @@ int ppm_Decode(IMAGE *ppm, const char *filename) {
         fclose(file);
         return FAILURE;
     }
+    
+#ifdef DEBUG
+    fprintf(stderr, "ppm_Decode: Header is %s\n", header);
+#endif
     
     // Read header information
     int width;
@@ -140,8 +149,8 @@ int ppm_Decode(IMAGE *ppm, const char *filename) {
     }
     
 #ifdef DEBUG
-    fprintf(stderr, "ppm_Decode: image is %d by %d\n", width, height);
-    fprintf(stderr, "ppm_Decode: maxsize is %d\n", maxsize);
+    fprintf(stderr, "ppm_Decode: Size is %d by %d\n", width, height);
+    fprintf(stderr, "ppm_Decode: Maximum Color is %d\n", maxsize);
 #endif
     
     // Read color information
@@ -181,6 +190,14 @@ int ppm_Decode(IMAGE *ppm, const char *filename) {
                 fclose(file);
                 return FAILURE;
             }
+            
+#ifdef DEBUG
+            const RGB *test = image_GetPixel(ppm, x, y);
+            if (test->r != rgb.r || test->g != rgb.g || test->b != rgb.b) {
+                fprintf(stderr, "ppm_Decode failed: Decode error detected\n");
+                return FAILURE;
+            }
+#endif
         }
     }
     fclose(file);
