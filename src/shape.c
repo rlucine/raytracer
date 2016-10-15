@@ -221,8 +221,8 @@ static int sphere_Collide(const SPHERE *sphere, const LINE *ray, COLLISION *resu
     vector_Normalize(&result->normal, &result->normal);
     
     // Get the texture at the collision site
-    result->texture.x = atan2(result->normal.y, result->normal.x);
-    result->texture.y = acos(result->normal.z);
+    result->texture.x = 0.5 + atan2(result->normal.y, result->normal.x) / (2*M_PI);
+    result->texture.y = acos(result->normal.z)/M_PI;
     result->texture.z = 0.0;
     
     // Done!
@@ -483,7 +483,7 @@ int shape_Collide(const SHAPE *shape, const LINE *ray, COLLISION *result) {
 int shape_GetColorAt(const COLLISION *collision, COLOR *color) {
     
     // Get the diffuse color
-    if (&collision->material->texture) {
+    if (collision->material->texture) {
         if (image_GetTexture(collision->material->texture, &collision->texture, color) != SUCCESS) {
 #ifdef VERBOSE
             fprintf(stderr, "shape_GetColorAt failed: Unable to access texture data\n");
