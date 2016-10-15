@@ -21,18 +21,6 @@
 #define MAX_DIMENSION USHRT_MAX
 
 /**********************************************************//**
- * @def TEXTURE_NEAREST
- * @brief Instruct the texture mapper to use nearest neighbor
- **************************************************************/
-#define TEXTURE_NEAREST 0
-
-/**********************************************************//**
- * @def TEXTURE_INTERPOLATE
- * @brief Instruct the texture mapper to blend colors
- **************************************************************/
-#define TEXTURE_INTERPOLATE 1
-
-/**********************************************************//**
  * @struct IMAGE
  * @brief Struct for uncompressed RGB image data
  **************************************************************/
@@ -95,7 +83,7 @@ extern int image_SetPixel(IMAGE *image, int x, int y, const RGB *color);
  * @param color: Pointer to buffer to write the color in.
  * @return SUCCESS or FAILURE
  **************************************************************/
-extern int image_GetTexture(const TEXTURE *texture, const TEXCOORD *coord, COLOR *color, int flags);
+extern int image_GetTexture(const TEXTURE *texture, const TEXCOORD *coord, COLOR *color);
 
 /**********************************************************//**
  * @brief Get the width of the image data

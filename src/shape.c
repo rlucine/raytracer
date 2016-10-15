@@ -477,4 +477,23 @@ int shape_Collide(const SHAPE *shape, const LINE *ray, COLLISION *result) {
     return FAILURE;
 }
 
+/*============================================================*
+ * Texture shader
+ *============================================================*/
+int shape_GetColorAt(const COLLISION *collision, COLOR *color) {
+    
+    // Get the diffuse color
+    if (&collision->material->texture) {
+        if (image_GetTexture(collision->material->texture, &collision->texture, color) != SUCCESS) {
+#ifdef VERBOSE
+            fprintf(stderr, "shape_GetColorAt failed: Unable to access texture data\n");
+#endif
+            return FAILURE;
+        }
+    } else {
+        memcpy(color, &collision->material->color, sizeof(COLOR));
+    }
+    return SUCCESS;
+}
+
 /*============================================================*/

@@ -120,66 +120,31 @@ int image_SetPixel(IMAGE *image, int x, int y, const RGB *color) {
 /*============================================================*
  * Texturing
  *============================================================*/
-int image_GetTexture(const TEXTURE *texture, const TEXCOORD *coord, COLOR *color, int flags) {
+int image_GetTexture(const TEXTURE *texture, const TEXCOORD *coord, COLOR *color) {
     
     // Mapping to pixels
     int x = (int)(coord->x * texture->width);
     int y = (int)(coord->y * texture->height);
-    double dx = (coord->x * texture->width) - x;
-    double dy = (coord->y * texture->height) - y;
     
-    // Error check coordinates
-    if (coord->x < 0.0 || coord->x > 1.0) {
-#ifdef VERBOSE
-        fprintf(stderr, "image_GetTexture failed: Invalud x coordinate.\n");
-#endif
-        return FAILURE;
+    // Constrain location
+    if (x < 0) {
+        x = 0;
+    } else if (x >= texture->width) {
+        x = texture->width - 1;
     }
-    if (coord->y < 0.0 || coord->y > 1.0) {
-#ifdef VERBOSE
-        fprintf(stderr, "image_GetTexture failed: Invalud y coordinate.\n");
-#endif
-        return FAILURE;
+    if (y < 0) {
+        y = 0;
+    } else if (y >= texture->height) {
+        y = texture->height - 1;
     }
     
     // Collect colors from image
     const RGB *rgb;
-    if (flags & TEXTURE_INTERPOLATE) {
-        // Zero out the color
-        COLOR temp;
-        color->x = color->y = color->z = 0.0;
-        
-        // Interpolate all components of nearby colors
-        // Skip colors that don't exist - will this cause
-        // the edges to become darker?
-        if ((rgb = image_GetPixel(texture, x, y)) != NULL) {
-            rgb_ToColor(&temp, rgb);
-            vector_Multiply(&temp, &temp, (1-dx)*(1-dy));
-            vector_Add(color, color, &temp);
-        }
-        if ((rgb = image_GetPixel(texture, x+1, y)) != NULL) {
-            rgb_ToColor(&temp, rgb);
-            vector_Multiply(&temp, &temp, dx*(1-dy));
-            vector_Add(color, color, &temp);
-        }
-        if ((rgb = image_GetPixel(texture, x, y+1)) != NULL) {
-            rgb_ToColor(&temp, rgb);
-            vector_Multiply(&temp, &temp, (1-dx)*dy);
-            vector_Add(color, color, &temp);
-        }
-        if ((rgb = image_GetPixel(texture, x+1, y+1)) != NULL) {
-            rgb_ToColor(&temp, rgb);
-            vector_Multiply(&temp, &temp, dx*dy);
-            vector_Add(color, color, &temp);
-        }
-        
-    } else {
-        // Just do nearest neighbor
-        if ((rgb = image_GetPixel(texture, x, y)) != NULL) {
-            rgb_ToColor(color, rgb);
-        }
+    if ((rgb = image_GetPixel(texture, x, y)) != NULL) {
+        rgb_ToColor(color, rgb);
+        return SUCCESS;
     }
-    return SUCCESS;
+    return FAILURE;
 }
 
 /*============================================================*

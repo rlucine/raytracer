@@ -116,6 +116,15 @@ int light_BlinnPhongShade(const LIGHT *light, const COLLISION *collision, const 
     vector_Add(&halfway, &to_light, &view);
     vector_Normalize(&halfway, &halfway);
     
+    // Get the diffuse color
+    COLOR object_color;
+    if (shape_GetColorAt(collision, &object_color) != SUCCESS) {
+#ifdef VERBOSE
+        fprintf(stderr, "light_BlinnPhongShade failed: Failed to get object color\n");
+#endif
+        return FAILURE;
+    }
+    
     // Don't factor in ambient color at all
     VECTOR temp;
     const MATERIAL *material = collision->material;
@@ -124,7 +133,7 @@ int light_BlinnPhongShade(const LIGHT *light, const COLLISION *collision, const 
     // Diffuse color components - clamp to positive
     double diffuse = vector_Dot(&collision->normal, &to_light) * material->diffuse;
     if (diffuse > 0.0) {
-        vector_Multiply(&temp, &material->color, diffuse);
+        vector_Multiply(&temp, &object_color, diffuse);
         vector_Add(color, color, &temp);
     }
     

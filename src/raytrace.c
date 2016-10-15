@@ -231,9 +231,18 @@ int raytrace_Shadow(double *shadows, const COLLISION *collision, const LIGHT *li
  *============================================================*/
 int raytrace_Shade(COLOR *color, const COLLISION *collision, const SCENE *scene) {
     
+    // Get the diffuse color
+    COLOR object_color;
+    if (shape_GetColorAt(collision, &object_color) != SUCCESS) {
+#ifdef VERBOSE
+        fprintf(stderr, "raytrace_Shade failed: Failed to get object color\n");
+#endif
+        return FAILURE;
+    }
+    
     // Set the ambient color of the object
     const MATERIAL *material = collision->material;
-    vector_Multiply(color, &material->color, material->ambient);
+    vector_Multiply(color, &object_color, material->ambient);
     
     // Setup
     COLOR temp;

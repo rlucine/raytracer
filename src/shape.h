@@ -211,5 +211,14 @@ extern const FACE *shape_GetFace(const SHAPE *shape);
  **************************************************************/
 extern int shape_Collide(const SHAPE *shape, const LINE *ray, COLLISION *result);
 
+/**********************************************************//**
+ * @brief Get the true color of the shape at the given
+ * collision.
+ * @param colision: A collision with a shape.
+ * @param color: Output location for the color.
+ * @return SUCCESS or FAILURE
+ **************************************************************/
+extern int shape_GetColorAt(const COLLISION *collision, COLOR *color);
+
 /*============================================================*/
 #endif // _SHAPE_H_
