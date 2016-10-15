@@ -1192,30 +1192,36 @@ int scene_Decode(SCENE *scene, const char *filename) {
 
 #ifdef DEBUG
     // Echo all information in the scene
-    fprintf(stderr, "parser_Validate: Eye is (%lf, %lf, %lf)\n", scene->eye.x, scene->eye.y, scene->eye.z);
-    fprintf(stderr, "parser_Validate: View is (%lf, %lf, %lf)\n", scene->view.x, scene->view.y, scene->view.z);
-    fprintf(stderr, "parser_Validate: Up is (%lf, %lf, %lf)\n", scene->up.x, scene->up.y, scene->up.z);
-    fprintf(stderr, "parser_Validate: FovV is %lf\n", scene->fov);
-    fprintf(stderr, "parser_Validate: Image size is (%d, %d)\n", scene->width, scene->height);
-    fprintf(stderr, "parser_Validate: Background color is (%lf, %lf, %lf)\n", scene->background.x, scene->background.y, scene->background.z);
+    fprintf(stderr, "scene_Decode: Eye is (%lf, %lf, %lf)\n", scene->eye.x, scene->eye.y, scene->eye.z);
+    fprintf(stderr, "scene_Decode: View is (%lf, %lf, %lf)\n", scene->view.x, scene->view.y, scene->view.z);
+    fprintf(stderr, "scene_Decode: Up is (%lf, %lf, %lf)\n", scene->up.x, scene->up.y, scene->up.z);
+    fprintf(stderr, "scene_Decode: FovV is %lf\n", scene->fov);
+    fprintf(stderr, "scene_Decode: Image size is (%d, %d)\n", scene->width, scene->height);
+    fprintf(stderr, "scene_Decode: Background color is (%lf, %lf, %lf)\n", scene->background.x, scene->background.y, scene->background.z);
+    
+    if (scene->flags & PROJECT_PARALLEL) {
+        fprintf(stderr, "scene_Decode: Parallel projection\n");
+    } else {
+        fprintf(stderr, "scene_Decode: Perspective projection\n");
+    }
     
     // Printing mesh
     int m;
-    fprintf(stderr, "parser_Validate: %d vertices\n", scene->mesh.nvertices);
+    fprintf(stderr, "scene_Decode: %d vertices\n", scene->mesh.nvertices);
     for (m = 0; m < scene->mesh.nvertices; m++) {
-        fprintf(stderr, "parser_Validate: Vertex %d is (%lf, %lf, %lf)\n", m+1, scene->mesh.vertices[m].x, scene->mesh.vertices[m].y, scene->mesh.vertices[m].z);
+        fprintf(stderr, "scene_Decode: Vertex %d is (%lf, %lf, %lf)\n", m+1, scene->mesh.vertices[m].x, scene->mesh.vertices[m].y, scene->mesh.vertices[m].z);
     }
-    fprintf(stderr, "parser_Validate: %d normals\n", scene->mesh.nnormals);
+    fprintf(stderr, "scene_Decode: %d normals\n", scene->mesh.nnormals);
     for (m = 0; m < scene->mesh.nnormals; m++) {
-        fprintf(stderr, "parser_Validate: Normal %d is (%lf, %lf, %lf)\n", m+1, scene->mesh.normals[m].x, scene->mesh.normals[m].y, scene->mesh.normals[m].z);
+        fprintf(stderr, "scene_Decode: Normal %d is (%lf, %lf, %lf)\n", m+1, scene->mesh.normals[m].x, scene->mesh.normals[m].y, scene->mesh.normals[m].z);
     }
-    fprintf(stderr, "parser_Validate: %d texture coordinates\n", scene->mesh.ntextures);
+    fprintf(stderr, "scene_Decode: %d texture coordinates\n", scene->mesh.ntextures);
     for (m = 0; m < scene->mesh.ntextures; m++) {
-        fprintf(stderr, "parser_Validate: Texture coordinate %d is (%lf, %lf)\n", m+1, scene->mesh.texture[m].x, scene->mesh.texture[m].y);
+        fprintf(stderr, "scene_Decode: Texture coordinate %d is (%lf, %lf)\n", m+1, scene->mesh.texture[m].x, scene->mesh.texture[m].y);
     }
     
     // Printing shapes
-    fprintf(stderr, "parser_Validate: Number of shapes is %d\n", scene->nshapes);
+    fprintf(stderr, "scene_Decode: Number of shapes is %d\n", scene->nshapes);
     int n = 0;
     const SHAPE *shape;
     const MATERIAL *material;
@@ -1227,79 +1233,79 @@ int scene_Decode(SCENE *scene, const char *filename) {
         shape = scene_GetShape(scene, n);
         switch (shape->shape) {
         case SHAPE_SPHERE:
-            fprintf(stderr, "parser_Validate: Shape %d is a sphere\n", n);
+            fprintf(stderr, "scene_Decode: Shape %d is a sphere\n", n);
             sphere = shape_GetSphere(shape);
-            fprintf(stderr, "parser_Validate: Radius is %lf\n", sphere->radius);
-            fprintf(stderr, "parser_Validate: Center is (%lf, %lf, %lf)\n", sphere->center.x, sphere->center.y, sphere->center.z);
+            fprintf(stderr, "scene_Decode: Radius is %lf\n", sphere->radius);
+            fprintf(stderr, "scene_Decode: Center is (%lf, %lf, %lf)\n", sphere->center.x, sphere->center.y, sphere->center.z);
             break;
         
         case SHAPE_ELLIPSOID:
-            fprintf(stderr, "parser_Validate: Shape %d is an ellipsoid\n", n);
+            fprintf(stderr, "scene_Decode: Shape %d is an ellipsoid\n", n);
             ellipsoid = shape_GetEllipsoid(shape);
-            fprintf(stderr, "parser_Validate: Dimensions are (%lf, %lf, %lf)\n", ellipsoid->dimension.x, ellipsoid->dimension.y, ellipsoid->dimension.z);
-            fprintf(stderr, "parser_Validate: Center is (%lf, %lf, %lf)\n", ellipsoid->center.x, ellipsoid->center.y, ellipsoid->center.z);
+            fprintf(stderr, "scene_Decode: Dimensions are (%lf, %lf, %lf)\n", ellipsoid->dimension.x, ellipsoid->dimension.y, ellipsoid->dimension.z);
+            fprintf(stderr, "scene_Decode: Center is (%lf, %lf, %lf)\n", ellipsoid->center.x, ellipsoid->center.y, ellipsoid->center.z);
             break;
             
         case SHAPE_PLANE:
-            fprintf(stderr, "parser_Validate: Shape %d is a plane\n", n);
+            fprintf(stderr, "scene_Decode: Shape %d is a plane\n", n);
             plane = shape_GetPlane(shape);
-            fprintf(stderr, "parser_Validate: Origin is (%lf, %lf, %lf)\n", plane->origin.x, plane->origin.y, plane->origin.z);
-            fprintf(stderr, "parser_Validate: Basis u is (%lf, %lf, %lf)\n", plane->u.x, plane->u.y, plane->u.z);
-            fprintf(stderr, "parser_Validate: Basis v is (%lf, %lf, %lf)\n", plane->v.x, plane->v.y, plane->v.z);
+            fprintf(stderr, "scene_Decode: Origin is (%lf, %lf, %lf)\n", plane->origin.x, plane->origin.y, plane->origin.z);
+            fprintf(stderr, "scene_Decode: Basis u is (%lf, %lf, %lf)\n", plane->u.x, plane->u.y, plane->u.z);
+            fprintf(stderr, "scene_Decode: Basis v is (%lf, %lf, %lf)\n", plane->v.x, plane->v.y, plane->v.z);
             break;
             
         case SHAPE_FACE:
-            fprintf(stderr, "parser_Validate: Shape %d is a face\n", n);
+            fprintf(stderr, "scene_Decode: Shape %d is a face\n", n);
             face = shape_GetFace(shape);
             int vertex;
             for (vertex = 0; vertex < N_VERTICES; vertex++) {
-                fprintf(stderr, "parser_Validate: Vertex %d is %d/%d/%d\n", vertex, face->vertices[vertex].vertex, face->vertices[vertex].normal, face->vertices[vertex].texture);
+                fprintf(stderr, "scene_Decode: Vertex %d is %d/%d/%d\n", vertex, face->vertices[vertex].vertex, face->vertices[vertex].normal, face->vertices[vertex].texture);
             }
             break;
         
         default:
-            fprintf(stderr, "parser_Validate: Shape %d is undefined\n", n);
+            fprintf(stderr, "scene_Decode: Shape %d is undefined\n", n);
             break;
         }
         
         // Print material properties
         material = shape_GetMaterial(shape);
-        fprintf(stderr, "parser_Validate: Color is (%lf, %lf, %lf)\n", material->color.x, material->color.y, material->color.z);
-        fprintf(stderr, "parser_Validate: Highlight is (%lf, %lf, %lf)\n", material->highlight.x, material->highlight.y, material->highlight.z);
-        fprintf(stderr, "parser_Validate: Ka=%lf, Kd=%lf, Ks=%lf, n=%d\n", material->ambient, material->diffuse, material->specular, material->exponent);
-        fprintf(stderr, "parser_Validate: Texture is 0x%p\n", material->texture);
+        fprintf(stderr, "scene_Decode: Color is (%lf, %lf, %lf)\n", material->color.x, material->color.y, material->color.z);
+        fprintf(stderr, "scene_Decode: Highlight is (%lf, %lf, %lf)\n", material->highlight.x, material->highlight.y, material->highlight.z);
+        fprintf(stderr, "scene_Decode: Ka=%lf, Kd=%lf, Ks=%lf, n=%d\n", material->ambient, material->diffuse, material->specular, material->exponent);
+        fprintf(stderr, "scene_Decode: Texture is 0x%p\n", material->texture);
         
         n++;
     }
     
     // Printing lights
-    fprintf(stderr, "parser_Validate: Number of lights is %d\n", scene->nlights);
+    fprintf(stderr, "scene_Decode: Number of lights is %d\n", scene->nlights);
     n = 0;
     const LIGHT *light;
     while (n < scene->nlights) {
         light = scene_GetLight(scene, n);
         switch (light->type) {
         case LIGHT_POINT:
-            fprintf(stderr, "parser_Validate: Light %d is a point\n", n);
-            fprintf(stderr, "parser_Validate: Position is (%lf, %lf, %lf)\n", light->where.x, light->where.y, light->where.z);
-            fprintf(stderr, "parser_Validate: Color is (%lf, %lf, %lf)\n", light->color.x, light->color.y, light->color.z);
+            fprintf(stderr, "scene_Decode: Light %d is a point\n", n);
+            fprintf(stderr, "scene_Decode: Position is (%lf, %lf, %lf)\n", light->where.x, light->where.y, light->where.z);
+            fprintf(stderr, "scene_Decode: Color is (%lf, %lf, %lf)\n", light->color.x, light->color.y, light->color.z);
             break;
         
         case LIGHT_DIRECTED:
-            fprintf(stderr, "parser_Validate: Light %d is a direction\n", n);
-            fprintf(stderr, "parser_Validate: Direction is (%lf, %lf, %lf)\n", light->direction.x, light->direction.y, light->direction.z);
-            fprintf(stderr, "parser_Validate: Color is (%lf, %lf, %lf)\n", light->color.x, light->color.y, light->color.z);
+            fprintf(stderr, "scene_Decode: Light %d is a direction\n", n);
+            fprintf(stderr, "scene_Decode: Direction is (%lf, %lf, %lf)\n", light->direction.x, light->direction.y, light->direction.z);
+            fprintf(stderr, "scene_Decode: Color is (%lf, %lf, %lf)\n", light->color.x, light->color.y, light->color.z);
             break;
             
         case LIGHT_SPOT:
-            fprintf(stderr, "parser_Validate: Light %d is a spotlight\n", n);
-            fprintf(stderr, "parser_Validate: Position is (%lf, %lf, %lf)\n", light->where.x, light->where.y, light->where.z);
-            fprintf(stderr, "parser_Validate: Direction is (%lf, %lf, %lf)\n", light->direction.x, light->direction.y, light->direction.z);
-            fprintf(stderr, "parser_Validate: Color is (%lf, %lf, %lf)\n", light->color.x, light->color.y, light->color.z);
+            fprintf(stderr, "scene_Decode: Light %d is a spotlight\n", n);
+            fprintf(stderr, "scene_Decode: Position is (%lf, %lf, %lf)\n", light->where.x, light->where.y, light->where.z);
+            fprintf(stderr, "scene_Decode: Direction is (%lf, %lf, %lf)\n", light->direction.x, light->direction.y, light->direction.z);
+            fprintf(stderr, "scene_Decode: Color is (%lf, %lf, %lf)\n", light->color.x, light->color.y, light->color.z);
             break;
         
         default:
-            fprintf(stderr, "parser_Validate: Light %d is undefined\n", n);
+            fprintf(stderr, "scene_Decode: Light %d is undefined\n", n);
             break;
         }
         n++;
