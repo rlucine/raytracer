@@ -993,7 +993,8 @@ static int parser_ParseLine(PARSER_DATA *data, const char *line) {
     PARSER parser;
     int i;
     for (i = 0; i < N_KEYWORDS; i++) {
-        if (strncmp(keyword, KEYWORDS[i], strlen(KEYWORDS[i])) == 0) {
+        int length = strlen(KEYWORDS[i]);
+        if (strlen(keyword) == length && strncmp(keyword, KEYWORDS[i], length) == 0) {
             // Found an equal keyword!
             
             // Delegate to the parser function.
