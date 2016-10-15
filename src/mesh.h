@@ -63,10 +63,44 @@ typedef struct {
 } FACE;
 
 /**********************************************************//**
+ * @brief Create a container for polygon mesh data.
+ * @param mesh: The mesh to initialize.
+ * @param nvertices: Number of vertexes to buffer.
+ * @param nnormals: Number of normals to buffer.
+ * @param ntextures: Number of texture coordinates to buffer.
+ * @return SUCCESS or FAILURE
+ **************************************************************/
+extern int mesh_Create(MESH *mesh, int nvertices, int nnormals, int ntextures);
+
+/**********************************************************//**
  * @brief Destory the given polygon mesh.
  * @param mesh: The mesh to destroy.
  **************************************************************/
 extern void mesh_Destroy(MESH *mesh);
+
+/**********************************************************//**
+ * @brief Get the given vertex from the face.
+ * @param face: The face to read.
+ * @param index: A vertex identifier from 0 to N_VERTICES-1
+ * @return Pointer to the vertex location or NULL.
+ **************************************************************/
+extern const POINT *face_GetVertex(const FACE *face, int index);
+
+/**********************************************************//**
+ * @brief Get the given normal vector from the face.
+ * @param face: The face to read.
+ * @param index: A vertex identifier from 0 to N_VERTICES-1
+ * @return Pointer to the a normal vector or NULL.
+ **************************************************************/
+extern const VECTOR *face_GetNormal(const FACE *face, int index);
+
+/**********************************************************//**
+ * @brief Get the given texture coordinate from the face.
+ * @param face: The face to read.
+ * @param index: A vertex identifier from 0 to N_VERTICES-1
+ * @return Pointer to the texture coordinate or NULL.
+ **************************************************************/
+extern const TEXCOORD *face_GetTexture(const FACE *face, int index);
 
 /**********************************************************//**
  * @brief Get the plane containing the face.

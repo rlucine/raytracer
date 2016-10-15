@@ -16,6 +16,54 @@
 #include "mesh.h"   // FACE, VERTEX
 
 /*============================================================*
+ * Mesh constructor
+ *============================================================*/
+int mesh_Create(MESH *mesh, int nvertices, int nnormals, int ntextures) {
+    // Allocate vertexes
+    if (nvertices > 0) {
+        mesh->vertices = (POINT *)malloc(nvertices*sizeof(POINT));
+        if (!mesh->vertices) {
+#ifdef VERBOSE
+            fprintf(stderr, "mesh_Create failed: Out of memory\n");
+#endif
+            return FAILURE;
+        }
+    } else {
+        mesh->vertices = NULL;
+    }
+    mesh->nvertices = nvertices;
+    
+    // Allocate normals
+    if (nnormals > 0) {
+        mesh->normals = (POINT *)malloc(nnormals*sizeof(VECTOR));
+        if (!mesh->normals) {
+#ifdef VERBOSE
+            fprintf(stderr, "mesh_Create failed: Out of memory\n");
+#endif
+            return FAILURE;
+        }
+    } else {
+        mesh->normals = NULL;
+    }
+    mesh->nnormals = nnormals;
+    
+    // Allocate texture
+    if (ntextures > 0) {
+        mesh->texture = (TEXCOORD *)malloc(ntextures*sizeof(TEXCOORD));
+        if (!mesh->texture) {
+#ifdef VERBOSE
+            fprintf(stderr, "mesh_Create failed: Out of memory\n");
+#endif
+            return FAILURE;
+        }
+    } else {
+        mesh->texture = NULL;
+    }
+    mesh->ntextures = ntextures;
+    return SUCCESS;
+}
+    
+/*============================================================*
  * Mesh destructor
  *============================================================*/
 void mesh_Destroy(MESH *mesh) {
@@ -40,7 +88,7 @@ void mesh_Destroy(MESH *mesh) {
 /*============================================================*
  * Data structure business
  *============================================================*/
-static const POINT *face_GetVertex(const FACE *face, int index) {
+const POINT *face_GetVertex(const FACE *face, int index) {
     if (index < 0 || index >= N_VERTICES) {
         return NULL;
     }
@@ -51,7 +99,7 @@ static const POINT *face_GetVertex(const FACE *face, int index) {
     return &face->mesh->vertices[vertex-1];
 }
 
-static const VECTOR *face_GetNormal(const FACE *face, int index) {
+const VECTOR *face_GetNormal(const FACE *face, int index) {
     if (index < 0 || index >= N_VERTICES) {
         return NULL;
     }
@@ -62,7 +110,7 @@ static const VECTOR *face_GetNormal(const FACE *face, int index) {
     return &face->mesh->normals[normal-1];
 }
 
-static const TEXCOORD *face_GetTexture(const FACE *face, int index) {
+const TEXCOORD *face_GetTexture(const FACE *face, int index) {
     if (index < 0 || index >= N_VERTICES) {
         return NULL;
     }
@@ -70,7 +118,7 @@ static const TEXCOORD *face_GetTexture(const FACE *face, int index) {
     if (texture == NO_TEXTURE || texture < 1 || texture > face->mesh->ntextures) {
         return NULL;
     }
-    return &face->mesh->normals[texture-1];
+    return &face->mesh->texture[texture-1];
 }
 
 /*============================================================*
@@ -90,18 +138,17 @@ static int face_GetBarycentricCoordinates(const FACE *face, const POINT *where, 
         return FAILURE;
     }
     
-#ifdef DEBUG
-    fprintf(stderr, "face_GetBarycentricCoordinates: v0 is (%lf, %lf, %lf)\n", v0->x, v0->y, v0->z);
-    fprintf(stderr, "face_GetBarycentricCoordinates: v1 is (%lf, %lf, %lf)\n", v1->x, v1->y, v1->z);
-    fprintf(stderr, "face_GetBarycentricCoordinates: v2 is (%lf, %lf, %lf)\n", v2->x, v2->y, v2->z);
-#endif
-    
     vector_Subtract(&u, v1, v0);
     vector_Subtract(&v, v2, v0);
     vector_Cross(&temp, &u, &v);
     double total_area = vector_Magnitude(&temp) / 2.0;
     
     // Get each sub-face area
+    vector_Subtract(&u, v1, where);
+    vector_Subtract(&v, v2, where);
+    vector_Cross(&temp, &u, &v);
+    double a = vector_Magnitude(&temp) / 2.0;
+
     vector_Subtract(&u, where, v0);
     vector_Subtract(&v, v2, v0);
     vector_Cross(&temp, &u, &v);
@@ -111,12 +158,7 @@ static int face_GetBarycentricCoordinates(const FACE *face, const POINT *where, 
     vector_Subtract(&v, where, v0);
     vector_Cross(&temp, &u, &v);
     double c = vector_Magnitude(&temp) / 2.0;
-    
-    vector_Subtract(&u, v1, where);
-    vector_Subtract(&v, v2, where);
-    vector_Cross(&temp, &u, &v);
-    double a = vector_Magnitude(&temp) / 2.0;
-    
+
 #ifdef DEBUG
     fprintf(stderr, "face_GetBarycentricCoordinates: a=%lf, b=%lf, c=%lf, A=%lf\n", a, b, c, total_area);
 #endif
