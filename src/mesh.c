@@ -186,7 +186,7 @@ int face_GetPlane(const FACE *face, PLANE *plane) {
     // Convert face to plane
     vector_Copy(&plane->origin, v0);
     vector_Subtract(&plane->u, v1, v0);
-    vector_Subtract(&plane->v, v2, v0);
+    vector_Subtract(&plane->v, v2, v1);
     return SUCCESS;
 }
 
@@ -237,6 +237,9 @@ int face_GetNormalAt(const FACE *face, const POINT *where, VECTOR *normal) {
     
     vector_Multiply(&temp, n2, barycentric.z);
     vector_Add(normal, normal, &temp);
+    
+    // Don't bloody forget this
+    vector_Normalize(normal, normal);
     return SUCCESS;
 }
 
