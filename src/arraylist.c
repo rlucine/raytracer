@@ -14,9 +14,7 @@
 #include "arraylist.h"  // ARRAYLIST
 
 // Debugging modules
-#ifdef TRACE
-#include "tracemalloc.h"
-#endif
+#include "debug.h"
 
 /*============================================================*
  * Creation function

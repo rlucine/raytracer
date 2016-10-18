@@ -21,9 +21,7 @@
 #include "raytrace.h"
 
 // Debugging libraries
-#ifdef TRACE
-#include "tracemalloc.h"
-#endif
+#include "debug.h"
 
 /**********************************************************//**
  * @brief Driver function for raytracer

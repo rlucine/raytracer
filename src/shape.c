@@ -20,9 +20,7 @@
 #include "mesh.h"       // MESH, FACE ...
 
 // Debugging modules
-#ifdef TRACE
-#include "tracemalloc.h"
-#endif
+#include "debug.h"
 
 /*============================================================*
  * Shape creation
@@ -314,8 +312,6 @@ static int ellipsoid_Collide(const ELLIPSOID *ellipsoid, const LINE *ray, COLLIS
     
     // TODO texture an ellipsoid!
     vector_Set(&result->texture, 0, 0, 0);
-    
-    // Done
     return SUCCESS;
 }
 

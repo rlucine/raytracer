@@ -18,9 +18,7 @@
 #include "color.h"      // COLOR, RGB ...
 
 // Debugging modules
-#ifdef TRACE
-#include "tracemalloc.h"
-#endif
+#include "debug.h"
 
 /*============================================================*
  * Allocating IMAGE

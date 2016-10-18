@@ -25,9 +25,7 @@
 #include "mesh.h"       // MESH, FACE, VERTEX ...
 
 // Debugging modules
-#ifdef TRACE
-#include "tracemalloc.h"
-#endif
+#include "debug.h"
 
 /**********************************************************//**
  * @enum PARSER_FLAG
