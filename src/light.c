@@ -125,7 +125,7 @@ int light_BlinnPhongShade(const LIGHT *light, const COLLISION *collision, const 
     // Don't factor in ambient color at all
     VECTOR temp;
     const MATERIAL *material = collision->material;
-    color->x = color->y = color->z = 0.0;
+    vector_Set(color, 0, 0, 0);
     
     // Diffuse color components - clamp to positive
     double diffuse = vector_Dot(&collision->normal, &to_light) * material->diffuse;
@@ -143,15 +143,14 @@ int light_BlinnPhongShade(const LIGHT *light, const COLLISION *collision, const 
     }
     
 #ifdef DEBUG
-    fprintf(stderr, "light_BlinnPhongShade: Normal is (%lf, %lf, %lf)\n", collision->normal.x, collision->normal.y, collision->normal.z);
-    fprintf(stderr, "light_BlinnPhongShade: Eye is (%lf, %lf, %lf)\n", eye->x, eye->y, eye->z);
-    fprintf(stderr, "light_BlinnPhongShade: View is (%lf, %lf, %lf)\n", view.x, view.y, view.z);
-    fprintf(stderr, "light_BlinnPhongShade: Halfway is (%lf, %lf, %lf)\n", halfway.x, halfway.y, halfway.z);
-    fprintf(stderr, "light_BlinnPhongShade: Light is (%lf, %lf, %lf)\n", to_light.x, to_light.y, to_light.z);
-    fprintf(stderr, "light_BlinnPhongShade: Diffuse coefficient is %lf\n", diffuse);
-    fprintf(stderr, "light_BlinnPhongShade: Specular coefficient is %lf\n", specular);
-    fprintf(stderr, "light_BlinnPhongShade: Dot is %lf and dot^%d is %lf\n", dot, material->exponent, pow(dot, material->exponent));
-    
+    errmsg("Normal is (%lf, %lf, %lf)\n", collision->normal.x, collision->normal.y, collision->normal.z);
+    errmsg("Eye is (%lf, %lf, %lf)\n", eye->x, eye->y, eye->z);
+    errmsg("View is (%lf, %lf, %lf)\n", view.x, view.y, view.z);
+    errmsg("Halfway is (%lf, %lf, %lf)\n", halfway.x, halfway.y, halfway.z);
+    errmsg("Light is (%lf, %lf, %lf)\n", to_light.x, to_light.y, to_light.z);
+    errmsg("Diffuse coefficient is %lf\n", diffuse);
+    errmsg("Specular coefficient is %lf\n", specular);
+    errmsg("Dot is %lf and dot^%d is %lf\n", dot, material->exponent, pow(dot, material->exponent));
 #endif
     
     // Scale by light's own color
