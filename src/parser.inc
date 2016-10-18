@@ -183,6 +183,15 @@ static MATERIAL *last_Material(PARSER_DATA *data) {
     return *((MATERIAL **)location);
 }
 
+static TEXTURE *last_Texture(PARSER_DATA *data) {
+    // Get the last texture from the data
+    void *location = arraylist_End(&data->textures);
+    if (!location) {
+        return NULL;
+    }
+    return *((TEXTURE **)location);
+}
+
 /*============================================================*
  * Parsing eye
  *============================================================*/
@@ -320,7 +329,7 @@ static const char *parse_Material(PARSER_DATA *data, const char *string) {
     
     // Set up material texture (double to int)
     material->exponent = (int)exponent;
-    material->texture = NULL;
+    material->texture = last_Texture(data);
     
     // Add new material to array
     assert(sizeof(MATERIAL *) == data->materials.itemsize);
