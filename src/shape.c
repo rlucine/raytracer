@@ -207,9 +207,12 @@ static int sphere_Collide(const SPHERE *sphere, const LINE *ray, COLLISION *resu
     vector_Normalize(&result->normal, &result->normal);
     
     // Get the texture at the collision site
-    result->texture.x = 0.5 + atan2(result->normal.y, result->normal.x) / (2*M_PI);
-    result->texture.y = acos(result->normal.z)/M_PI;
-    result->texture.z = 0.0;
+    result->texcoord.x = atan2(result->normal.x, result->normal.z) / (2*M_PI);
+    if (result->texcoord.x < 0.0) {
+        result->texcoord.x += 1.0;
+    }
+    result->texcoord.y = acos(result->normal.y)/M_PI;
+    result->texcoord.z = 0.0;
     
     // Done!
     return SUCCESS;
@@ -295,7 +298,7 @@ static int ellipsoid_Collide(const ELLIPSOID *ellipsoid, const LINE *ray, COLLIS
     vector_Normalize(&result->normal, &result->normal);
     
     // TODO texture an ellipsoid!
-    vector_Set(&result->texture, 0, 0, 0);
+    vector_Set(&result->texcoord, 0, 0, 0);
     return SUCCESS;
 }
 
@@ -359,7 +362,7 @@ static int plane_Collide(const PLANE *plane, const LINE *ray, COLLISION *result)
     vector_Copy(&result->normal, &normal);
     
     // TODO Texture the plane!
-    vector_Set(&result->texture, 0, 0, 0);
+    vector_Set(&result->texcoord, 0, 0, 0);
     return SUCCESS;
 }
 
@@ -396,8 +399,8 @@ static int face_Collide(const FACE *face, const LINE *ray, COLLISION *result) {
         }
         
         // Set up texture coordinate if the face is textured at all
-        if (face->mesh->ntextures != 0 && face_GetTextureAt(face, &result->where, &result->texture) != SUCCESS) {
-            errmsg("Unable to interpolate face texture coordinate\n");
+        if (result->texture && face_GetTextureAt(face, &result->where, &result->texcoord) != SUCCESS) {
+            errmsg("Texture defined but missing texture coordinates\n");
             return FAILURE;
         }
     }
@@ -416,6 +419,7 @@ int shape_Collide(const SHAPE *shape, const LINE *ray, COLLISION *result) {
         return FAILURE;
     }
     result->material = shape->material;
+    result->texture = shape->material->texture;
     
     // Map to specific collision checking functions
     switch (shape->shape) {
@@ -446,8 +450,8 @@ int shape_Collide(const SHAPE *shape, const LINE *ray, COLLISION *result) {
 int shape_GetColorAt(const COLLISION *collision, COLOR *color) {
     
     // Get the diffuse color
-    if (collision->material->texture) {
-        if (image_GetTexture(collision->material->texture, &collision->texture, color) != SUCCESS) {
+    if (collision->material->texture != NULL) {
+        if (image_GetTexture(collision->material->texture, &collision->texcoord, color) != SUCCESS) {
             errmsg("Unable to access texture data\n");
             return FAILURE;
         }
