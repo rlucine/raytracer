@@ -15,6 +15,9 @@
 #include "vector.h" // VECTOR
 #include "shape.h"  // SHAPE
 
+// Debugging libraries
+#include "debug.h"
+
 /*============================================================*
  * Creation
  *============================================================*/
@@ -71,9 +74,7 @@ int light_GetDirection(const LIGHT *light, const POINT *where, VECTOR *output, d
     
     case LIGHT_NONE:
     default:
-#ifdef VERBOSE
-        fprintf(stderr, "light_GetDirection failed: Light type undefined\n");
-#endif
+        errmsg("Light type undefined\n");
         return FAILURE;
     }
     
@@ -91,9 +92,7 @@ int light_BlinnPhongShade(const LIGHT *light, const COLLISION *collision, const 
     // Get the vector pointing from the collision to the light
     VECTOR to_light;
     if (light_GetDirection(light, &collision->where, &to_light, NULL) != SUCCESS) {
-#ifdef VERBOSE
-        fprintf(stderr, "light_BlinnPhongShade failed: Cannot get direction to light\n");
-#endif
+        errmsg("Cannot get direction to light\n");
         return FAILURE;
     }
     
@@ -119,9 +118,7 @@ int light_BlinnPhongShade(const LIGHT *light, const COLLISION *collision, const 
     // Get the diffuse color
     COLOR object_color;
     if (shape_GetColorAt(collision, &object_color) != SUCCESS) {
-#ifdef VERBOSE
-        fprintf(stderr, "light_BlinnPhongShade failed: Failed to get object color\n");
-#endif
+        errmsg("Failed to get object color\n");
         return FAILURE;
     }
     

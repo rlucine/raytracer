@@ -27,10 +27,7 @@ int ppm_Encode(const IMAGE *ppm, const char *filename) {
     // Open the output file
     FILE *file = fopen(filename, "w");
     if (!file) {
-#ifdef VERBOSE
-        perror("fopen");
-        fprintf(stderr, "ppm_Encode failed: Cannot open file %s\n", filename);
-#endif
+        errmsg("Cannot open file %s\n", filename);
         return FAILURE;
     }
     
@@ -102,26 +99,20 @@ int ppm_Decode(IMAGE *ppm, const char *filename) {
     // File for decoding
     FILE *file = fopen(filename, "r");
     if (!file) {
-#ifdef VERBOSE
-        fprintf(stderr, "ppm_Decode failed: Failed to open file\n");
-#endif
+        errmsg("Failed to open file\n");
         return FAILURE;
     }
     
     // Read the header (always the first two bytes)
     char header[3];
     if (fscanf(file, "%2c", header) != 1) {
-#ifdef VERBOSE
-        fprintf(stderr, "ppm_Decode failed: Failed to read header information\n");
-#endif
+        errmsg("Failed to read header information\n");
         fclose(file);
         return FAILURE;
     }
     header[2] = '\0';
     if (header[0] != 'P' || header[1] != '3') {
-#ifdef VERBOSE
-        fprintf(stderr, "ppm_Decode failed: Corrupt header '%s'\n", header);
-#endif
+        errmsg("Corrupt header '%s'\n", header);
         fclose(file);
         return FAILURE;
     }
@@ -139,9 +130,7 @@ int ppm_Decode(IMAGE *ppm, const char *filename) {
     failure = failure || (ppm_Parse(file, &height) != SUCCESS);
     failure = failure || (ppm_Parse(file, &maxsize) != SUCCESS);
     if (failure) {
-#ifdef VERBOSE
-        fprintf(stderr, "ppm_Decode failed: Failed to parse header information\n");
-#endif
+        errmsg("Failed to parse header information\n");
         fclose(file);
         return FAILURE;
     }
@@ -154,9 +143,7 @@ int ppm_Decode(IMAGE *ppm, const char *filename) {
     // Read color information
     RGB rgb;
     if (image_Create(ppm, width, height) != SUCCESS) {
-#ifdef VERBOSE
-        fprintf(stderr, "ppm_Decode failed: Failed to parse header information\n");
-#endif
+        errmsg("Failed to parse header information\n");
         fclose(file);
         return FAILURE;
     }
@@ -170,9 +157,7 @@ int ppm_Decode(IMAGE *ppm, const char *filename) {
             failure = failure || (ppm_Parse(file, &green) != SUCCESS);
             failure = failure || (ppm_Parse(file, &blue) != SUCCESS);
             if (failure) {
-#ifdef VERBOSE
-                fprintf(stderr, "ppm_Decode failed: Parse error\n");
-#endif
+                errmsg("Parse error\n");
                 fclose(file);
                 return FAILURE;
             }
@@ -182,9 +167,7 @@ int ppm_Decode(IMAGE *ppm, const char *filename) {
             rgb.g = green * PPM_MAX_COLOR / maxsize;
             rgb.b = blue * PPM_MAX_COLOR / maxsize;
             if (image_SetPixel(ppm, x, y, &rgb) != SUCCESS) {
-#ifdef VERBOSE
-                fprintf(stderr, "ppm_Decode failed: Failed to place colors in image\n");
-#endif
+                errmsg("Failed to place colors in image\n");
                 fclose(file);
                 return FAILURE;
             }

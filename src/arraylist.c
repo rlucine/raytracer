@@ -22,15 +22,11 @@
 int arraylist_Create(ARRAYLIST *list, size_t itemsize, int maxlength) {
     // Error checking
     if (itemsize <= 0) {
-#ifdef VERBOSE
-        fprintf(stderr, "arraylist_Create failed: Invalid item size\n");
-#endif
+        errmsg("Invalid item size\n");
         return FAILURE;
     }
     if (maxlength <= 0) {
-#ifdef VERBOSE
-        fprintf(stderr, "arraylist_Create failed: Invalid capacity\n");
-#endif
+        errmsg("Invalid capacity\n");
         return FAILURE;
     }
     
@@ -42,9 +38,7 @@ int arraylist_Create(ARRAYLIST *list, size_t itemsize, int maxlength) {
     // Set up data array
     list->data = malloc(itemsize * maxlength);
     if (!list->data) {
-#ifdef VERBOSE
-        fprintf(stderr, "arraylist_Create failed: Out of memory\n");
-#endif
+        errmsg("Out of memory\n");
         return FAILURE;
     }
     return SUCCESS;
@@ -64,16 +58,12 @@ void *arraylist_At(ARRAYLIST *list, int index) {
     // Perform pointer arithmetic
     char *temp = list->data;
     if (sizeof(char) != 1) {
-#ifdef VERBOSE
-        fprintf(stderr, "arraylist_At failed: sizeof(char) is %d on this system\n", (int)sizeof(char));
-#endif
+        errmsg("sizeof(char) is %d on this system\n", (int)sizeof(char));
         return NULL;
     }
     
     if (index < 0 || index >= list->maxlength) {
-#ifdef VERBOSE
-        fprintf(stderr, "arraylist_At failed: Index %d out of bounds\n", index);
-#endif
+        errmsg("Index %d out of bounds\n", index);
         return NULL;
     }
     
@@ -104,9 +94,7 @@ int arraylist_Append(ARRAYLIST *list, const void *item) {
     if (list->length >= list->maxlength) {
         void *new = malloc(list->itemsize * list->maxlength * 2);
         if (!new) {
-#ifdef VERBOSE
-            fprintf(stderr, "arraylist_Append failed: Out of memory\n");
-#endif
+            errmsg("Out of memory\n");
             return FAILURE;
         }
         memcpy(new, list->data, list->length * list->itemsize);
@@ -118,9 +106,7 @@ int arraylist_Append(ARRAYLIST *list, const void *item) {
     // Copy the new item into the arraylist
     void *destination = arraylist_At(list, list->length);
     if (!destination) {
-#ifdef VERBOSE
-        fprintf(stderr, "arraylist_Append failed: Unable to offset into data field\n");
-#endif
+        errmsg("Unable to offset into data field\n");
         return FAILURE;
     }
     memcpy(destination, item, list->itemsize);
@@ -135,9 +121,7 @@ int arraylist_Compress(ARRAYLIST *list) {
     // Tries to reduce size usage
     void *new = malloc(list->itemsize * list->length);
     if (!new) {
-#ifdef VERBOSE
-        fprintf(stderr, "arraylist_Compress failed: Out of memory\n");
-#endif
+        errmsg("Out of memory\n");
         return FAILURE;
     }
     memcpy(new, list->data, list->length * list->itemsize);

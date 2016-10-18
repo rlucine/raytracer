@@ -27,31 +27,23 @@ int image_Create(IMAGE *image, int width, int height) {
     
     // Error check the dimensions
     if (width <= 0 || width > MAX_DIMENSION) {
-#ifdef VERBOSE
-        fprintf(stderr, "image_Create failed: Invalid width %d\n", width);
-#endif
+        errmsg("Invalid width %d\n", width);
         return FAILURE;
 
     } else if (height <= 0 || height > MAX_DIMENSION) {
-#ifdef VERBOSE
-        fprintf(stderr, "image_Create failed: Invalid height %d\n", height);
-#endif
+        errmsg("Invalid height %d\n", height);
         return FAILURE;
     }
     
     // Allocate the image data chunk
     size_t size = sizeof(RGB)*width*height;
     if (size < 0 || size > INT_MAX) {
-#ifdef VERBOSE
-        fprintf(stderr, "image_Create failed: %d by %d image is too large\n", width, height);
-#endif
+        errmsg("%d by %d image is too large\n", width, height);
         return FAILURE;
     }
     RGB *data = (RGB *)malloc(size);
     if (!data) {
-#ifdef VERBOSE
-        fprintf(stderr, "image_Create failed: Out of heap space\n");
-#endif
+        errmsg("Out of heap space\n");
         return FAILURE;
     }
     
@@ -69,15 +61,11 @@ const RGB *image_GetPixel(const IMAGE *image, int x, int y) {
     
     // Error check the index
     if (x < 0 || x >= image->width) {
-#ifdef VERBOSE
-        fprintf(stderr, "image_GetColor failed: Invalid x coordinate\n");
-#endif
+        errmsg("Invalid x coordinate\n");
         return NULL;
     }
     if (y < 0 || y >= image->height) {
-#ifdef VERBOSE
-        fprintf(stderr, "image_GetColor failed: Invalid y coordinate\n");
-#endif
+        errmsg("Invalid y coordinate\n");
         return NULL;
     }
     
@@ -92,15 +80,11 @@ int image_SetPixel(IMAGE *image, int x, int y, const RGB *color) {
     
     // Error check the index
     if (x < 0 || x >= image->width) {
-#ifdef VERBOSE
-        fprintf(stderr, "image_SetColor failed: Invalid x coordinate\n");
-#endif
+        errmsg("Invalid x coordinate\n");
         return FAILURE;
     }
     if (y < 0 || y >= image->height) {
-#ifdef VERBOSE
-        fprintf(stderr, "image_SetColor failed: Invalid y coordinate\n");
-#endif
+        errmsg("Invalid y coordinate\n");
         return FAILURE;
     }
     

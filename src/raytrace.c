@@ -20,6 +20,9 @@
 #include "scene.h"      // SCENE
 #include "raytrace.h"   // SHADOW_THRESHOLD ...
 
+// Debugging libraries
+#include "debug.h"
+
 /*============================================================*
  * Viewing plane
  *============================================================*/
@@ -50,9 +53,7 @@ static int raytrace_GetView(VIEWPLANE *view, const SCENE *scene) {
     vector_Cross(&view->u, scene_GetViewDirection(scene), scene_GetUpDirection(scene));
     vector_Normalize(&view->u, &view->u);
     if (vector_IsZero(&view->u)) {
-#ifdef VERBOSE
-        fprintf(stderr, "raytrace_GetView failed: Null u vector (%lf, %lf, %lf)\n", view->u.x, view->u.y, view->u.z);
-#endif
+        errmsg("Null u vector (%lf, %lf, %lf)\n", view->u.x, view->u.y, view->u.z);
         return FAILURE;
     }
     
@@ -60,12 +61,7 @@ static int raytrace_GetView(VIEWPLANE *view, const SCENE *scene) {
     vector_Cross(&view->v, &view->u, scene_GetViewDirection(scene));
     vector_Normalize(&view->v, &view->v);
     if (vector_IsZero(&view->v)) {
-#ifdef VERBOSE
-        fprintf(stderr, "raytrace_GetView failed: Null v vector (%lf, %lf, %lf)\n", view->v.x, view->v.y, view->v.z);
-#ifdef DEBUG
-        fprintf(stderr, "raytrace_GetView failed: U is (%lf, %lf, %lf)\n", view->u.x, view->u.y, view->u.z);
-#endif
-#endif
+        errmsg("Null v vector (%lf, %lf, %lf)\n", view->v.x, view->v.y, view->v.z);
         return FAILURE;
     }
     
@@ -107,17 +103,13 @@ int raytrace_Cast(COLLISION *closest, const LINE *ray, const SCENE *scene) {
         // Read the shape data
         shape = scene_GetShape(scene, n);
         if (!shape) {
-#ifdef VERBOSE
-            fprintf(stderr, "raytrace_Cast failed: No shape with identifier %d\n", n);
-#endif
+            errmsg("No shape with identifier %d\n", n);
             return FAILURE;
         }
         
         // Collide with this shape
         if (shape_Collide(shape, ray, &current) != SUCCESS) {
-#ifdef VERBOSE
-            fprintf(stderr, "raytrace_Cast failed: Collision with shape %d failed\n", n);
-#endif
+            errmsg("Collision with shape %d failed\n", n);
             return FAILURE;
         }
         
@@ -183,9 +175,7 @@ int raytrace_Shadow(double *shadows, const COLLISION *collision, const LIGHT *li
     double distance;
     memcpy(&ray.origin, &collision->where, sizeof(POINT));
     if (light_GetDirection(light, &collision->where, &ray.direction, &distance) != SUCCESS) {
-#ifdef VERBOSE
-        fprintf(stderr, "raytrace_Shadow failed: Invalid light\n");
-#endif
+        errmsg("Invalid light\n");
         return FAILURE;
     }
     
@@ -196,9 +186,7 @@ int raytrace_Shadow(double *shadows, const COLLISION *collision, const LIGHT *li
     for (nrays=0; nrays < SHADOW_PRECISION; nrays++) {
         // Shoot one ray - the first one is always unperturbed
         if (raytrace_Cast(&shadow, &ray, scene) != SUCCESS) {
-#ifdef VERBOSE
-            fprintf(stderr, "raytrace_Shadow failed: Failed to shoot shadow ray\n");
-#endif
+            errmsg("Failed to shoot shadow ray\n");
             return FAILURE;
         }
         
@@ -234,9 +222,7 @@ int raytrace_Shade(COLOR *color, const COLLISION *collision, const SCENE *scene)
     // Get the diffuse color
     COLOR object_color;
     if (shape_GetColorAt(collision, &object_color) != SUCCESS) {
-#ifdef VERBOSE
-        fprintf(stderr, "raytrace_Shade failed: Failed to get object color\n");
-#endif
+        errmsg("Failed to get object color\n");
         return FAILURE;
     }
     
@@ -258,9 +244,7 @@ int raytrace_Shade(COLOR *color, const COLLISION *collision, const SCENE *scene)
         
         // Get shadows and check float 
         if (raytrace_Shadow(&shadows, collision, light, scene) != SUCCESS) {
-#ifdef VERBOSE
-            fprintf(stderr, "raytrace_Shade failed: Failed to check shadows\n");
-#endif
+            errmsg("Failed to check shadows\n");
             return FAILURE;
         }
         
@@ -297,9 +281,7 @@ int raytrace_Render(IMAGE *image, const SCENE *scene) {
     // Get the scene view
     VIEWPLANE view;
     if (raytrace_GetView(&view, scene) != SUCCESS) {
-#ifdef VERBOSE
-        fprintf(stderr, "raytrace_Render failed: Failed to generate viewing plane\n");
-#endif
+        errmsg("Failed to generate viewing plane\n");
         return FAILURE;
     }
     
@@ -311,9 +293,7 @@ int raytrace_Render(IMAGE *image, const SCENE *scene) {
     
     // Get the image output
     if (image_Create(image, scene_GetWidth(scene), scene_GetHeight(scene)) != SUCCESS) {
-#ifdef VERBOSE
-        fprintf(stderr, "raytrace_Render failed: Failed to create output image\n");
-#endif
+        errmsg("Failed to create output image\n");
         return FAILURE;
     }
     
@@ -365,9 +345,7 @@ int raytrace_Render(IMAGE *image, const SCENE *scene) {
             
             // Cast this ray
             if (raytrace_Cast(&collision, &ray, scene) != SUCCESS) {
-#ifdef VERBOSE
-                fprintf(stderr, "raytrace_Render failed: Failed to cast ray (%d, %d)\n", x, y);
-#endif
+                errmsg("Failed to cast ray (%d, %d)\n", x, y);
                 return FAILURE;
             }
             
@@ -375,9 +353,7 @@ int raytrace_Render(IMAGE *image, const SCENE *scene) {
             if (collision.how != COLLISION_NONE) {
                 // Collided with the surface of the shape
                 if (raytrace_Shade(&color, &collision, scene) != SUCCESS) {
-        #ifdef VERBOSE
-                    fprintf(stderr, "raytrace_Cast: Shader failed\n");
-        #endif
+                            errmsg("Shader failed\n");
                     return FAILURE;
                 }
                 
@@ -391,9 +367,7 @@ int raytrace_Render(IMAGE *image, const SCENE *scene) {
             
             // Put the color
             if (image_SetPixel(image, x, y, &rgb) != SUCCESS) {
-#ifdef VERBOSE
-                fprintf(stderr, "raytrace_Render failed: Failed to set color at (%d, %d)\n", x, y);
-#endif
+                errmsg("Failed to set color at (%d, %d)\n", x, y);
                 return FAILURE;
             }
 #ifdef DEBUG

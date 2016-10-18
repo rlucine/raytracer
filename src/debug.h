@@ -65,9 +65,9 @@ extern void *debug_realloc(void *ptr, size_t size, const char *file, int line, c
  * Debug printing
  *============================================================*/
 #ifdef VERBOSE
-#define errlog(...) fprintf(stderr, __VA_ARGS__)
+#define errmsg(...) fprintf(stderr, "%s: ", __func__); fprintf(stderr, __VA_ARGS__)
 #else
-#define errlog(...) (void)0
+#define errmsg(...) (void)0
 #endif
 
 /*============================================================*/

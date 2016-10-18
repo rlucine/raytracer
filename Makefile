@@ -9,10 +9,10 @@
 # -DTRACE: Trace malloc and free
 
 # Uncomment this line for release
-DEBUG := -DNDEBUG -UDEBUG -DVERBOSE -UTRACE
+#DEBUG := -DNDEBUG -UDEBUG -DVERBOSE -UTRACE
 
 # Uncomment this line for debug
-#DEBUG := -DDEBUG -DVERBOSE -UTRACE
+DEBUG := -DDEBUG -DVERBOSE -DTRACE
 
 #===== Compiler / linker setup =====#
 CC := gcc
