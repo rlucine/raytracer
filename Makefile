@@ -26,6 +26,7 @@ SRC_DIR := src
 INCLUDE += -I$(SRC_DIR)
 CFILES := $(wildcard $(SRC_DIR)/*.c)
 HFILES := $(wildcard $(SRC_DIR)/*.h)
+INCFILES := $(wildcard $(SRC_DIR)/*.inc)
 
 #=========== Build setup ===========#
 # Build files
@@ -112,5 +113,5 @@ WEB := README.md Doxyfile mainpage.html
 .PHONY: turnin
 turnin: $(TURNIN)
 
-$(TURNIN): $(CFILES) $(HFILES) $(SCENES) $(TEXTURES) $(IMAGES) $(WEB) src/driver/main.c
+$(TURNIN): $(CFILES) $(HFILES) $(INCFILES) $(SCENES) $(TEXTURES) $(IMAGES) $(WEB) src/driver/main.c Makefile
 	tar -cvf $@ $^
