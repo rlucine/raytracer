@@ -10,25 +10,23 @@
 #include <string.h>     // memcpy
 
 // This project
-#include "macro.h"
-#include "arraylist.h"
-#include "tracemalloc.h"
+#include "macro.h"      // SUCCESS, FAILURE
+#include "arraylist.h"  // ARRAYLIST
+
+// Debugging modules
+#include "debug.h"
 
 /*============================================================*
  * Creation function
  *============================================================*/
-int arraylist_Create(ARRAYLIST *list, size_t itemsize, size_t maxlength) {
+int arraylist_Create(ARRAYLIST *list, size_t itemsize, int maxlength) {
     // Error checking
     if (itemsize <= 0) {
-#ifdef VERBOSE
-        fprintf(stderr, "arraylist_Create failed: Invalid item size\n");
-#endif
+        errmsg("Invalid item size\n");
         return FAILURE;
     }
     if (maxlength <= 0) {
-#ifdef VERBOSE
-        fprintf(stderr, "arraylist_Create failed: Invalid capacity\n");
-#endif
+        errmsg("Invalid capacity\n");
         return FAILURE;
     }
     
@@ -40,9 +38,7 @@ int arraylist_Create(ARRAYLIST *list, size_t itemsize, size_t maxlength) {
     // Set up data array
     list->data = malloc(itemsize * maxlength);
     if (!list->data) {
-#ifdef VERBOSE
-        fprintf(stderr, "arraylist_Create failed: Out of memory\n");
-#endif
+        errmsg("Out of memory\n");
         return FAILURE;
     }
     return SUCCESS;
@@ -51,8 +47,8 @@ int arraylist_Create(ARRAYLIST *list, size_t itemsize, size_t maxlength) {
 /*============================================================*
  * Getter
  *============================================================*/
-size_t arraylist_Length(const ARRAYLIST *list) {
-    return list->length;
+int arraylist_Length(const ARRAYLIST *list) {
+    return (int)list->length;
 }
 
 /*============================================================*
@@ -62,14 +58,32 @@ void *arraylist_At(ARRAYLIST *list, int index) {
     // Perform pointer arithmetic
     char *temp = list->data;
     if (sizeof(char) != 1) {
-#ifdef VERBOSE
-        fprintf(stderr, "arraylist_At failed: sizeof(char) is %d on this system\n", sizeof(char));
-#endif
+        errmsg("sizeof(char) is %d on this system\n", (int)sizeof(char));
+        return NULL;
+    }
+    
+    if (index < 0 || index >= (int)list->maxlength) {
+        errmsg("Index %d out of bounds\n", index);
         return NULL;
     }
     
     temp += index * list->itemsize;
     return (void *)temp;
+}
+
+/*============================================================*
+ * Iterator
+ *============================================================*/
+void *arraylist_Begin(ARRAYLIST *list) {
+    return arraylist_At(list, 0);
+}
+
+void *arraylist_End(ARRAYLIST *list) {
+    int index = list->length - 1;
+    if (index < 0) {
+        return NULL;
+    }
+    return arraylist_At(list, index);
 }
 
 /*============================================================*
@@ -80,9 +94,7 @@ int arraylist_Append(ARRAYLIST *list, const void *item) {
     if (list->length >= list->maxlength) {
         void *new = malloc(list->itemsize * list->maxlength * 2);
         if (!new) {
-#ifdef VERBOSE
-            fprintf(stderr, "arraylist_Append failed: Out of memory\n");
-#endif
+            errmsg("Out of memory\n");
             return FAILURE;
         }
         memcpy(new, list->data, list->length * list->itemsize);
@@ -94,9 +106,7 @@ int arraylist_Append(ARRAYLIST *list, const void *item) {
     // Copy the new item into the arraylist
     void *destination = arraylist_At(list, list->length);
     if (!destination) {
-#ifdef VERBOSE
-        fprintf(stderr, "arraylist_Append failed: Unable to offset into data field\n");
-#endif
+        errmsg("Unable to offset into data field\n");
         return FAILURE;
     }
     memcpy(destination, item, list->itemsize);
@@ -111,9 +121,7 @@ int arraylist_Compress(ARRAYLIST *list) {
     // Tries to reduce size usage
     void *new = malloc(list->itemsize * list->length);
     if (!new) {
-#ifdef VERBOSE
-        fprintf(stderr, "arraylist_Compress failed: Out of memory\n");
-#endif
+        errmsg("Out of memory\n");
         return FAILURE;
     }
     memcpy(new, list->data, list->length * list->itemsize);
@@ -136,6 +144,7 @@ void *arraylist_GetData(ARRAYLIST *list) {
 void arraylist_Destroy(ARRAYLIST *list) {
     if (list->data) {
         free(list->data);
+        list->data = NULL;
     }
     return;
 }

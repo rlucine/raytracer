@@ -4,32 +4,20 @@
  * @author Alec Shinomiya
  **************************************************************/
 
-// NOTE: documentation for the functions implemented here
-// resides in the header file ppm.h
-
 // Standard library
 #include <stdlib.h>     // malloc, free, size_t
 #include <stdio.h>      // fopen, fclose, fprintf, getline ...
 #include <limits.h>     // USHRT_MAX
-#include <sys/stat.h>   // stat, struct stat
 #include <string.h>     // strcpy
 #include <assert.h>     // assert
 
 // This project
-#include "image.h"
-#include "ppm.h"
-#include "tracemalloc.h"
+#include "macro.h"      // SUCCESS, FAILURE
+#include "image.h"      // IMAGE
+#include "ppm.h"        // PPM_MAX_COLOR ...
 
-/*============================================================*
- * Constants
- *============================================================*/
-static const char *PPM_MAGIC_NUMBER = "P3";
-
-// The maximum value for any color (r, g, b) value
-static const int PPM_MAX_COLOR = 255;
-
-// The maximum amount of characters on any line of a PPM
-static const int PPM_MAX_LINE = 70;
+// Debugging modules
+#include "debug.h"
 
 /*============================================================*
  * Encoding PPM
@@ -39,15 +27,12 @@ int ppm_Encode(const IMAGE *ppm, const char *filename) {
     // Open the output file
     FILE *file = fopen(filename, "w");
     if (!file) {
-#ifdef VERBOSE
-        perror("fopen");
-        fprintf(stderr, "ppm_Encode failed: Cannot open file %s\n", filename);
-#endif
+        errmsg("Cannot open file %s\n", filename);
         return FAILURE;
     }
     
     // Encode the PPM header
-    fprintf(file, "%s\n%d %d\n%d\n", PPM_MAGIC_NUMBER, ppm->width, ppm->height, PPM_MAX_COLOR);
+    fprintf(file, "P3\n%d %d\n%d\n", ppm->width, ppm->height, PPM_MAX_COLOR);
     
     // Encode the color data
     int index = 0;
@@ -68,143 +53,137 @@ int ppm_Encode(const IMAGE *ppm, const char *filename) {
 /*============================================================*
  * Decoding PPM
  *============================================================*/
+int ppm_Parse(FILE *file, int *output) {
+    // Get the next integer from the PPM stream
+    char current;
+    int in_comment = 0;
+    
+    while ((current = fgetc(file)) != EOF) {
+        switch (current) {
+        // Whitespace characters
+        case '\n':
+            in_comment = 0;
+        case ' ':
+        case '\t':
+        case '\v':
+        case '\f':
+        case '\r':
+            continue;
+        
+        // Comment characters
+        case '#':
+            in_comment = 1;
+            break;
+        
+        // Numeric characters
+        default:
+            // Due to arbitrary definitions of SUCCESS or FAILURE we need this
+            if (!in_comment && ungetc(current, file) != EOF && fscanf(file, "%d", output) == 1) {
+                return SUCCESS;
+            } else {
+                // Fails because found unparseable things
+                return FAILURE;
+            }
+            break;
+        }
+    }
+    return FAILURE;
+}
+
 int ppm_Decode(IMAGE *ppm, const char *filename) {
     
-    // Decoding stuff
-    const int BUF_SIZE = PPM_MAX_LINE;
-    char buf[BUF_SIZE+1];
-
-    // Calculate the size of the PPM image in bytes
-    struct stat stat_buf;
-    if (stat(filename, &stat_buf)) {
-#ifdef VERBOSE
-        perror("stat");
-#endif
-        return FAILURE;
-    }
-    
-    // Allocate space for entire file in memory
-    size_t size = stat_buf.st_size;
-    char *entire = (char *)malloc(size+1);
-    if (!entire) {
-#ifdef VERBOSE
-        fprintf(stderr, "ppm_Decode failed: Out of heap space\n");
-#endif
-        return FAILURE;
-    }
-    
-    // Mark the end of the buffer
-    const char CANARY_VALUE = 127;
-    entire[size] = CANARY_VALUE;
-#ifdef VERBOSE
-    assert(entire[size] == CANARY_VALUE);
+#ifdef DEBUG
+    fprintf(stderr, "ppm_Decode: Decoding %s\n", filename);
 #endif
     
     // File for decoding
     FILE *file = fopen(filename, "r");
     if (!file) {
-#ifdef VERBOSE
-        perror("fopen");
-        fprintf(stderr, "ppm_Decode failed: Failed to open file\n");
-#endif
-        free(entire);
+        errmsg("Failed to open file\n");
         return FAILURE;
     }
     
-    // Excise comments as we load into memory
-    char *where = entire;
-    size_t ncopy;
-    while (fgets(buf, BUF_SIZE, file)) {
-        if (buf[0] != '#') {
-            // Not a comment line in the PPM so store it
-            ncopy = strlen(buf);
-            memcpy(where, buf, ncopy);
-            where += ncopy;
-        }
+    // Read the header (always the first two bytes)
+    char header[3];
+    if (fscanf(file, "%2c", header) != 1) {
+        errmsg("Failed to read header information\n");
+        fclose(file);
+        return FAILURE;
     }
-    
-    // Done with the file
-    fclose(file);
-    
-    // Check buffer overflow
-    if (entire[size] != CANARY_VALUE) {
-#ifdef VERBOSE
-        fprintf(stderr, "ppm_Decode failed: Buffer overflow detected (canary %d)\n", entire[size]);
-#endif
-        free(entire);
+    header[2] = '\0';
+    if (header[0] != 'P' || header[1] != '3') {
+        errmsg("Corrupt header '%s'\n", header);
+        fclose(file);
         return FAILURE;
     }
     
-    // Now parse the PPM data which is free of comments
-    int nread;
-    char header[2];
+#ifdef DEBUG
+    fprintf(stderr, "ppm_Decode: Header is %s\n", header);
+#endif
+    
+    // Read header information
     int width;
     int height;
     int maxsize;
-    where = entire;
-    if (sscanf(where, "%s %d %d %d%n", header, &width, &height, &maxsize, &nread) != 4) {
-        // Failed to read entire header data
-#ifdef VERBOSE
-        fprintf(stderr, "ppm_Decode failed: Error parsing header\n");
-#endif
-        free(entire);
+    int failure = 0;
+    failure = failure || (ppm_Parse(file, &width) != SUCCESS);
+    failure = failure || (ppm_Parse(file, &height) != SUCCESS);
+    failure = failure || (ppm_Parse(file, &maxsize) != SUCCESS);
+    if (failure) {
+        errmsg("Failed to parse header information\n");
+        fclose(file);
         return FAILURE;
     }
     
-    // Header check
-    if (header[0] != PPM_MAGIC_NUMBER[0] || header[1] != PPM_MAGIC_NUMBER[1]) {
-#ifdef VERBOSE
-        fprintf(stderr, "ppm_Decode failed: Missing PPM magic number\n");
+#ifdef DEBUG
+    fprintf(stderr, "ppm_Decode: Size is %d by %d\n", width, height);
+    fprintf(stderr, "ppm_Decode: Maximum Color is %d\n", maxsize);
 #endif
-        free(entire);
+    
+    // Read color information
+    RGB rgb;
+    if (image_Create(ppm, width, height) != SUCCESS) {
+        errmsg("Failed to parse header information\n");
+        fclose(file);
         return FAILURE;
     }
     
-    // Now have header information, can construct the PPM
-    if (image_Create(ppm, width, height) == FAILURE) {
-#ifdef VERBOSE
-        fprintf(stderr, "ppm_Decode failed: Unable to create PPM\n");
+    // Read all information
+    int x, y, red, blue, green;
+    for (y = 0; y < height; y++) {
+        for (x = 0; x < width; x++) {
+            failure = 0;
+            failure = failure || (ppm_Parse(file, &red) != SUCCESS);
+            failure = failure || (ppm_Parse(file, &green) != SUCCESS);
+            failure = failure || (ppm_Parse(file, &blue) != SUCCESS);
+            if (failure) {
+                errmsg("Parse error\n");
+                fclose(file);
+                return FAILURE;
+            }
+            
+            // Load color
+            rgb.r = red * PPM_MAX_COLOR / maxsize;
+            rgb.g = green * PPM_MAX_COLOR / maxsize;
+            rgb.b = blue * PPM_MAX_COLOR / maxsize;
+            if (image_SetPixel(ppm, x, y, &rgb) != SUCCESS) {
+                errmsg("Failed to place colors in image\n");
+                fclose(file);
+                return FAILURE;
+            }
+            
+#ifdef DEBUG
+            const RGB *test = image_GetPixel(ppm, x, y);
+            if (test->r != rgb.r || test->g != rgb.g || test->b != rgb.b) {
+                fprintf(stderr, "ppm_Decode failed: Decode error detected\n");
+                return FAILURE;
+            }
 #endif
-        free(entire);
-        return FAILURE;
-    }
-    
-    // Read information from the PPM
-    where += nread;
-    RGB *color;
-    int index = 0;
-    int max = ppm->width * ppm->height;
-    int first, second, third;
-    while (index < max) {
-        color = &ppm->data[index];
-        if (sscanf(where, "%d %d %d%n", &first, &second, &third, &nread) != 3) {
-            // Failed to read another color
-#ifdef VERBOSE
-            fprintf(stderr, "ppm_Decode failed: Error parsong color\n");
-#endif
-            free(entire);
-            return FAILURE;
         }
-        
-        // Scale max size to 255
-        if (maxsize != PPM_MAX_COLOR) {
-            first = (first * PPM_MAX_COLOR) / maxsize;
-            second = (second * PPM_MAX_COLOR) / maxsize;
-            third = (third * PPM_MAX_COLOR) / maxsize;
-        }
-        
-        // Set color
-        color->r = (char)first;
-        color->g = (char)second;
-        color->b = (char)third;
-        
-        // Next color location
-        where += nread;
-        index += 1;
     }
+    fclose(file);
     
     // Done, read all color information
-    free(entire);
     return SUCCESS;
 }
 

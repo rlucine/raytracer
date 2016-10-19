@@ -11,8 +11,8 @@
 #include <math.h>       // fabs
 
 // This project
+#include "macro.h"
 #include "scene.h"
-#include "parser.h"
 #include "vector.h"
 #include "image.h"
 #include "shape.h"
@@ -28,7 +28,9 @@ int main(void) {
     printf("Decoding test.scene...\n");
     assert(scene_Decode(&scene, "data/test.scene") == SUCCESS);
     
-    assert(vector_IsZero(scene_GetEyePosition(&scene)));
+    vector.z = vector.y = 0.0;
+    vector.z = 4.0;
+    assert(vector_IsEqual(scene_GetEyePosition(&scene), &vector));
     
     vector.x = vector.y = 0.0;
     vector.z = -1.0;
@@ -40,24 +42,23 @@ int main(void) {
     
     assert(fabs(scene_GetFieldOfView(&scene) - 60.0) < DBL_EPSILON);
     
-    assert(scene_GetWidth(&scene) == 64);
-    assert(scene_GetHeight(&scene) == 48);
+    assert(scene_GetWidth(&scene) == 100);
+    assert(scene_GetHeight(&scene) == 100);
     
     const COLOR *color = scene_GetBackgroundColor(&scene);
-    assert(color->x == 1);
-    assert(color->y == 0);
-    assert(color->z == 1);
+    assert(color->x == 0.1);
+    assert(color->y == 0.1);
+    assert(color->z == 0.1);
     
     assert(scene_GetNumberOfShapes(&scene) == 1);
     
     const SHAPE *shape = scene_GetShape(&scene, 0);
-    assert(shape_GetGeometry(shape) == SHAPE_SPHERE);
+    assert(shape->shape == SHAPE_SPHERE);
     
     const SPHERE *sphere = shape_GetSphere(shape);
-    assert(fabs(sphere_GetRadius(sphere) - 3.8) < DBL_EPSILON);
-    vector.x = vector.y = 0.0;
-    vector.z = -4.0;
-    assert(vector_IsEqual(sphere_GetCenter(sphere), &vector));
+    assert(fabs(sphere->radius - 1.0) < DBL_EPSILON);
+    vector.x = vector.y = vector.z = 0.0;
+    assert(vector_IsEqual(&sphere->center, &vector));
     
     scene_Destroy(&scene);
     printf("Success!\n\n");
@@ -78,13 +79,23 @@ int main(void) {
     scene_Destroy(&scene);
     printf("Success!\n\n");
     
-    printf("Decoding simple.scene...\n");
-    assert(scene_Decode(&scene, "data/simple.scene") == SUCCESS);
+    printf("Decoding sample0.scene...\n");
+    assert(scene_Decode(&scene, "data/sample0.scene") == SUCCESS);
     scene_Destroy(&scene);
     printf("Success!\n\n");
     
-    printf("Decoding tatest.scene...\n");
-    assert(scene_Decode(&scene, "data/tatest.scene") == SUCCESS);
+    printf("Decoding sample1.scene...\n");
+    assert(scene_Decode(&scene, "data/sample1.scene") == SUCCESS);
+    scene_Destroy(&scene);
+    printf("Success!\n\n");
+    
+    printf("Decoding sample2.scene...\n");
+    assert(scene_Decode(&scene, "data/sample2.scene") == SUCCESS);
+    scene_Destroy(&scene);
+    printf("Success!\n\n");
+    
+    printf("Decoding art.scene...\n");
+    assert(scene_Decode(&scene, "data/art.scene") == SUCCESS);
     scene_Destroy(&scene);
     printf("Success!\n\n");
     

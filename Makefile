@@ -1,6 +1,4 @@
-#####################################
 ######## CSci 5607 Makefile #########
-#####################################
 
 #========= Debug mode setup ========#
 # Comment one line only!
@@ -16,9 +14,9 @@ DEBUG := -DNDEBUG -UDEBUG -DVERBOSE -UTRACE
 
 #===== Compiler / linker setup =====#
 CC := gcc
-CFLAGS := -s -O3 -Wall -std=gnu99
+CFLAGS := -g -O3 -Wall -Wpedantic -Wextra -std=gnu99
 DFLAGS := -MP -MMD
-LFLAGS := -s -lm
+LFLAGS := -g -lm
 INCLUDE := 
 LIBRARY := 
 
@@ -28,6 +26,7 @@ SRC_DIR := src
 INCLUDE += -I$(SRC_DIR)
 CFILES := $(wildcard $(SRC_DIR)/*.c)
 HFILES := $(wildcard $(SRC_DIR)/*.h)
+INCFILES := $(wildcard $(SRC_DIR)/*.inc)
 
 #=========== Build setup ===========#
 # Build files
@@ -106,8 +105,13 @@ spotless: clean
 	-rm -rf $(DOC_DIR)
 
 #============= Turnin ==============#
+SCENES := data/checker.scene data/teapot.scene data/teapot_flat.scene data/teapot_parallel.scene data/earth.scene
+TEXTURES := data/texture/checker.ppm data/texture/earth.ppm
+IMAGES := $(wildcard data/image/*.png)
+WEB := README.md Doxyfile mainpage.html
+
 .PHONY: turnin
 turnin: $(TURNIN)
 
-$(TURNIN): $(CFILES) $(HFILES) README.md Doxyfile Makefile src/driver/main.c image/*.png data/art.scene mainpage.html
+$(TURNIN): $(CFILES) $(HFILES) $(INCFILES) $(SCENES) $(TEXTURES) $(IMAGES) $(WEB) src/driver/main.c Makefile
 	tar -cvf $@ $^

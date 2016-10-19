@@ -8,9 +8,9 @@
 #define _SHAPE_H_
 
 // This project
-#include "macro.h"
-#include "image.h"
-#include "vector.h"
+#include "image.h"      // TEXTURE, TEXCOORD
+#include "vector.h"     // VECTOR
+#include "mesh.h"       // FACE
 
 /**********************************************************//**
  * @enum SHAPE_TYPE
@@ -20,6 +20,8 @@ typedef enum {
     SHAPE_NONE = 0,     ///< The shape is not initialized
     SHAPE_SPHERE,       ///< The shape is a sphere
     SHAPE_ELLIPSOID,    ///< The shape is an ellipsoid
+    SHAPE_PLANE,        ///< The shape is a flat plane
+    SHAPE_FACE,         ///< The shape is a triangle
 } SHAPE_TYPE;
 
 /**********************************************************//**
@@ -45,12 +47,13 @@ typedef struct {
  * @brief Struct for storing object material data
  **************************************************************/
 typedef struct {
-    COLOR color;        ///< The diffuse color of the object
-    COLOR highlight;    ///< The specular color of the object
-    double ambient;     ///< The ambient reflectivity of the object
-    double diffuse;     ///< The diffuse reflectivity of the object
-    double specular;    ///< The specular reflectivity of the object
-    int exponent;       ///< The size of the specular highlight
+    COLOR color;            ///< The diffuse color of the object
+    COLOR highlight;        ///< The specular color of the object
+    double ambient;         ///< The ambient reflectivity of the object
+    double diffuse;         ///< The diffuse reflectivity of the object
+    double specular;        ///< The specular reflectivity of the object
+    int exponent;           ///< The size of the specular highlight
+    const TEXTURE *texture; ///< The texture to apply to the shape
 } MATERIAL;
 
 /**********************************************************//**
@@ -62,9 +65,9 @@ typedef struct {
  * No further shape types are supported.
  **************************************************************/
 typedef struct {
-    SHAPE_TYPE shape;       ///< Key representing the type of geometry
-    void *data;             ///< Pointer to the shape geometry
-    MATERIAL material;      ///< The material of the object
+    SHAPE_TYPE shape;           ///< Key representing the type of geometry
+    void *data;                 ///< Pointer to the shape geometry
+    const MATERIAL *material;   ///< The material of the object
 } SHAPE;
 
 /**********************************************************//**
@@ -87,6 +90,8 @@ typedef struct {
     double distance;            ///< How far away the point is
     const MATERIAL *material;   ///< The material that was collided with
     VECTOR normal;              ///< Normal vector at collision site
+    const TEXTURE *texture;     ///< Texture collided with or NULL
+    TEXCOORD texcoord;          ///< Texture coordinate at the collision site
 } COLLISION;
 
 /**********************************************************//**
@@ -116,6 +121,32 @@ extern int shape_CreateSphere(SHAPE *shape, const SPHERE *sphere, const MATERIAL
 extern int shape_CreateEllipsoid(SHAPE *shape, const ELLIPSOID *ellipsoid, const MATERIAL *material);
 
 /**********************************************************//**
+ * @brief Construct a plane with the given properties.
+ * @param shape: The shape to construct. It must be destroyed
+ * with shape_Destroy if this function is successful. If this
+ * function is not successful, it will clean up any memory
+ * allocations and shape_Destroy will not work.
+ * @param plane: Pointer to a PLANE definition.
+ * @param material: Pointer to the material properties. The
+ * data pointed to may be destroyed after calling this function.
+ * @return SUCCESS or FAILURE
+ **************************************************************/
+extern int shape_CreatePlane(SHAPE *shape, const PLANE *plane, const MATERIAL *material);
+
+/**********************************************************//**
+ * @brief Construct a triangular face for a polygon.
+ * @param shape: The shape to construct. It must be destroyed
+ * with shape_Destroy if this function is successful. If this
+ * function is not successful, it will clean up any memory
+ * allocations and shape_Destroy will not work.
+ * @param face: Pointer to a FACE definition.
+ * @param material: Pointer to the material properties. The
+ * data pointed to may be destroyed after calling this function.
+ * @return SUCCESS or FAILURE
+ **************************************************************/
+extern int shape_CreateFace(SHAPE *shape, const FACE *face, const MATERIAL *material);
+
+/**********************************************************//**
  * @brief Destroy a shape struct that has been initialized by
  * shape_Create. You cannot destroy a shape that has not
  * been initialized, and you cannot destroy a shape twice.
@@ -130,6 +161,13 @@ extern void shape_Destroy(SHAPE *shape);
  * @return Pointer to a MATERIAL struct
  **************************************************************/
 extern const MATERIAL *shape_GetMaterial(const SHAPE *shape);
+
+/**********************************************************//**
+ * @brief Set the material properties of the shape
+ * @param shape: The shape to set
+ * @param material: Pointer to the material struct
+ **************************************************************/
+extern void shape_SetMaterial(SHAPE *shape, const MATERIAL *material);
 
 /**********************************************************//**
  * @brief Get the SPHERE data embedded in the shape.
@@ -148,6 +186,22 @@ extern const SPHERE *shape_GetSphere(const SHAPE *shape);
 extern const ELLIPSOID *shape_GetEllipsoid(const SHAPE *shape);
 
 /**********************************************************//**
+ * @brief Get the PLANE data embedded in the shape.
+ * @param shape: The shape to read
+ * @return Pointer to a PLANE struct on success, or NULL if
+ * the shape is not a plane.
+ **************************************************************/
+extern const PLANE *shape_GetPlane(const SHAPE *shape);
+
+/**********************************************************//**
+ * @brief Get the FACE data embedded in the shape.
+ * @param shape: The shape to read
+ * @return Pointer to a FACE struct on success, or NULL if
+ * the shape is not a face.
+ **************************************************************/
+extern const FACE *shape_GetFace(const SHAPE *shape);
+
+/**********************************************************//**
  * @brief Generalized collision function for all SHAPE_TYPE
  * @param shape: The shape to collide with
  * @param ray: The line to intersect with the shape
@@ -157,6 +211,15 @@ extern const ELLIPSOID *shape_GetEllipsoid(const SHAPE *shape);
  * @return SUCCESS or FAILURE
  **************************************************************/
 extern int shape_Collide(const SHAPE *shape, const LINE *ray, COLLISION *result);
+
+/**********************************************************//**
+ * @brief Get the true color of the shape at the given
+ * collision.
+ * @param collision: A collision with a shape.
+ * @param color: Output location for the color.
+ * @return SUCCESS or FAILURE
+ **************************************************************/
+extern int shape_GetColorAt(const COLLISION *collision, COLOR *color);
 
 /*============================================================*/
 #endif // _SHAPE_H_

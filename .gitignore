@@ -24,3 +24,6 @@ build/
 
 # Ignore documentation pages
 doc/
+
+# Ignore ppm images from testing
+data/*.ppm

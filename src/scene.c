@@ -11,12 +11,18 @@
 #include <ctype.h>      // isspace
 
 // This project
-#include "image.h"
-#include "vector.h"
-#include "shape.h"
-#include "scene.h"
-#include "light.h"
-#include "tracemalloc.h"
+#include "macro.h"      // SUCCESS, FAILURE
+#include "image.h"      // IMAGE
+#include "vector.h"     // VECTOR
+#include "shape.h"      // SHAPE
+#include "scene.h"      // SCENE
+#include "light.h"      // LIGHT
+
+// Debugging modules
+#include "debug.h"
+
+// Included files
+#include "parser.inc"
 
 /*============================================================*
  * Scene getters
@@ -54,7 +60,7 @@ int scene_GetNumberOfShapes(const SCENE *scene) {
 }
 
 const SHAPE *scene_GetShape(const SCENE *scene, int index) {
-    return &scene->shapes[index];
+    return scene->shapes[index];
 }
 
 int scene_GetNumberOfLights(const SCENE *scene) {
@@ -62,29 +68,61 @@ int scene_GetNumberOfLights(const SCENE *scene) {
 }
 
 const LIGHT *scene_GetLight(const SCENE *scene, int index) {
-    return &scene->lights[index];
+    return scene->lights[index];
 }
 
 /*============================================================*
  * Scene destructor
  *============================================================*/
 void scene_Destroy(SCENE *scene) {
-    int i;
     
     // Free all the allocated shape data
-    for (i = 0; i < scene->nshapes; i++) {
-        shape_Destroy(&scene->shapes[i]);
-    }
+    int i;
     
     // Free allocated array
     if (scene->nshapes > 0 && scene->shapes) {
+        for (i = 0; i < scene->nshapes; i++) {
+            shape_Destroy(scene->shapes[i]);
+            free(scene->shapes[i]);
+        }
         free(scene->shapes);
+        scene->nshapes = 0;
+        scene->shapes = NULL;
     }
     
     // Free all the lights
     if (scene->nlights > 0 && scene->lights) {
+        for (i = 0; i < scene->nlights; i++) {
+            free(scene->lights[i]);
+        }
         free(scene->lights);
+        scene->nlights = 0;
+        scene->lights = NULL;
     }
+    
+    // Free all the materials
+    if (scene->nmaterials > 0 && scene->materials) {
+        for (i = 0; i < scene->nmaterials; i++) {
+            free(scene->materials[i]);
+        }
+        free(scene->materials);
+        scene->nmaterials = 0;
+        scene->materials = NULL;
+    }
+    
+    // Free all the textures
+    if (scene->ntextures > 0 && scene->textures) {
+        for (i = 0; i < scene->ntextures; i++) {
+            image_Destroy(scene->textures[i]);
+            free(scene->textures[i]);
+        }
+        free(scene->textures);
+        scene->ntextures = 0;
+        scene->textures = NULL;
+    }
+    
+    // Free all the mesh data
+    mesh_Destroy(&scene->mesh);
 }
 
 /*============================================================*/

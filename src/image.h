@@ -7,9 +7,18 @@
 #ifndef _IMAGE_H_
 #define _IMAGE_H_
 
+// Standard library
+#include <limits.h> // USHRT_MAX
+
 // This project
-#include "macro.h"
-#include "color.h"
+#include "color.h"  // COLOR
+#include "vector.h" // VECTOR
+
+/**********************************************************//**
+ * @def MAX_DIMENSION
+ * @brief The largest image dimension
+ **************************************************************/
+#define MAX_DIMENSION USHRT_MAX
 
 /**********************************************************//**
  * @struct IMAGE
@@ -20,6 +29,18 @@ typedef struct {
     unsigned short height;  ///< Height of the image
     RGB *data;              ///< Do not access this variable
 } IMAGE;
+
+/**********************************************************//**
+ * @typedef TEXTURE
+ * @brief Image format for texture maps
+ **************************************************************/
+typedef IMAGE TEXTURE;
+
+/**********************************************************//**
+ * @typedef TEXCOORD
+ * @brief Struct for texture coordinates.
+ **************************************************************/
+typedef VECTOR TEXCOORD;
 
 /**********************************************************//**
  * @brief Allocate space for an image
@@ -52,6 +73,16 @@ extern const RGB *image_GetPixel(const IMAGE *image, int x, int y);
  * @return SUCCESS or FAILURE
  **************************************************************/
 extern int image_SetPixel(IMAGE *image, int x, int y, const RGB *color);
+
+/**********************************************************//**
+ * @brief Treating the image as a texture, get the texture
+ * color given texture coordinates.
+ * @param texture: The image data to read
+ * @param coord: The texture coordinate to look up.
+ * @param color: Pointer to buffer to write the color in.
+ * @return SUCCESS or FAILURE
+ **************************************************************/
+extern int image_GetTexture(const TEXTURE *texture, const TEXCOORD *coord, COLOR *color);
 
 /**********************************************************//**
  * @brief Get the width of the image data

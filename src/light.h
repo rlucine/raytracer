@@ -8,10 +8,21 @@
 #define _LIGHT_H_
 
 // This project
-#include "macro.h"
-#include "color.h"
-#include "vector.h"
-#include "shape.h"
+#include "color.h"      // COLOR
+#include "vector.h"     // VECTOR
+#include "shape.h"      // COLLISION
+
+/**********************************************************//**
+ * @def MAX_ANGLE
+ * @brief The maximum angle for a spotlight
+ **************************************************************/
+#define MAX_ANGLE 360
+
+/**********************************************************//**
+ * @def MIN_ANGLE
+ * @brief The minimum angle for a spotlight
+ **************************************************************/
+#define MIN_ANGLE 0
 
 /**********************************************************//**
  * @enum LIGHT_TYPE
@@ -39,6 +50,33 @@ typedef struct {
 } LIGHT;
 
 /**********************************************************//**
+ * @brief Set up a new point light.
+ * @param light: The light to initialize.
+ * @param where: The location of the light's center.
+ * @param color: The color the light emits.
+ **************************************************************/
+extern void light_CreatePoint(LIGHT *light, const POINT *where, const COLOR *color);
+
+/**********************************************************//**
+ * @brief Set up a new directional light.
+ * @param light: The light to initialize.
+ * @param direction: The direction the light shines towards.
+ * @param color: The color the light emits.
+ **************************************************************/
+extern void light_CreateDirected(LIGHT *light, const VECTOR *direction, const COLOR *color);
+
+/**********************************************************//**
+ * @brief Set up a new spotlight.
+ * @param light: The light to initialize.
+ * @param point: The location the light shines from.
+ * @param direction: The direction the light shines towards.
+ * @param angle: The light will hit objects within this angle
+ * of the direction parameter.
+ * @param color: The color the light emits.
+ **************************************************************/
+extern void light_CreateSpotlight(LIGHT *light, const POINT *point, const VECTOR *direction, double angle, const COLOR *color);
+
+/**********************************************************//**
  * @brief Get the direction to the light.
  * @param light: The light to calculate shading for
  * @param where: The point to calculate the direction from.
@@ -55,7 +93,7 @@ extern int light_GetDirection(const LIGHT *light, const POINT *where, VECTOR *ou
  * given collision location.
  * @param light: The light to calculate shading for
  * @param collision: The point of collision to check.
- * @param view: The view vector of the scene
+ * @param eye: The viewer's location in the scene
  * @param color: Output location for the color
  * @return SUCCESS or FAILURE
  **************************************************************/

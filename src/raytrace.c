@@ -13,33 +13,15 @@
 #include <float.h>      // DBL_EPSILON
 
 // This project
-#include "image.h"
-#include "vector.h"
-#include "shape.h"
-#include "scene.h"
-#include "raytrace.h"
+#include "macro.h"      // SUCCESS, FAILURE
+#include "image.h"      // IMAGE
+#include "vector.h"     // VECTOR
+#include "shape.h"      // SHAPE
+#include "scene.h"      // SCENE
+#include "raytrace.h"   // SHADOW_THRESHOLD ...
 
-/*============================================================*
- * Constants
- *============================================================*/
-
-// Distance of viewing plane from eye
-#define VIEW_DISTANCE 1.0
-
-// Considered completely dark if under this value
-// because 0.003 < (1 / 255)
-#define SHADOW_THRESHOLD 0.003
-
-// Only consider collisions greater than this distance for
-// shadow casting.
-#define COLLISION_THRESHOLD DBL_EPSILON
-
-// Perturb the ray origin by this amount for more precise
-// shadow casting.
-#define PERTURB_DISTANCE 0.02
-
-// Number of shadow rays to shoot
-#define SHADOW_PRECISION 50
+// Debugging libraries
+#include "debug.h"
 
 /*============================================================*
  * Viewing plane
@@ -50,30 +32,27 @@ typedef struct {
     VECTOR v;       // Unit vector v
     double width;   // Real width of the viewing plane
     double height;  // Real height of the viewing plane
+    POINT center;   // The center of the viewing plane
 } VIEWPLANE;
 
 /*============================================================*
  * Get the viewing plane
  *============================================================*/
-static int raytrace_GetView(VIEWPLANE *view, const SCENE *scene) {
+static int raytrace_GetView(VIEWPLANE *view, double view_distance, const SCENE *scene) {
     
     // Get the aspect ratio
     double aspect = (double)scene_GetWidth(scene) / (double)scene_GetHeight(scene);
     
     // Get the fields of view and plane dimensions
     double fov_vertical = M_PI * scene_GetFieldOfView(scene) / 180.0;
-    double height = 2.0*VIEW_DISTANCE*tan(fov_vertical / 2.0);
+    double height = 2.0*tan(fov_vertical / 2.0);
     double width = height * aspect;
-    double fov_horizontal = 2.0 * atan(width / (2.0 * VIEW_DISTANCE));
-    (void)fov_horizontal;
     
     // Get the u basis vector
     vector_Cross(&view->u, scene_GetViewDirection(scene), scene_GetUpDirection(scene));
     vector_Normalize(&view->u, &view->u);
     if (vector_IsZero(&view->u)) {
-#ifdef VERBOSE
-        fprintf(stderr, "raytrace_GetView failed: Null u vector (%lf, %lf, %lf)\n", view->u.x, view->u.y, view->u.z);
-#endif
+        errmsg("Null u vector (%lf, %lf, %lf)\n", view->u.x, view->u.y, view->u.z);
         return FAILURE;
     }
     
@@ -81,22 +60,23 @@ static int raytrace_GetView(VIEWPLANE *view, const SCENE *scene) {
     vector_Cross(&view->v, &view->u, scene_GetViewDirection(scene));
     vector_Normalize(&view->v, &view->v);
     if (vector_IsZero(&view->v)) {
-#ifdef VERBOSE
-        fprintf(stderr, "raytrace_GetView failed: Null v vector (%lf, %lf, %lf)\n", view->v.x, view->v.y, view->v.z);
-#ifdef DEBUG
-        fprintf(stderr, "raytrace_GetView failed: U is (%lf, %lf, %lf)\n", view->u.x, view->u.y, view->u.z);
-#endif
-#endif
+        errmsg("Null v vector (%lf, %lf, %lf)\n", view->v.x, view->v.y, view->v.z);
         return FAILURE;
     }
     
-    // Get the upper left corner of the plane
+    // Get the offset to the upper left
     VECTOR du, dv, distance;
     vector_Multiply(&du, &view->u, width / -2.0);
     vector_Multiply(&dv, &view->v, height / 2.0);
-    vector_Copy(&distance, scene_GetViewDirection(scene));
+    
+    // Get the distance to the viewing plane
     vector_Normalize(&distance, scene_GetViewDirection(scene));
-    vector_Multiply(&distance, &distance, VIEW_DISTANCE / vector_Magnitude(&distance));
+    vector_Multiply(&distance, &distance, view_distance);
+    
+    // Get the center point of the viewing plane
+    vector_Add(&view->center, scene_GetEyePosition(scene), &distance);
+    
+    // Get the upper left corner
     vector_Copy(&view->origin, scene_GetEyePosition(scene));
     vector_Add(&view->origin, &view->origin, &distance);
     vector_Add(&view->origin, &view->origin, &du);
@@ -111,7 +91,7 @@ static int raytrace_GetView(VIEWPLANE *view, const SCENE *scene) {
 /*============================================================*
  * Cast one ray
  *============================================================*/
-static int raytrace_Cast(COLLISION *closest, const LINE *ray, const SCENE *scene) {
+int raytrace_Cast(COLLISION *closest, const LINE *ray, const SCENE *scene) {
     
     // Collision detectors
     COLLISION current;
@@ -128,17 +108,13 @@ static int raytrace_Cast(COLLISION *closest, const LINE *ray, const SCENE *scene
         // Read the shape data
         shape = scene_GetShape(scene, n);
         if (!shape) {
-#ifdef VERBOSE
-            fprintf(stderr, "raytrace_Cast failed: No shape with identifier %d\n", n);
-#endif
+            errmsg("No shape with identifier %d\n", n);
             return FAILURE;
         }
         
         // Collide with this shape
         if (shape_Collide(shape, ray, &current) != SUCCESS) {
-#ifdef VERBOSE
-            fprintf(stderr, "raytrace_Cast failed: Collision with shape %d failed\n", n);
-#endif
+            errmsg("Collision with shape %d failed\n", n);
             return FAILURE;
         }
         
@@ -147,7 +123,7 @@ static int raytrace_Cast(COLLISION *closest, const LINE *ray, const SCENE *scene
         switch(current.how) {
         case COLLISION_SURFACE:
         case COLLISION_INSIDE:
-            if (n == 0 || (current.distance >= 0.0 && current.distance < closest->distance)) {
+            if (current.distance >= COLLISION_THRESHOLD && (n == 0 || current.distance < closest->distance)) {
                 memcpy(closest, &current, sizeof(COLLISION));
                 who = n;
             }
@@ -197,45 +173,46 @@ static double uniform(double a, double b) {
     return a + (b - a)*unit;
 }
 
-static int raytrace_Shadow(const POINT *where, const LIGHT *light, const SCENE *scene, double *shadows) {
+int raytrace_Shadow(double *shadows, const COLLISION *collision, const LIGHT *light, const SCENE *scene) {
     
     // Set up ray pointing to light
     LINE ray;
     double distance;
-    memcpy(&ray.origin, where, sizeof(POINT));
-    if (light_GetDirection(light, where, &ray.direction, &distance) != SUCCESS) {
-#ifdef VERBOSE
-        fprintf(stderr, "raytrace_Shadow failed: Invalid light\n");
-#endif
+    memcpy(&ray.origin, &collision->where, sizeof(POINT));
+    if (light_GetDirection(light, &collision->where, &ray.direction, &distance) != SUCCESS) {
+        errmsg("Invalid light\n");
         return FAILURE;
     }
     
     // Fire all the rays
-    COLLISION collision;
+    COLLISION shadow;
     VECTOR perturb;
-    int hits = 0;
-    int nrays = 0;
-    while (nrays < SHADOW_PRECISION) {
+    int nrays, hits = 0;
+    for (nrays=0; nrays < SHADOW_PRECISION; nrays++) {
         // Shoot one ray - the first one is always unperturbed
-        if (raytrace_Cast(&collision, &ray, scene) != SUCCESS) {
-#ifdef VERBOSE
-            fprintf(stderr, "raytrace_Shadow failed: Failed to shoot shadow ray\n");
-#endif
+        if (raytrace_Cast(&shadow, &ray, scene) != SUCCESS) {
+            errmsg("Failed to shoot shadow ray\n");
             return FAILURE;
         }
         
         // Check collisions
-        if ((collision.how != COLLISION_NONE) && (collision.distance < distance) && (collision.distance > COLLISION_THRESHOLD)) {
+        if ((shadow.how != COLLISION_NONE) && (shadow.distance < distance) && (shadow.distance > COLLISION_THRESHOLD)) {
             // Something in between the light and us, and it isn't ourself!
             hits++;
         }
         
         // Perturb the origin of the ray
-        perturb.x = uniform(0.0, PERTURB_DISTANCE);
-        perturb.y = uniform(0.0, PERTURB_DISTANCE);
-        perturb.z = uniform(0.0, PERTURB_DISTANCE);
-        vector_Add(&ray.origin, where, &perturb);
-        nrays++;
+        perturb.x = uniform(-PERTURB_DISTANCE, PERTURB_DISTANCE);
+        perturb.y = uniform(-PERTURB_DISTANCE, PERTURB_DISTANCE);
+        perturb.z = uniform(-PERTURB_DISTANCE, PERTURB_DISTANCE);
+        
+        // Check that we only perturb in the hemisphere towards the collision
+        // No clipping behind the object!
+        if (vector_Dot(&perturb, &collision->normal) > 0) {
+            vector_Add(&ray.origin, &collision->where, &perturb);
+        } else {
+            vector_Subtract(&ray.origin, &collision->where, &perturb);
+        }
     }
     
     *shadows = 1.0 - ((double)hits / (double)SHADOW_PRECISION);
@@ -245,11 +222,18 @@ static int raytrace_Shadow(const POINT *where, const LIGHT *light, const SCENE *
 /*============================================================*
  * Shader
  *============================================================*/
-static int raytrace_Shade(COLOR *color, const COLLISION *collision, const SCENE *scene) {
+int raytrace_Shade(COLOR *color, const COLLISION *collision, const SCENE *scene) {
+    
+    // Get the diffuse color
+    COLOR object_color;
+    if (shape_GetColorAt(collision, &object_color) != SUCCESS) {
+        errmsg("Failed to get object color\n");
+        return FAILURE;
+    }
     
     // Set the ambient color of the object
     const MATERIAL *material = collision->material;
-    vector_Multiply(color, &material->color, material->ambient);
+    vector_Multiply(color, &object_color, material->ambient);
     
     // Setup
     COLOR temp;
@@ -264,10 +248,8 @@ static int raytrace_Shade(COLOR *color, const COLLISION *collision, const SCENE 
         light = scene_GetLight(scene, i);
         
         // Get shadows and check float 
-        if (raytrace_Shadow(&collision->where, light, scene, &shadows) != SUCCESS) {
-#ifdef VERBOSE
-            fprintf(stderr, "raytrace_Shade failed: Failed to check shadows\n");
-#endif
+        if (raytrace_Shadow(&shadows, collision, light, scene) != SUCCESS) {
+            errmsg("Failed to check shadows\n");
             return FAILURE;
         }
         
@@ -303,24 +285,25 @@ int raytrace_Render(IMAGE *image, const SCENE *scene) {
     
     // Get the scene view
     VIEWPLANE view;
-    if (raytrace_GetView(&view, scene) != SUCCESS) {
-#ifdef VERBOSE
-        fprintf(stderr, "raytrace_Render failed: Failed to generate viewing plane\n");
-#endif
+    double distance = VIEW_DISTANCE;
+    if (scene->flags & PROJECT_PARALLEL) {
+        distance = 0.0;
+    }
+    if (raytrace_GetView(&view, distance, scene) != SUCCESS) {
+        errmsg("Failed to generate viewing plane\n");
         return FAILURE;
     }
     
 #ifdef DEBUG
-    fprintf(stderr, "raytrace_Render: Viewing plane origin is (%lf, %lf, %lf)\n", view.origin.x, view.origin.y, view.origin.z);
-    fprintf(stderr, "raytrace_Render: Viewing plane u is (%lf, %lf, %lf)\n", view.u.x, view.u.y, view.u.z);
-    fprintf(stderr, "raytrace_Render: Viewing plane v is (%lf, %lf, %lf)\n", view.v.x, view.v.y, view.v.z);
+    errmsg("Viewing plane origin is (%lf, %lf, %lf)\n", view.origin.x, view.origin.y, view.origin.z);
+    errmsg("Viewing plane u is (%lf, %lf, %lf)\n", view.u.x, view.u.y, view.u.z);
+    errmsg("Viewing plane v is (%lf, %lf, %lf)\n", view.v.x, view.v.y, view.v.z);
+    errmsg("Viewing plane size is %lf by %lf\n", view.width, view.height);
 #endif
     
     // Get the image output
     if (image_Create(image, scene_GetWidth(scene), scene_GetHeight(scene)) != SUCCESS) {
-#ifdef VERBOSE
-        fprintf(stderr, "raytrace_Render failed: Failed to create output image\n");
-#endif
+        errmsg("Failed to create output image\n");
         return FAILURE;
     }
     
@@ -328,7 +311,7 @@ int raytrace_Render(IMAGE *image, const SCENE *scene) {
     int width = image_GetWidth(image);
     int height = image_GetHeight(image);
     
-    // Establish the ray origin and direction
+    // This is the ray to shoot
     LINE ray;
     vector_Copy(&ray.origin, scene_GetEyePosition(scene));
     
@@ -357,24 +340,25 @@ int raytrace_Render(IMAGE *image, const SCENE *scene) {
     while (y < height) {
         x = 0;
         while (x < width) {
-#ifdef DEBUG
-            fprintf(stderr, "raytrace_Render: At pixel (%d, %d)\n", x, y);
-            fprintf(stderr, "raytrace_Render: At point (%lf, %lf, %lf)\n", target.x, target.y, target.z);
-#endif
-
-            // Get the direction from the eye to the target
-            vector_Subtract(&ray.direction, &target, scene_GetEyePosition(scene));
-            vector_Normalize(&ray.direction, &ray.direction);
+            if (scene->flags & PROJECT_PARALLEL) {
+                // Parallel direction is always the same
+                vector_Copy(&ray.origin, &target);
+                vector_Normalize(&ray.direction, scene_GetViewDirection(scene));
+            } else {
+                // Perspective aimed at target
+                vector_Subtract(&ray.direction, &target, scene_GetEyePosition(scene));
+                vector_Normalize(&ray.direction, &ray.direction);
+            }
             
 #ifdef DEBUG
-            fprintf(stderr, "raytrace_Render: Casting in direction (%lf, %lf, %lf)\n", ray.direction.x, ray.direction.y, ray.direction.z);
+            errmsg("Ray (%d, %d)\n", x, y);
+            errmsg("Origin (%lf, %lf, %lf)\n", ray.origin.x, ray.origin.y, ray.origin.z);
+            errmsg("Direction (%lf, %lf, %lf)\n", ray.direction.x, ray.direction.y, ray.direction.z);
 #endif
             
             // Cast this ray
             if (raytrace_Cast(&collision, &ray, scene) != SUCCESS) {
-#ifdef VERBOSE
-                fprintf(stderr, "raytrace_Render failed: Failed to cast ray (%d, %d)\n", x, y);
-#endif
+                errmsg("Failed to cast ray (%d, %d)\n", x, y);
                 return FAILURE;
             }
             
@@ -382,9 +366,7 @@ int raytrace_Render(IMAGE *image, const SCENE *scene) {
             if (collision.how != COLLISION_NONE) {
                 // Collided with the surface of the shape
                 if (raytrace_Shade(&color, &collision, scene) != SUCCESS) {
-        #ifdef VERBOSE
-                    fprintf(stderr, "raytrace_Cast: Shader failed\n");
-        #endif
+                    errmsg("Shader failed\n");
                     return FAILURE;
                 }
                 
@@ -398,9 +380,7 @@ int raytrace_Render(IMAGE *image, const SCENE *scene) {
             
             // Put the color
             if (image_SetPixel(image, x, y, &rgb) != SUCCESS) {
-#ifdef VERBOSE
-                fprintf(stderr, "raytrace_Render failed: Failed to set color at (%d, %d)\n", x, y);
-#endif
+                errmsg("Failed to set color at (%d, %d)\n", x, y);
                 return FAILURE;
             }
 #ifdef DEBUG

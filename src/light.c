@@ -9,11 +9,44 @@
 #include <stdio.h>  // stderr, fprintf
 
 // This project
-#include "macro.h"
-#include "light.h"
-#include "color.h"
-#include "vector.h"
-#include "shape.h"
+#include "macro.h"  // SUCCESS, FAILURE
+#include "light.h"  // LIGHT
+#include "color.h"  // COLOR, color_Clamp ...
+#include "vector.h" // VECTOR
+#include "shape.h"  // SHAPE
+
+// Debugging libraries
+#include "debug.h"
+
+/*============================================================*
+ * Creation
+ *============================================================*/
+void light_CreatePoint(LIGHT *light, const POINT *where, const COLOR *color) {
+    // Creates a point light
+    vector_Copy(&light->where, where);
+    vector_Copy(&light->color, color);
+    light->type = LIGHT_POINT;
+    light->angle = 0.0;
+    vector_Set(&light->direction, 0, 0, 0);
+}
+
+void light_CreateDirected(LIGHT *light, const VECTOR *direction, const COLOR *color) {
+    // Creates a directional light
+    vector_Copy(&light->direction, direction);
+    vector_Copy(&light->color, color);
+    light->type = LIGHT_DIRECTED;
+    light->angle = 0.0;
+    vector_Set(&light->where, 0, 0, 0);
+}
+
+void light_CreateSpotlight(LIGHT *light, const POINT *where, const VECTOR *direction, double angle, const COLOR *color) {
+    // Creates a spotlight
+    vector_Copy(&light->where, where);
+    vector_Copy(&light->direction, direction);
+    vector_Copy(&light->color, color);
+    light->type = LIGHT_SPOT;
+    light->angle = angle;
+}
 
 /*============================================================*
  * Direction
@@ -41,9 +74,7 @@ int light_GetDirection(const LIGHT *light, const POINT *where, VECTOR *output, d
     
     case LIGHT_NONE:
     default:
-#ifdef VERBOSE
-        fprintf(stderr, "light_GetDirection failed: Light type undefined\n");
-#endif
+        errmsg("Light type undefined\n");
         return FAILURE;
     }
     
@@ -61,9 +92,7 @@ int light_BlinnPhongShade(const LIGHT *light, const COLLISION *collision, const 
     // Get the vector pointing from the collision to the light
     VECTOR to_light;
     if (light_GetDirection(light, &collision->where, &to_light, NULL) != SUCCESS) {
-#ifdef VERBOSE
-        fprintf(stderr, "light_BlinnPhongShade failed: Cannot get direction to light\n");
-#endif
+        errmsg("Cannot get direction to light\n");
         return FAILURE;
     }
     
@@ -86,15 +115,22 @@ int light_BlinnPhongShade(const LIGHT *light, const COLLISION *collision, const 
     vector_Add(&halfway, &to_light, &view);
     vector_Normalize(&halfway, &halfway);
     
+    // Get the diffuse color
+    COLOR object_color;
+    if (shape_GetColorAt(collision, &object_color) != SUCCESS) {
+        errmsg("Failed to get object color\n");
+        return FAILURE;
+    }
+    
     // Don't factor in ambient color at all
     VECTOR temp;
     const MATERIAL *material = collision->material;
-    color->x = color->y = color->z = 0.0;
+    vector_Set(color, 0, 0, 0);
     
     // Diffuse color components - clamp to positive
     double diffuse = vector_Dot(&collision->normal, &to_light) * material->diffuse;
     if (diffuse > 0.0) {
-        vector_Multiply(&temp, &material->color, diffuse);
+        vector_Multiply(&temp, &object_color, diffuse);
         vector_Add(color, color, &temp);
     }
     
@@ -107,15 +143,14 @@ int light_BlinnPhongShade(const LIGHT *light, const COLLISION *collision, const 
     }
     
 #ifdef DEBUG
-    fprintf(stderr, "light_BlinnPhongShade: Normal is (%lf, %lf, %lf)\n", collision->normal.x, collision->normal.y, collision->normal.z);
-    fprintf(stderr, "light_BlinnPhongShade: Eye is (%lf, %lf, %lf)\n", eye->x, eye->y, eye->z);
-    fprintf(stderr, "light_BlinnPhongShade: View is (%lf, %lf, %lf)\n", view.x, view.y, view.z);
-    fprintf(stderr, "light_BlinnPhongShade: Halfway is (%lf, %lf, %lf)\n", halfway.x, halfway.y, halfway.z);
-    fprintf(stderr, "light_BlinnPhongShade: Light is (%lf, %lf, %lf)\n", to_light.x, to_light.y, to_light.z);
-    fprintf(stderr, "light_BlinnPhongShade: Diffuse coefficient is %lf\n", diffuse);
-    fprintf(stderr, "light_BlinnPhongShade: Specular coefficient is %lf\n", specular);
-    fprintf(stderr, "light_BlinnPhongShade: Dot is %lf and dot^%d is %lf\n", dot, material->exponent, pow(dot, material->exponent));
-    
+    errmsg("Normal is (%lf, %lf, %lf)\n", collision->normal.x, collision->normal.y, collision->normal.z);
+    errmsg("Eye is (%lf, %lf, %lf)\n", eye->x, eye->y, eye->z);
+    errmsg("View is (%lf, %lf, %lf)\n", view.x, view.y, view.z);
+    errmsg("Halfway is (%lf, %lf, %lf)\n", halfway.x, halfway.y, halfway.z);
+    errmsg("Light is (%lf, %lf, %lf)\n", to_light.x, to_light.y, to_light.z);
+    errmsg("Diffuse coefficient is %lf\n", diffuse);
+    errmsg("Specular coefficient is %lf\n", specular);
+    errmsg("Dot is %lf and dot^%d is %lf\n", dot, material->exponent, pow(dot, material->exponent));
 #endif
     
     // Scale by light's own color

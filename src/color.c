@@ -5,7 +5,7 @@
  **************************************************************/
 
 // This project
-#include "color.h"
+#include "color.h"  // COLOR, RGB_MAX, RGB_MIN ...
 
 /*============================================================*
  * Convert RGB to COLOR

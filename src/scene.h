@@ -8,29 +8,45 @@
 #define _SCENE_H_
 
 // This project
-#include "macro.h"
-#include "image.h"
-#include "vector.h"
-#include "shape.h"
-#include "light.h"
+#include "image.h"      // IMAGE
+#include "vector.h"     // VECTOR
+#include "shape.h"      // SHAPE
+#include "light.h"      // LIGHT
+#include "mesh.h"       // MESH
 
-/*============================================================*
- * Constants
- *============================================================*/
-
-/// @def MIN_FOV
-/// @brief The minimum field of view
+/**********************************************************//**
+ * @def MIN_FOV
+ * @brief The minimum field of view
+ **************************************************************/
 #define MIN_FOV 0.0
 
-/// @def MAX_FOV
-/// @brief The maximum field of view
+/**********************************************************//**
+ * @def MAX_FOV
+ * @brief The maximum field of view
+ **************************************************************/
 #define MAX_FOV 180.0
+
+/**********************************************************//**
+ * @def PROJECT_PARALLEL
+ * @brief Render the scene with paralllel projection
+ **************************************************************/
+#define PROJECT_PARALLEL 1
+
+/**********************************************************//**
+ * @def PROJECT_PERSPECTIVE
+ * @brief Render the scene with perspective projection
+ **************************************************************/
+#define PROJECT_PERSPECTIVE 0
 
 /**********************************************************//**
  * @struct SCENE
  * @brief Struct for storing all scene data
  **************************************************************/
 typedef struct {
+    // Bit flags
+    int flags;      ///< Rendering flags
+    
+    // Required components
     POINT eye;          ///< Position of the eye in the scene
     VECTOR view;        ///< Direction the eye is pointing
     VECTOR up;          ///< Rotation of the camera
@@ -38,11 +54,33 @@ typedef struct {
     int width;          ///< Width of the image plane
     int height;         ///< Height of the image plane
     COLOR background;   ///< The default background color
+    
+    // Shapes
     int nshapes;        ///< How many shapes are in the scene
-    SHAPE *shapes;      ///< Array of all shapes in the scene
+    SHAPE **shapes;     ///< Array of all shapes in the scene
+    MESH mesh;          ///< Container for all FACE data
+    
+    // Lights
     int nlights;        ///< How many lights are in the scene
-    LIGHT *lights;      ///< Array of all lights in the scene
+    LIGHT **lights;     ///< Array of all lights in the scene
+    
+    // Onboard data storage for shapes
+    int nmaterials;         ///< How many materials?
+    MATERIAL **materials;   ///< Buffer shared SHAPE materials here
+    int ntextures;          ///< How many textures?
+    TEXTURE **textures;     ///< Buffer shared TEXTURE here
 } SCENE;
+
+/**********************************************************//**
+ * @brief Load a scene from a file. If this function succeeds
+ * you must destroy the SCENE with scene_Destroy. If this
+ * function fails all memory usage is cleaned up and you will
+ * not need to use scene_Destroy.
+ * @param scene: An uninitialized SCENE to read data into
+ * @param filename: The file to read data from
+ * @return SUCCESS or FAILURE
+ **************************************************************/
+extern int scene_Decode(SCENE *scene, const char *filename);
 
 /**********************************************************//**
  * @brief Get the eye position in the scene

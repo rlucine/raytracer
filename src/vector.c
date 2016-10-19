@@ -9,13 +9,22 @@
 #include <math.h>       // sqrt, acos, fabs, fmod ...
 
 // This project
-#include "vector.h"
+#include "vector.h" // VECTOR
 
 /*============================================================*
  * Zero Checking
  *============================================================*/
 static int double_IsZero(double what) {
     return fabs(what) < DBL_EPSILON;
+}
+
+/*============================================================*
+ * Setup
+ *============================================================*/
+void vector_Set(VECTOR *output, double x, double y, double z) {
+    output->x = x;
+    output->y = y;
+    output->z = z;
 }
 
 /*============================================================*

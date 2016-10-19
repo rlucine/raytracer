@@ -7,16 +7,16 @@
 #ifndef _MACRO_H_
 #define _MACRO_H_
 
-/*============================================================*
- * Constants
- *============================================================*/
-
-/// @def SUCCESS
-/// @brief Returned by functions if the operation succeeded
+/**********************************************************//**
+ * @def SUCCESS
+ * @brief Returned by functions if the operation succeeded
+ **************************************************************/
 #define SUCCESS 0
 
-/// @def FAILURE
-/// @brief Returned by functions if the operation failed
+/**********************************************************//**
+ * @def FAILURE
+ * @brief Returned by functions if the operation failed
+ **************************************************************/
 #define FAILURE -1
 
 /*============================================================*/

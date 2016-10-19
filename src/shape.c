@@ -13,10 +13,14 @@
 #include <float.h>      // DBL_EPSILON
 
 // This project
-#include "image.h"
-#include "vector.h"
-#include "shape.h"
-#include "tracemalloc.h"
+#include "macro.h"      // SUCCESS, FAILURE
+#include "image.h"      // IMAGE
+#include "vector.h"     // VECTOR, PLANE ...
+#include "shape.h"      // SHAPE
+#include "mesh.h"       // MESH, FACE ...
+
+// Debugging modules
+#include "debug.h"
 
 /*============================================================*
  * Shape creation
@@ -28,15 +32,13 @@ int shape_CreateSphere(SHAPE *shape, const SPHERE *sphere, const MATERIAL *mater
     // Copy data into the shape
     shape->data = malloc(sizeof(SPHERE));
     if (!shape->data) {
-#ifdef VERBOSE
-        fprintf(stderr, "shape_CreateSphere failed: Out of memory\n");
-#endif
+        errmsg("Out of memory\n");
         return FAILURE;
     }
     memcpy(shape->data, sphere, sizeof(SPHERE));
     
     // Copy material into shape
-    memcpy(&shape->material, material, sizeof(MATERIAL));
+    shape->material = material;
     return SUCCESS;
 }
 
@@ -47,15 +49,47 @@ int shape_CreateEllipsoid(SHAPE *shape, const ELLIPSOID *ellipsoid, const MATERI
     // Copy data into the shape
     shape->data = malloc(sizeof(ELLIPSOID));
     if (!shape->data) {
-#ifdef VERBOSE
-        fprintf(stderr, "shape_CreateEllipsoid failed: Out of memory\n");
-#endif
+        errmsg("Out of memory\n");
         return FAILURE;
     }
     memcpy(shape->data, ellipsoid, sizeof(ELLIPSOID));
     
     // Copy material into shape
-    memcpy(&shape->material, material, sizeof(MATERIAL));
+    shape->material = material;
+    return SUCCESS;
+}
+
+int shape_CreatePlane(SHAPE *shape, const PLANE *plane, const MATERIAL *material) {
+    // Initialize a new infinite plane
+    shape->shape = SHAPE_PLANE;
+    
+    // Copy data into the shape
+    shape->data = malloc(sizeof(PLANE));
+    if (!shape->data) {
+        errmsg("Out of memory\n");
+        return FAILURE;
+    }
+    memcpy(shape->data, plane, sizeof(PLANE));
+    
+    // Copy material into shape
+    shape->material = material;
+    return SUCCESS;
+}
+
+int shape_CreateFace(SHAPE *shape, const FACE *face, const MATERIAL *material) {
+    // Initialize a new triangle face
+    shape->shape = SHAPE_FACE;
+    
+    // Copy data into the shape
+    shape->data = malloc(sizeof(FACE));
+    if (!shape->data) {
+        errmsg("Out of memory\n");
+        return FAILURE;
+    }
+    memcpy(shape->data, face, sizeof(FACE));
+    
+    // Copy material into shape
+    shape->material = material;
     return SUCCESS;
 }
 
@@ -65,6 +99,7 @@ int shape_CreateEllipsoid(SHAPE *shape, const ELLIPSOID *ellipsoid, const MATERI
 void shape_Destroy(SHAPE *shape) {
     if (shape->data) {
         free(shape->data);
+        shape->data = NULL;
     }
     return;
 }
@@ -73,7 +108,11 @@ void shape_Destroy(SHAPE *shape) {
  * Shape accessors
  *============================================================*/
 const MATERIAL *shape_GetMaterial(const SHAPE *shape) {
-    return &shape->material;
+    return shape->material;
+}
+
+void shape_SetMaterial(SHAPE *shape, const MATERIAL *material) {
+    shape->material = material;
 }
 
 const SPHERE *shape_GetSphere(const SHAPE *shape) {
@@ -90,26 +129,18 @@ const ELLIPSOID *shape_GetEllipsoid(const SHAPE *shape) {
     return NULL;
 }
 
-/*============================================================*
- * Sphere accessors
- *============================================================*/
-static const POINT *sphere_GetCenter(const SPHERE *sphere) {
-    return &sphere->center;
+const PLANE *shape_GetPlane(const SHAPE *shape) {
+    if (shape->shape == SHAPE_PLANE) {
+        return (PLANE *)shape->data;
+    }
+    return NULL;
 }
 
-static double sphere_GetRadius(const SPHERE *sphere) {
-    return sphere->radius;
-}
-
-/*============================================================*
- * Ellipsoid accessors
- *============================================================*/
-static const POINT *ellipsoid_GetCenter(const ELLIPSOID *ellipsoid) {
-    return &ellipsoid->center;
-}
-
-static const VECTOR *ellipsoid_GetDimension(const ELLIPSOID *ellipsoid) {
-    return &ellipsoid->dimension;
+const FACE *shape_GetFace(const SHAPE *shape) {
+    if (shape->shape == SHAPE_FACE) {
+        return (FACE *)shape->data;
+    }
+    return NULL;
 }
 
 /*============================================================*
@@ -119,15 +150,11 @@ static int sphere_Collide(const SPHERE *sphere, const LINE *ray, COLLISION *resu
     
     // Error checking
     if (vector_IsZero(&ray->direction)) {
-#ifdef VERBOSE
-        fprintf(stderr, "sphere_Collide failed: direction is the null vector\n");
-#endif
+        errmsg("direction is the null vector\n");
         return FAILURE;
     }
-    if (sphere_GetRadius(sphere) <= 0.0) {
-#ifdef VERBOSE
-        fprintf(stderr, "sphere_Collide failed: Sphere radius nonpositive\n");
-#endif
+    if (sphere->radius <= 0.0) {
+        errmsg("Sphere radius nonpositive\n");
         return FAILURE;
     }
 
@@ -176,8 +203,16 @@ static int sphere_Collide(const SPHERE *sphere, const LINE *ray, COLLISION *resu
     vector_Add(&result->where, &result->where, &ray->origin);
     
     // Get normal vector at collision
-    vector_Subtract(&result->normal, &result->where, sphere_GetCenter(sphere));
+    vector_Subtract(&result->normal, &result->where, &sphere->center);
     vector_Normalize(&result->normal, &result->normal);
+    
+    // Get the texture at the collision site
+    result->texcoord.x = atan2(result->normal.x, result->normal.z) / (2*M_PI);
+    if (result->texcoord.x < 0.0) {
+        result->texcoord.x += 1.0;
+    }
+    result->texcoord.y = acos(result->normal.y)/M_PI;
+    result->texcoord.z = 0.0;
     
     // Done!
     return SUCCESS;
@@ -190,17 +225,13 @@ static int ellipsoid_Collide(const ELLIPSOID *ellipsoid, const LINE *ray, COLLIS
     
     // Error checking
     if (vector_IsZero(&ray->direction)) {
-#ifdef VERBOSE
-        fprintf(stderr, "ellipsoid_Collide failed: direction is the null vector\n");
-#endif
+        errmsg("direction is the null vector\n");
         return FAILURE;
     }
     
-    const VECTOR *dimension = ellipsoid_GetDimension(ellipsoid);
+    const VECTOR *dimension = &ellipsoid->dimension;
     if (dimension->x <= 0.0 || dimension->y <= 0.0 || dimension->z <= 0.0) {
-#ifdef VERBOSE
-        fprintf(stderr, "ellipsoid_Collide failed: Ellipsoid with negative dimension\n");
-#endif
+        errmsg("Ellipsoid with negative dimension\n");
         return FAILURE;
     }
 
@@ -260,13 +291,120 @@ static int ellipsoid_Collide(const ELLIPSOID *ellipsoid, const LINE *ray, COLLIS
     vector_Add(&result->where, &result->where, &ray->origin);
     
     // Get the normal vector at the collision site
-    vector_Subtract(&result->normal, &result->where, ellipsoid_GetCenter(ellipsoid));
+    vector_Subtract(&result->normal, &result->where, &ellipsoid->center);
     result->normal.x *= 2.0 / (dimension->x * dimension->x);
     result->normal.y *= 2.0 / (dimension->y * dimension->y);
     result->normal.z *= 2.0 / (dimension->z * dimension->z);
     vector_Normalize(&result->normal, &result->normal);
     
-    // Done
+    // TODO texture an ellipsoid!
+    vector_Set(&result->texcoord, 0, 0, 0);
+    return SUCCESS;
+}
+
+/*============================================================*
+ * Plane geometry
+ *============================================================*/
+static int plane_Collide(const PLANE *plane, const LINE *ray, COLLISION *result) {
+    
+    // Collide the ray with the plane
+    if (vector_IsZero(&ray->direction)) {
+        errmsg("direction is the null vector\n");
+        return FAILURE;
+    }
+    
+    // Get the unit direction of the ray
+    VECTOR unit;
+    vector_Normalize(&unit, &ray->direction);
+    
+    // Get the plane's normal vector
+    VECTOR normal;
+    vector_Cross(&normal, &plane->u, &plane->v);
+    vector_Normalize(&normal, &normal);
+    
+    // Determine where the ray and plane intersect
+    VECTOR offset;
+    vector_Subtract(&offset, &plane->origin, &ray->origin);
+    double tclosest, numerator, denominator = vector_Dot(&normal, &unit);
+    if (fabs(denominator) <= DBL_EPSILON) {
+        if (fabs(vector_Dot(&offset, &normal)) <= DBL_EPSILON) {
+            // Inside plane
+            numerator = 0.0;
+            tclosest = 0.0;
+        } else {
+            // Paralell to plane - no collision
+            result->how = COLLISION_NONE;
+            return SUCCESS;
+        }
+    } else {
+        numerator = vector_Dot(&normal, &offset);
+        tclosest = numerator / denominator;
+    }
+    
+    // Determine collision location
+    if (tclosest < 0.0) {
+        // The plane is behind the viewer - miss!
+        result->how = COLLISION_NONE;
+        return SUCCESS;
+    } else if (tclosest == 0.0) {
+        // Rarely happens
+        result->how = COLLISION_INSIDE;
+    } else {
+        result->how = COLLISION_SURFACE;
+    }
+    
+    // Determine where the collision is
+    result->distance = tclosest;
+    vector_Multiply(&result->where, &unit, tclosest);
+    vector_Add(&result->where, &result->where, &ray->origin);
+    
+    // Determine normal at collision site
+    vector_Copy(&result->normal, &normal);
+    
+    // TODO Texture the plane!
+    vector_Set(&result->texcoord, 0, 0, 0);
+    return SUCCESS;
+}
+
+/*============================================================*
+ * Face geometry
+ *============================================================*/
+static int face_Collide(const FACE *face, const LINE *ray, COLLISION *result) {
+    
+    // Get the plane of the face
+    PLANE plane;
+    if (face_GetPlane(face, &plane) != SUCCESS) {
+        errmsg("Unable to generate face plane\n");
+        return FAILURE;
+    }
+    
+    // Determine collision with the plane
+    if (plane_Collide(&plane, ray, result) != SUCCESS) {
+        errmsg("Unable to collide with face plane\n");
+        return FAILURE;
+    }
+    
+    // Determine if the point is in the face
+    if (result->how != COLLISION_NONE) {
+        if (!face_Contains(face, &result->where)) {
+            // It isn't actually in the face even though we collided the plane
+            result->how = COLLISION_NONE;
+            return SUCCESS;
+        }
+        
+        // Need to set up the proper collision normal now
+        if (face_GetNormalAt(face, &result->where, &result->normal) != SUCCESS) {
+            errmsg("Unable to interpolate face normal\n");
+            return FAILURE;
+        }
+        
+        // Set up texture coordinate if the face is textured at all
+        if (result->texture && face_GetTextureAt(face, &result->where, &result->texcoord) != SUCCESS) {
+            errmsg("Texture defined but missing texture coordinates\n");
+            return FAILURE;
+        }
+    }
+    
     return SUCCESS;
 }
 
@@ -276,7 +414,12 @@ static int ellipsoid_Collide(const ELLIPSOID *ellipsoid, const LINE *ray, COLLIS
 int shape_Collide(const SHAPE *shape, const LINE *ray, COLLISION *result) {
     
     // Get collision material
-    result->material = &shape->material;
+    if (shape->material == NULL) {
+        errmsg("No material defined for this shape\n");
+        return FAILURE;
+    }
+    result->material = shape->material;
+    result->texture = shape->material->texture;
     
     // Map to specific collision checking functions
     switch (shape->shape) {
@@ -285,16 +428,37 @@ int shape_Collide(const SHAPE *shape, const LINE *ray, COLLISION *result) {
         
     case SHAPE_ELLIPSOID:
         return ellipsoid_Collide((ELLIPSOID *)shape->data, ray, result);
+        
+    case SHAPE_PLANE:
+        return plane_Collide((PLANE *)shape->data, ray, result);
+        
+    case SHAPE_FACE:
+        return face_Collide((FACE *)shape->data, ray, result);
     
     case SHAPE_NONE:
     default:
         break;
     }
     
-#ifdef VERBOSE
-    fprintf(stderr, "shape_Collide failed: No collision for shape type %d\n", shape->shape);
-#endif
+    errmsg("No collision for shape type %d\n", shape->shape);
     return FAILURE;
+}
+
+/*============================================================*
+ * Texture shader
+ *============================================================*/
+int shape_GetColorAt(const COLLISION *collision, COLOR *color) {
+    
+    // Get the diffuse color
+    if (collision->material->texture != NULL) {
+        if (image_GetTexture(collision->material->texture, &collision->texcoord, color) != SUCCESS) {
+            errmsg("Unable to access texture data\n");
+            return FAILURE;
+        }
+    } else {
+        memcpy(color, &collision->material->color, sizeof(COLOR));
+    }
+    return SUCCESS;
 }
 
 /*============================================================*/

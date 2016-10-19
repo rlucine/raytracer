@@ -8,8 +8,19 @@
 #define _PPM_H_
 
 // This project
-#include "macro.h"
-#include "image.h"
+#include "image.h"  // IMAGE
+
+/**********************************************************//**
+ * @def PPM_MAX_COLOR
+ * @brief The maximum color value for a PPM image
+ **************************************************************/
+#define PPM_MAX_COLOR RGB_MAX
+
+/**********************************************************//**
+ * @def PPM_MAX_LINE
+ * @brief The maximum number of characters on a line of a PPM
+ **************************************************************/
+#define PPM_MAX_LINE 70
 
 /**********************************************************//**
  * @brief Encode a PPM structure as a P3 PPM image with
