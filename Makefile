@@ -1,6 +1,4 @@
-#####################################
 ######## CSci 5607 Makefile #########
-#####################################
 
 #========= Debug mode setup ========#
 # Comment one line only!
@@ -9,10 +7,10 @@
 # -DTRACE: Trace malloc and free
 
 # Uncomment this line for release
-#DEBUG := -DNDEBUG -UDEBUG -DVERBOSE -UTRACE
+DEBUG := -DNDEBUG -UDEBUG -DVERBOSE -UTRACE
 
 # Uncomment this line for debug
-DEBUG := -DDEBUG -DVERBOSE -DTRACE
+#DEBUG := -DDEBUG -DVERBOSE -DTRACE
 
 #===== Compiler / linker setup =====#
 CC := gcc
@@ -106,8 +104,13 @@ spotless: clean
 	-rm -rf $(DOC_DIR)
 
 #============= Turnin ==============#
+SCENES := data/checker.scene data/teapot.scene data/teapot_flat.scene data/teapot_parallel.scene data/earth.scene
+TEXTURES := data/texture/checker.ppm data/texture/earth.ppm
+IMAGES := $(wildcard data/image/*.png)
+WEB := README.md Doxyfile mainpage.html
+
 .PHONY: turnin
 turnin: $(TURNIN)
 
-$(TURNIN): $(CFILES) $(HFILES) README.md Doxyfile Makefile src/driver/main.c image/*.png data/art.scene mainpage.html
+$(TURNIN): $(CFILES) $(HFILES) $(SCENES) $(TEXTURES) $(IMAGES) $(WEB) src/driver/main.c
 	tar -cvf $@ $^
