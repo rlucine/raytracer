@@ -68,7 +68,7 @@ extern void light_CreateDirected(LIGHT *light, const VECTOR *direction, const CO
 /**********************************************************//**
  * @brief Set up a new spotlight.
  * @param light: The light to initialize.
- * @param where: The location the light shines from.
+ * @param point: The location the light shines from.
  * @param direction: The direction the light shines towards.
  * @param angle: The light will hit objects within this angle
  * of the direction parameter.
@@ -93,7 +93,7 @@ extern int light_GetDirection(const LIGHT *light, const POINT *where, VECTOR *ou
  * given collision location.
  * @param light: The light to calculate shading for
  * @param collision: The point of collision to check.
- * @param view: The view vector of the scene
+ * @param eye: The viewer's location in the scene
  * @param color: Output location for the color
  * @return SUCCESS or FAILURE
  **************************************************************/

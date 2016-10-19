@@ -77,9 +77,8 @@ extern int image_SetPixel(IMAGE *image, int x, int y, const RGB *color);
 /**********************************************************//**
  * @brief Treating the image as a texture, get the texture
  * color given texture coordinates.
- * @param image: The image data to read
- * @param u: The texture coordinate from 0 to 1
- * @param v: The texture coordinate from 0 to 1
+ * @param texture: The image data to read
+ * @param coord: The texture coordinate to look up.
  * @param color: Pointer to buffer to write the color in.
  * @return SUCCESS or FAILURE
  **************************************************************/

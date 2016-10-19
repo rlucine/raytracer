@@ -58,7 +58,7 @@ extern int raytrace_Cast(COLLISION *closest, const LINE *ray, const SCENE *scene
 /**********************************************************//**
  * @brief Determine how shadowed the collision is from the
  * given light within the scene.
- * @param where: The point to check
+ * @param collision: The collision to check
  * @param light: The light to check
  * @param scene: The scene the objects are in
  * @param shadows: Location to write the shadow amount to

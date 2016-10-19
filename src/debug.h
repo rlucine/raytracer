@@ -1,11 +1,11 @@
 /**********************************************************//**
  * @file debug.h
- * @brief Debugging memory errors. The TRACE macro must be
- * enabled on the command-line to enable this module in files
- * that include it.
+ * @brief Debugging macros.
  * This module defines macros to shadow malloc, calloc, realloc
  * and free and prints data to stderr about what blocks are
- * being allocated.
+ * being allocated. These are enabled by defining TRACE.
+ * This also defines an error-printing function that is enabled
+ * vy defining VERBOSE.
  * @author Alec Shinomiya
  **************************************************************/
 
@@ -39,7 +39,9 @@ extern void *debug_malloc(size_t size, const char *file, int line, const char *f
 /**********************************************************//**
  * @brief Trace a call to free
  * @param ptr: The block of memory to free
- * @param where: The function invoking this call
+ * @param file: The file invoking this call.
+ * @param line: The line number of the file.
+ * @param function: The function invoking this call
  **************************************************************/
 extern void debug_free(void *ptr, const char *file, int line, const char *function);
 
@@ -47,7 +49,9 @@ extern void debug_free(void *ptr, const char *file, int line, const char *functi
  * @brief Trace a call to calloc
  * @param nmemb: Number of members to allocate
  * @param size: Size of each member
- * @param where: The function invoking this call
+ * @param file: The file invoking this call.
+ * @param line: The line number of the file.
+ * @param function: The function invoking this call
  * @return Result of calloc(nmemb, size)
  **************************************************************/
 extern void *debug_calloc(size_t nmemb, size_t size, const char *file, int line, const char *function);
@@ -56,18 +60,22 @@ extern void *debug_calloc(size_t nmemb, size_t size, const char *file, int line,
  * @brief Trace a call to realloc
  * @param ptr: The block to reallocate
  * @param size: Size of block being allocated
- * @param where: The function invoking this call
+ * @param file: The file invoking this call.
+ * @param line: The line number of the file.
+ * @param function: The function invoking this call
  * @return Result of realloc(size)
  **************************************************************/
 extern void *debug_realloc(void *ptr, size_t size, const char *file, int line, const char *function);
 
-/*============================================================*
- * Debug printing
- *============================================================*/
+/**********************************************************//**
+ * @brief Print an error message.
+ * @param str: printf-style format string.
+ * @param ...: printf-style format tokens.
+ **************************************************************/
 #ifdef VERBOSE
-#define errmsg(...) fprintf(stderr, "%s: ", __func__); fprintf(stderr, __VA_ARGS__)
+#define errmsg(str, ...) fprintf(stderr, "%s: ", __func__); fprintf(stderr, str, __VA_ARGS__)
 #else
-#define errmsg(...) (void)0
+#define errmsg(str, ...) (void)0
 #endif
 
 /*============================================================*/

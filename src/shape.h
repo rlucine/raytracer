@@ -215,7 +215,7 @@ extern int shape_Collide(const SHAPE *shape, const LINE *ray, COLLISION *result)
 /**********************************************************//**
  * @brief Get the true color of the shape at the given
  * collision.
- * @param colision: A collision with a shape.
+ * @param collision: A collision with a shape.
  * @param color: Output location for the color.
  * @return SUCCESS or FAILURE
  **************************************************************/
