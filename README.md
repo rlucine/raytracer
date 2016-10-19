@@ -1,22 +1,4 @@
 # CSci 5607
-Here is the example image for this submission. This was generated using `data/art.scene` as the input file. The image size has been increased to 1000 by 1000.
-<br/>
-<img src="image/art.png">
-
-## Extra credit
-The image above uses smooth shadowing extensively. I also implemented a spot light.<br/>
-<img src="image/spotlight.png">
-
-## Writeup
-The ambient component of the material color increases the lightness of areas of a shape that are not directly illuminated. `0` makes these areas invisible, while `1` makes these areas the same color as the whole shape. The diffuse component increases the intensity of illuminated areas on the shape - `0` removes this entirely and `1` is the maximal intensity. The specular component similarly changes the intensity of reflected light from the shape, using the shape's highlight color instead of normal color. The specular exponent changes how sharp the area is: `0` is dull and increasing numbers cause the highlight to become smaller.
-
-<img src="image/ambient.png">
-<img src="image/diffuse.png">
-<img src="image/specular_large.png">
-<img src="image/specular_small.png">
-<img src="image/test.png">
-<br/>
-These are images of the same sphere with the parameters changed. The sphere is pure red with a  pure white highlight color. The first three images are entirely lit by ambient, diffuse, and specular light respectively. The fourth image deomstrates a higher specular exponent. The final image has combined all three forms of light.
 
 ## Building
 This assignment was programmed in C and compiled on Windows using `gcc` via MinGW64. The standard `-std=gnu99` is now enforced by the `Makefile`. It is verified that this code compiles on the CSELabs computers.
@@ -40,9 +22,11 @@ In this format, `<vector>` refers to a list of 3 decimals separated by whitespac
 * `fovv <decimal>`: The vertical field of view in degrees. Decreased field of view correlates with zooming in from the eye.
 * `imsize <integer> <integer>`: The dimensions of the image. Must be positive integers. Decimals will be rounded down. The proportion of the shapes in the image will not change but increased resolution is acquired at higher sizes.
 * `bkgcolor <color>`: The background color.
+* `parallel`: Render the scene using paralell projection.
 
 #### Material properties
 * `mtlcolor <color> <color> ka kd ks n`: The color of all subsequent shapes. May be redefined arbitrarily, but must be defined before any shapes. The first color is the diffuse color and the second is the specular highlight color. The `ka`, `kd`, and `ks` are respectively the ambient, diffuse, and specular reflectivity of the objects. `n` is the specular exponent.
+* `texture <filename>`: This loads the given P3 PPM file as a texture and applies it to all subsequent images. It assumes the filename is rooted at the current directory.
 
 #### Light definitions
 * `light <vector> type <color>`: If the `type` is `0`, this creates a directed light in the direction of the vector. If the `type` is `1` this creates a point light by interpreting the vector as a point. The light has the given color.
@@ -51,6 +35,10 @@ In this format, `<vector>` refers to a list of 3 decimals separated by whitespac
 #### Shape definitions
 * `sphere <vector> <decimal>`: A sphere with the given center and radius. Nonpositive radius will cause the sphere to become invisible.
 * `ellipsoid <vector> <vector>`: An ellipsoid with the given center and dimension vector. Nonpositive dimensions will cause errors.
+* `v <vector>`: Defines a vertex at the point. Vertexes are referred to by index and begin from 1.
+* `vt <x> <y>`: Defines a texture coordinate `x, y`. Texture coordinates are defined by index and begin from 1. These are required if a texture is defined before any vertexes.
+* `vn <vector>`: Defines a vertex normal. These are optional, and are indexed from 1.
+* `f v1/t1/n1 v2/t2/n2 v3/t3/n3`: Defines a triangular face using right-hand rule. Texture coordinates and normals may be omitted. If both are omitted, the slash craracters may be removed, otherwise the slash characters `/` must remain.
 
 ## Executing
 To execute the program, run `./main.exe input.scene` where `input.scene` is a valid text file in the format described above, located anywhere on the file system. This will generate a file with the same base name as the input file and the suffix `.ppm` which shall be a P3-encoded ASCII PPM image containing the rendered scene. Render time will increase as the image size and number of objects increase.
