@@ -37,7 +37,7 @@ int image_Create(IMAGE *image, int width, int height) {
     
     // Allocate the image data chunk
     size_t size = sizeof(RGB)*width*height;
-    if (size < 0 || size > INT_MAX) {
+    if ((long)size < 0 || (long)size > INT_MAX) {
         errmsg("%d by %d image is too large\n", width, height);
         return FAILURE;
     }

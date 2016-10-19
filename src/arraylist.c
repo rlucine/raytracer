@@ -62,7 +62,7 @@ void *arraylist_At(ARRAYLIST *list, int index) {
         return NULL;
     }
     
-    if (index < 0 || index >= list->maxlength) {
+    if (index < 0 || index >= (int)list->maxlength) {
         errmsg("Index %d out of bounds\n", index);
         return NULL;
     }
