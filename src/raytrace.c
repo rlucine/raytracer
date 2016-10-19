@@ -45,7 +45,7 @@ static int raytrace_GetView(VIEWPLANE *view, double view_distance, const SCENE *
     
     // Get the fields of view and plane dimensions
     double fov_vertical = M_PI * scene_GetFieldOfView(scene) / 180.0;
-    double height = 2.0*view_distance*tan(fov_vertical / 2.0);
+    double height = 2.0*tan(fov_vertical / 2.0);
     double width = height * aspect;
     
     // Get the u basis vector
@@ -70,9 +70,8 @@ static int raytrace_GetView(VIEWPLANE *view, double view_distance, const SCENE *
     vector_Multiply(&dv, &view->v, height / 2.0);
     
     // Get the distance to the viewing plane
-    vector_Copy(&distance, scene_GetViewDirection(scene));
     vector_Normalize(&distance, scene_GetViewDirection(scene));
-    vector_Multiply(&distance, &distance, view_distance / vector_Magnitude(&distance));
+    vector_Multiply(&distance, &distance, view_distance);
     
     // Get the center point of the viewing plane
     vector_Add(&view->center, scene_GetEyePosition(scene), &distance);
@@ -343,6 +342,7 @@ int raytrace_Render(IMAGE *image, const SCENE *scene) {
         while (x < width) {
             if (scene->flags & PROJECT_PARALLEL) {
                 // Parallel direction is always the same
+                vector_Copy(&ray.origin, &target);
                 vector_Normalize(&ray.direction, scene_GetViewDirection(scene));
             } else {
                 // Perspective aimed at target
