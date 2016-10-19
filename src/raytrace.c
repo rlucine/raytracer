@@ -32,22 +32,21 @@ typedef struct {
     VECTOR v;       // Unit vector v
     double width;   // Real width of the viewing plane
     double height;  // Real height of the viewing plane
+    POINT center;   // The center of the viewing plane
 } VIEWPLANE;
 
 /*============================================================*
  * Get the viewing plane
  *============================================================*/
-static int raytrace_GetView(VIEWPLANE *view, const SCENE *scene) {
+static int raytrace_GetView(VIEWPLANE *view, double view_distance, const SCENE *scene) {
     
     // Get the aspect ratio
     double aspect = (double)scene_GetWidth(scene) / (double)scene_GetHeight(scene);
     
     // Get the fields of view and plane dimensions
     double fov_vertical = M_PI * scene_GetFieldOfView(scene) / 180.0;
-    double height = 2.0*VIEW_DISTANCE*tan(fov_vertical / 2.0);
+    double height = 2.0*view_distance*tan(fov_vertical / 2.0);
     double width = height * aspect;
-    double fov_horizontal = 2.0 * atan(width / (2.0 * VIEW_DISTANCE));
-    (void)fov_horizontal;
     
     // Get the u basis vector
     vector_Cross(&view->u, scene_GetViewDirection(scene), scene_GetUpDirection(scene));
@@ -65,13 +64,20 @@ static int raytrace_GetView(VIEWPLANE *view, const SCENE *scene) {
         return FAILURE;
     }
     
-    // Get the upper left corner of the plane
+    // Get the offset to the upper left
     VECTOR du, dv, distance;
     vector_Multiply(&du, &view->u, width / -2.0);
     vector_Multiply(&dv, &view->v, height / 2.0);
+    
+    // Get the distance to the viewing plane
     vector_Copy(&distance, scene_GetViewDirection(scene));
     vector_Normalize(&distance, scene_GetViewDirection(scene));
-    vector_Multiply(&distance, &distance, VIEW_DISTANCE / vector_Magnitude(&distance));
+    vector_Multiply(&distance, &distance, view_distance / vector_Magnitude(&distance));
+    
+    // Get the center point of the viewing plane
+    vector_Add(&view->center, scene_GetEyePosition(scene), &distance);
+    
+    // Get the upper left corner
     vector_Copy(&view->origin, scene_GetEyePosition(scene));
     vector_Add(&view->origin, &view->origin, &distance);
     vector_Add(&view->origin, &view->origin, &du);
@@ -280,15 +286,20 @@ int raytrace_Render(IMAGE *image, const SCENE *scene) {
     
     // Get the scene view
     VIEWPLANE view;
-    if (raytrace_GetView(&view, scene) != SUCCESS) {
+    double distance = VIEW_DISTANCE;
+    if (scene->flags & PROJECT_PARALLEL) {
+        distance = 0.0;
+    }
+    if (raytrace_GetView(&view, distance, scene) != SUCCESS) {
         errmsg("Failed to generate viewing plane\n");
         return FAILURE;
     }
     
 #ifdef DEBUG
-    fprintf(stderr, "raytrace_Render: Viewing plane origin is (%lf, %lf, %lf)\n", view.origin.x, view.origin.y, view.origin.z);
-    fprintf(stderr, "raytrace_Render: Viewing plane u is (%lf, %lf, %lf)\n", view.u.x, view.u.y, view.u.z);
-    fprintf(stderr, "raytrace_Render: Viewing plane v is (%lf, %lf, %lf)\n", view.v.x, view.v.y, view.v.z);
+    errmsg("Viewing plane origin is (%lf, %lf, %lf)\n", view.origin.x, view.origin.y, view.origin.z);
+    errmsg("Viewing plane u is (%lf, %lf, %lf)\n", view.u.x, view.u.y, view.u.z);
+    errmsg("Viewing plane v is (%lf, %lf, %lf)\n", view.v.x, view.v.y, view.v.z);
+    errmsg("Viewing plane size is %lf by %lf\n", view.width, view.height);
 #endif
     
     // Get the image output
@@ -301,7 +312,7 @@ int raytrace_Render(IMAGE *image, const SCENE *scene) {
     int width = image_GetWidth(image);
     int height = image_GetHeight(image);
     
-    // Establish the ray origin and direction
+    // This is the ray to shoot
     LINE ray;
     vector_Copy(&ray.origin, scene_GetEyePosition(scene));
     
@@ -330,17 +341,19 @@ int raytrace_Render(IMAGE *image, const SCENE *scene) {
     while (y < height) {
         x = 0;
         while (x < width) {
-#ifdef DEBUG
-            fprintf(stderr, "raytrace_Render: At pixel (%d, %d)\n", x, y);
-            fprintf(stderr, "raytrace_Render: At point (%lf, %lf, %lf)\n", target.x, target.y, target.z);
-#endif
-
-            // Get the direction from the eye to the target
-            vector_Subtract(&ray.direction, &target, scene_GetEyePosition(scene));
-            vector_Normalize(&ray.direction, &ray.direction);
+            if (scene->flags & PROJECT_PARALLEL) {
+                // Parallel direction is always the same
+                vector_Normalize(&ray.direction, scene_GetViewDirection(scene));
+            } else {
+                // Perspective aimed at target
+                vector_Subtract(&ray.direction, &target, scene_GetEyePosition(scene));
+                vector_Normalize(&ray.direction, &ray.direction);
+            }
             
 #ifdef DEBUG
-            fprintf(stderr, "raytrace_Render: Casting in direction (%lf, %lf, %lf)\n", ray.direction.x, ray.direction.y, ray.direction.z);
+            errmsg("Ray (%d, %d)\n", x, y);
+            errmsg("Origin (%lf, %lf, %lf)\n", ray.origin.x, ray.origin.y, ray.origin.z);
+            errmsg("Direction (%lf, %lf, %lf)\n", ray.direction.x, ray.direction.y, ray.direction.z);
 #endif
             
             // Cast this ray
@@ -353,7 +366,7 @@ int raytrace_Render(IMAGE *image, const SCENE *scene) {
             if (collision.how != COLLISION_NONE) {
                 // Collided with the surface of the shape
                 if (raytrace_Shade(&color, &collision, scene) != SUCCESS) {
-                            errmsg("Shader failed\n");
+                    errmsg("Shader failed\n");
                     return FAILURE;
                 }
                 
