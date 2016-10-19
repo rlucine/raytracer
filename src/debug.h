@@ -69,13 +69,12 @@ extern void *debug_realloc(void *ptr, size_t size, const char *file, int line, c
 
 /**********************************************************//**
  * @brief Print an error message.
- * @param str: printf-style format string.
- * @param ...: printf-style format tokens.
+ * @param ...: printf-style format string and tokens.
  **************************************************************/
 #ifdef VERBOSE
-#define errmsg(str, ...) fprintf(stderr, "%s: ", __func__); fprintf(stderr, str, __VA_ARGS__)
+#define errmsg(...) fprintf(stderr, "%s: ", __func__); fprintf(stderr, __VA_ARGS__)
 #else
-#define errmsg(str, ...) (void)0
+#define errmsg(...) (void)0
 #endif
 
 /*============================================================*/
