@@ -322,6 +322,8 @@ static const char *parse_Material(PARSER_DATA *data, const char *string) {
     failure = failure || (where = scanner_ParseDouble(where, &material->diffuse)) == NULL;
     failure = failure || (where = scanner_ParseDouble(where, &material->specular)) == NULL;
     failure = failure || (where = scanner_ParseDouble(where, &exponent)) == NULL;
+    failure = failure || (where = scanner_ParseDouble(where, &material->opacity)) == NULL;
+    failure = failure || (where = scanner_ParseDouble(where, &material->refraction)) == NULL;
     if (failure) {
         free(material);
         return NULL;

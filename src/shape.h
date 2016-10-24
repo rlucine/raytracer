@@ -54,6 +54,8 @@ typedef struct {
     double specular;        ///< The specular reflectivity of the object
     int exponent;           ///< The size of the specular highlight
     const TEXTURE *texture; ///< The texture to apply to the shape
+    double opacity;         ///< The object's opacity
+    double refraction;      ///< The object's index of refraction
 } MATERIAL;
 
 /**********************************************************//**
