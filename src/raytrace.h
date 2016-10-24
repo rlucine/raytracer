@@ -47,6 +47,20 @@
 #define SHADOW_PRECISION 1
 
 /**********************************************************//**
+ * @def INITIAL_REFRACTION
+ * @brief The index of refraction of the material
+ * containing the eye
+ **************************************************************/
+#define INITIAL_REFRACTION 1.0
+
+/**********************************************************//**
+ * @def RECURSION_DEPTH
+ * @brief The maximum recursion depth for recursive ray
+ * tracing.
+ **************************************************************/
+#define RECURSION_DEPTH 5
+
+/**********************************************************//**
  * @brief Shoot one ray into the scene and get a COLLISION.
  * @param closest: Output location of the closest collision.
  * @param ray: The ray to shoot.
@@ -71,9 +85,10 @@ extern int raytrace_Shadow(double *shadows, const COLLISION *collision, const LI
  * @param color: The color at the collision
  * @param collision: The collision to deal with
  * @param scene: The scene the collision is in
+ * @param depth: The maximum recursion depth.
  * @return SUCCESS or FAILURE
  **************************************************************/
-extern int raytrace_Shade(COLOR *color, const COLLISION *collision, const SCENE *scene);
+extern int raytrace_Shade(COLOR *color, const COLLISION *collision, const SCENE *scene, int depth);
 
 /**********************************************************//**
  * @brief Render the SCENE using a raytracing algorithm

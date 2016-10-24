@@ -7,7 +7,7 @@
 // Standard library
 #include <stdlib.h>     // rand, RAND_MAX
 #include <string.h>     // memcpy
-#include <math.h>       // tan, atan, INFINITY ...
+#include <math.h>       // pow, tan, atan, INFINITY ...
 #include <stdio.h>      // fprintf, stderr ...
 #include <assert.h>     // assert
 #include <float.h>      // DBL_EPSILON
@@ -222,7 +222,7 @@ int raytrace_Shadow(double *shadows, const COLLISION *collision, const LIGHT *li
 /*============================================================*
  * Shader
  *============================================================*/
-int raytrace_Shade(COLOR *color, const COLLISION *collision, const SCENE *scene) {
+int raytrace_Shade(COLOR *color, const COLLISION *collision, const SCENE *scene, int depth) {
     
     // Get the diffuse color
     COLOR object_color;
@@ -272,9 +272,53 @@ int raytrace_Shade(COLOR *color, const COLLISION *collision, const SCENE *scene)
         // Add light contributions
         vector_Add(color, color, &temp);
     }
-    
-    // Added contribution for every light
     color_Clamp(color);
+
+    // Get the normal which is in the same direction as the incident
+    // vector so we do not have erroneous refraction / reflection
+    VECTOR reflection_normal;
+    if (vector_Dot(&collision->normal, &collision->incident) < 0) {
+        vector_Negate(&reflection_normal, &collision->normal);
+    } else {
+        vector_Copy(&reflection_normal, &collision->normal);
+    }
+
+    if (depth < RECURSION_DEPTH) {
+        // Determine the Fresnel reflectance
+        // TODO possibly a more efficient pow(x, 5)?
+        double refraction = material->refraction;
+        double fresnel = refraction + (1.0 - refraction) * pow(1 - vector_Dot(&reflection_normal, &collision->incident), 5);
+        
+        // Get the reflection ray's direction
+        LINE reflection;
+        vector_Multiply(&reflection.direction, &reflection_normal, 2.0*vector_Dot(&reflection_normal, &collision->incident));
+        vector_Subtract(&reflection.direction, &reflection.direction, &collision->incident);
+        
+        // The reflection ray's position is the current collision
+        vector_Copy(&reflection.origin, &collision->where);
+
+        // Shoot the reflection ray
+        COLLISION reflection_collision;
+        if (raytrace_Cast(&reflection_collision, &reflection, scene) != SUCCESS) {
+            errmsg("Failed to shoot reflection ray\n");
+            return FAILURE;
+        }
+
+        // Recursively shade the reflection color
+        COLOR reflection_color;
+        if (reflection_collision.how != COLLISION_NONE) {
+            if (raytrace_Shade(&reflection_color, &reflection_collision, scene, depth+1) != SUCCESS) {
+                errmsg("Failed to shade the reflection ray\n");
+                return FAILURE;
+            }
+
+            // Incorporate the reflected color into the result
+            vector_Multiply(&reflection_color, &reflection_color, fresnel);
+            vector_Add(color, color, &reflection_color);
+            color_Clamp(color);
+        }
+    }
+
     return SUCCESS;
 }
 
@@ -365,7 +409,7 @@ int raytrace_Render(IMAGE *image, const SCENE *scene) {
             // Determine color
             if (collision.how != COLLISION_NONE) {
                 // Collided with the surface of the shape
-                if (raytrace_Shade(&color, &collision, scene) != SUCCESS) {
+                if (raytrace_Shade(&color, &collision, scene, 0) != SUCCESS) {
                     errmsg("Shader failed\n");
                     return FAILURE;
                 }
