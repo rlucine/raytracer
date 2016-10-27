@@ -120,18 +120,9 @@ int raytrace_Cast(COLLISION *closest, const LINE *ray, const SCENE *scene) {
         
         // Check distance - closest is either first shape or the current shape
         // if the current shape is closer (but not behind) us.
-        switch(current.how) {
-        case COLLISION_SURFACE:
-        case COLLISION_INSIDE:
-            if (current.distance >= COLLISION_THRESHOLD && (n == 0 || current.distance < closest->distance)) {
-                memcpy(closest, &current, sizeof(COLLISION));
-                who = n;
-            }
-            break;
-        
-        case COLLISION_NONE:
-        default:
-            break;
+        if (current.how != COLLISION_NONE && current.distance >= COLLISION_THRESHOLD && (n == 0 || current.distance < closest->distance)) {
+            memcpy(closest, &current, sizeof(COLLISION));
+            who = n;
         }
         n++;
     }
@@ -165,15 +156,9 @@ int raytrace_Cast(COLLISION *closest, const LINE *ray, const SCENE *scene) {
 }
 
 /*============================================================*
- * Shadowing
+ * Recursive ray tracing (shadows)
  *============================================================*/
-static double uniform(double a, double b) {
-    // Generate random double for perturbation
-    double unit = (double)rand() / (double)(RAND_MAX - 1);
-    return a + (b - a)*unit;
-}
-
-int raytrace_Shadow(double *shadows, const COLLISION *collision, const LIGHT *light, const SCENE *scene) {
+static int raytrace_Shadow(double *shadows, const COLLISION *collision, const LIGHT *light, const SCENE *scene) {
     
     // Set up ray pointing to light
     LINE ray;
@@ -184,38 +169,77 @@ int raytrace_Shadow(double *shadows, const COLLISION *collision, const LIGHT *li
         return FAILURE;
     }
     
-    // Fire all the rays
+    // Fire the shadow ray
     COLLISION shadow;
-    VECTOR perturb;
-    int nrays, hits = 0;
-    for (nrays=0; nrays < SHADOW_PRECISION; nrays++) {
-        // Shoot one ray - the first one is always unperturbed
-        if (raytrace_Cast(&shadow, &ray, scene) != SUCCESS) {
-            errmsg("Failed to shoot shadow ray\n");
+    if (raytrace_Cast(&shadow, &ray, scene) != SUCCESS) {
+        errmsg("Failed to shoot shadow ray\n");
+        return FAILURE;
+    }
+    
+    // Check collisions
+    if ((shadow.how != COLLISION_NONE) && (shadow.distance < distance) && (shadow.distance > COLLISION_THRESHOLD)) {
+        // Something in between the light and us, and it isn't ourself!
+        *shadows = 0.0;
+    } else {
+        *shadows = 1.0;
+    }
+    return SUCCESS;
+}
+
+/*============================================================*
+ * Recursive ray tracing (reflections)
+ *============================================================*/
+static int raytrace_Reflection(COLOR *color, const COLLISION *collision, const SCENE *scene, int depth) {
+    
+    // Stack overflow
+    if (depth > RECURSION_DEPTH) {
+        vector_Set(color, 0, 0, 0);
+        return SUCCESS;
+    }
+    
+    // Get the normal which is in the same direction as the incident
+    // vector so we do not have erroneous refraction / reflection
+    VECTOR reflection_normal;
+    if (vector_Dot(&collision->normal, &collision->incident) < 0) {
+        vector_Negate(&reflection_normal, &collision->normal);
+    } else {
+        vector_Copy(&reflection_normal, &collision->normal);
+    }
+    
+    // Efficient computation of Fresnel reflectance
+    const MATERIAL *material = collision->material;
+    double pow1 = 1 - vector_Dot(&reflection_normal, &collision->incident);
+    double pow2 = pow1 * pow1;
+    double pow5 = pow2 * (pow1 * pow2);
+    double fresnel = material->refraction + (1.0 - material->refraction)*pow5;
+    
+    // Get the reflection ray's direction
+    LINE reflection;
+    vector_Multiply(&reflection.direction, &reflection_normal, 2.0*vector_Dot(&reflection_normal, &collision->incident));
+    vector_Subtract(&reflection.direction, &reflection.direction, &collision->incident);
+    
+    // The reflection ray's position is the current collision
+    vector_Copy(&reflection.origin, &collision->where);
+
+    // Shoot the reflection ray
+    COLLISION reflection_collision;
+    if (raytrace_Cast(&reflection_collision, &reflection, scene) != SUCCESS) {
+        errmsg("Failed to shoot reflection ray\n");
+        return FAILURE;
+    }
+
+    // Recursively shade the reflection color
+    if (reflection_collision.how != COLLISION_NONE) {
+        if (raytrace_Shade(color, &reflection_collision, scene, depth+1) != SUCCESS) {
+            errmsg("Failed to shade the reflection ray\n");
             return FAILURE;
         }
         
-        // Check collisions
-        if ((shadow.how != COLLISION_NONE) && (shadow.distance < distance) && (shadow.distance > COLLISION_THRESHOLD)) {
-            // Something in between the light and us, and it isn't ourself!
-            hits++;
-        }
-        
-        // Perturb the origin of the ray
-        perturb.x = uniform(-PERTURB_DISTANCE, PERTURB_DISTANCE);
-        perturb.y = uniform(-PERTURB_DISTANCE, PERTURB_DISTANCE);
-        perturb.z = uniform(-PERTURB_DISTANCE, PERTURB_DISTANCE);
-        
-        // Check that we only perturb in the hemisphere towards the collision
-        // No clipping behind the object!
-        if (vector_Dot(&perturb, &collision->normal) > 0) {
-            vector_Add(&ray.origin, &collision->where, &perturb);
-        } else {
-            vector_Subtract(&ray.origin, &collision->where, &perturb);
-        }
+        // Scale component with reflectivity
+        vector_Multiply(color, color, fresnel);
+    } else {
+        vector_Set(color, 0, 0, 0);
     }
-    
-    *shadows = 1.0 - ((double)hits / (double)SHADOW_PRECISION);
     return SUCCESS;
 }
 
@@ -235,15 +259,11 @@ int raytrace_Shade(COLOR *color, const COLLISION *collision, const SCENE *scene,
     const MATERIAL *material = collision->material;
     vector_Multiply(color, &object_color, material->ambient);
     
-    // Setup
+    // Shade color for all lights
     COLOR temp;
     double shadows;
-    
-    // Loop over every light
-    int i;
-    int max = scene_GetNumberOfLights(scene);
     const LIGHT *light;
-    for (i = 0; i < max; i++) {
+    for (int i = 0; i < scene_GetNumberOfLights(scene); i++) {
         // Check for shadows
         light = scene_GetLight(scene, i);
         
@@ -252,71 +272,35 @@ int raytrace_Shade(COLOR *color, const COLLISION *collision, const SCENE *scene,
             errmsg("Failed to check shadows\n");
             return FAILURE;
         }
-        
-        // Optimization - skip shader if shadowed
         if (shadows < SHADOW_THRESHOLD) {
             continue;
         }
         
         // Get shading for this light
         if (light_BlinnPhongShade(light, collision, &scene->eye, &temp) != SUCCESS) {
-#ifdef DEBUG
-            fprintf(stderr, "raytrace_Shade: Shape outside of light area\n");
-#endif
             continue;
         }
-        
-        // Scale light by shadows
         vector_Multiply(&temp, &temp, shadows);
-        
-        // Add light contributions
         vector_Add(color, color, &temp);
     }
     color_Clamp(color);
 
-    // Get the normal which is in the same direction as the incident
-    // vector so we do not have erroneous refraction / reflection
-    VECTOR reflection_normal;
-    if (vector_Dot(&collision->normal, &collision->incident) < 0) {
-        vector_Negate(&reflection_normal, &collision->normal);
-    } else {
-        vector_Copy(&reflection_normal, &collision->normal);
-    }
-
+    // Recursive ray tracing?
     if (depth < RECURSION_DEPTH) {
-        // Determine the Fresnel reflectance
-        // TODO possibly a more efficient pow(x, 5)?
-        double refraction = material->refraction;
-        double fresnel = refraction + (1.0 - refraction) * pow(1 - vector_Dot(&reflection_normal, &collision->incident), 5);
-        
-        // Get the reflection ray's direction
-        LINE reflection;
-        vector_Multiply(&reflection.direction, &reflection_normal, 2.0*vector_Dot(&reflection_normal, &collision->incident));
-        vector_Subtract(&reflection.direction, &reflection.direction, &collision->incident);
-        
-        // The reflection ray's position is the current collision
-        vector_Copy(&reflection.origin, &collision->where);
-
-        // Shoot the reflection ray
-        COLLISION reflection_collision;
-        if (raytrace_Cast(&reflection_collision, &reflection, scene) != SUCCESS) {
-            errmsg("Failed to shoot reflection ray\n");
+        // Determine any reflections
+        COLOR reflection_color;
+        if (raytrace_Reflection(&reflection_color, collision, scene, depth) != SUCCESS) {
+            errmsg("Failed to get reflection color\n");
             return FAILURE;
         }
-
-        // Recursively shade the reflection color
-        COLOR reflection_color;
-        if (reflection_collision.how != COLLISION_NONE) {
-            if (raytrace_Shade(&reflection_color, &reflection_collision, scene, depth+1) != SUCCESS) {
-                errmsg("Failed to shade the reflection ray\n");
-                return FAILURE;
-            }
-
-            // Incorporate the reflected color into the result
-            vector_Multiply(&reflection_color, &reflection_color, fresnel);
-            vector_Add(color, color, &reflection_color);
-            color_Clamp(color);
-        }
+        
+        // Incorporate the reflected color into the result
+        vector_Add(color, color, &reflection_color);
+        color_Clamp(color);
+        
+        // Determine any transparency
+        COLOR transparent_color;
+        (void)transparent_color;
     }
 
     return SUCCESS;

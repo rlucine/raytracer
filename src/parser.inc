@@ -1165,6 +1165,7 @@ int scene_Decode(SCENE *scene, const char *filename) {
         errmsg("Highlight is (%lf, %lf, %lf)\n", material->highlight.x, material->highlight.y, material->highlight.z);
         errmsg("Ka=%lf, Kd=%lf, Ks=%lf, n=%d\n", material->ambient, material->diffuse, material->specular, material->exponent);
         errmsg("Texture is 0x%p\n", material->texture);
+        errmsg("Alpha is %lf, Refraction index is %lf\n", material->opacity, material->refraction);
         n++;
     }
     

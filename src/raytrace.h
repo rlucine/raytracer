@@ -34,19 +34,6 @@
 #define COLLISION_THRESHOLD 0.001
 
 /**********************************************************//**
- * @def PERTURB_DISTANCE
- * @brief Perturb the ray origin by this amount for more
- * precise shadow casting.
- **************************************************************/
-#define PERTURB_DISTANCE 0.02
-
-/**********************************************************//**
- * @def SHADOW_PRECISION
- * @brief Number of shadow rays to shoot
- **************************************************************/
-#define SHADOW_PRECISION 1
-
-/**********************************************************//**
  * @def INITIAL_REFRACTION
  * @brief The index of refraction of the material
  * containing the eye
@@ -68,17 +55,6 @@
  * @return SUCCESS or FAILURE
  **************************************************************/
 extern int raytrace_Cast(COLLISION *closest, const LINE *ray, const SCENE *scene);
-
-/**********************************************************//**
- * @brief Determine how shadowed the collision is from the
- * given light within the scene.
- * @param collision: The collision to check
- * @param light: The light to check
- * @param scene: The scene the objects are in
- * @param shadows: Location to write the shadow amount to
- * @return SUCCESS or FAILURE
- **************************************************************/
-extern int raytrace_Shadow(double *shadows, const COLLISION *collision, const LIGHT *light, const SCENE *scene);
 
 /**********************************************************//**
  * @brief Determine the color at the given collision
