@@ -48,25 +48,6 @@
 #define RECURSION_DEPTH 5
 
 /**********************************************************//**
- * @brief Shoot one ray into the scene and get a COLLISION.
- * @param closest: Output location of the closest collision.
- * @param ray: The ray to shoot.
- * @param scene: The scene the objects are in
- * @return SUCCESS or FAILURE
- **************************************************************/
-extern int raytrace_Cast(COLLISION *closest, const LINE *ray, const SCENE *scene);
-
-/**********************************************************//**
- * @brief Determine the color at the given collision
- * @param color: The color at the collision
- * @param collision: The collision to deal with
- * @param scene: The scene the collision is in
- * @param depth: The maximum recursion depth.
- * @return SUCCESS or FAILURE
- **************************************************************/
-extern int raytrace_Shade(COLOR *color, const COLLISION *collision, const SCENE *scene, int depth);
-
-/**********************************************************//**
  * @brief Render the SCENE using a raytracing algorithm
  * @param image: The image to write to
  * @param scene: The scene to render
