@@ -1,0 +1,9 @@
+# Source files
+*.c text
+*.h text
+*.inc text
+
+# Compiled files
+*.exe binary
+*.o binary
+*.gch binary
