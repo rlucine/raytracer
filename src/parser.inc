@@ -508,6 +508,7 @@ static const char *parse_Spotlight(PARSER_DATA *data, const char *string) {
     }
     
     // Parse fields
+    light->type = LIGHT_SPOT;
     int failure = 0;
     failure = failure || (where = parse_Vector(where, &light->where)) == NULL;
     failure = failure || (where = parse_Vector(where, &light->direction)) == NULL;
