@@ -54,6 +54,8 @@ typedef struct {
     double specular;        ///< The specular reflectivity of the object
     int exponent;           ///< The size of the specular highlight
     const TEXTURE *texture; ///< The texture to apply to the shape
+    double opacity;         ///< The object's opacity
+    double refraction;      ///< The object's index of refraction
 } MATERIAL;
 
 /**********************************************************//**
@@ -89,6 +91,7 @@ typedef struct {
     VECTOR where;               ///< Point of collision on the surface
     double distance;            ///< How far away the point is
     const MATERIAL *material;   ///< The material that was collided with
+    VECTOR incident;            ///< Vector pointing towards the origin
     VECTOR normal;              ///< Normal vector at collision site
     const TEXTURE *texture;     ///< Texture collided with or NULL
     TEXCOORD texcoord;          ///< Texture coordinate at the collision site

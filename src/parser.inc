@@ -322,6 +322,8 @@ static const char *parse_Material(PARSER_DATA *data, const char *string) {
     failure = failure || (where = scanner_ParseDouble(where, &material->diffuse)) == NULL;
     failure = failure || (where = scanner_ParseDouble(where, &material->specular)) == NULL;
     failure = failure || (where = scanner_ParseDouble(where, &exponent)) == NULL;
+    failure = failure || (where = scanner_ParseDouble(where, &material->opacity)) == NULL;
+    failure = failure || (where = scanner_ParseDouble(where, &material->refraction)) == NULL;
     if (failure) {
         free(material);
         return NULL;
@@ -506,6 +508,7 @@ static const char *parse_Spotlight(PARSER_DATA *data, const char *string) {
     }
     
     // Parse fields
+    light->type = LIGHT_SPOT;
     int failure = 0;
     failure = failure || (where = parse_Vector(where, &light->where)) == NULL;
     failure = failure || (where = parse_Vector(where, &light->direction)) == NULL;
@@ -738,13 +741,13 @@ static const char *parse_Face(PARSER_DATA *data, const char *string) {
         vertex = &face.vertices[i];
         
         // 3 formats for each vertex
-        if (sscanf(where, "%d/%d/%d%n", &vertex->vertex, &vertex->normal, &vertex->texture, &delta) == 3) {
+        if (sscanf(where, "%d/%d/%d%n", &vertex->vertex, &vertex->texture, &vertex->normal, &delta) == 3) {
             continue;
         }
-        if (sscanf(where, "%d//%d%n", &vertex->vertex, &vertex->texture, &delta) == 2) {
+        if (sscanf(where, "%d//%d%n", &vertex->vertex, &vertex->normal, &delta) == 2) {
             continue;
         }
-        if (sscanf(where, "%d/%d%n", &vertex->vertex, &vertex->normal, &delta) == 2) {
+        if (sscanf(where, "%d/%d%n", &vertex->vertex, &vertex->texture, &delta) == 2) {
             continue;
         }
         if (sscanf(where, "%d%n", &vertex->vertex, &delta) == 1) {
@@ -1163,6 +1166,7 @@ int scene_Decode(SCENE *scene, const char *filename) {
         errmsg("Highlight is (%lf, %lf, %lf)\n", material->highlight.x, material->highlight.y, material->highlight.z);
         errmsg("Ka=%lf, Kd=%lf, Ks=%lf, n=%d\n", material->ambient, material->diffuse, material->specular, material->exponent);
         errmsg("Texture is 0x%p\n", material->texture);
+        errmsg("Alpha is %lf, Refraction index is %lf\n", material->opacity, material->refraction);
         n++;
     }
     

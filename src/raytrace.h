@@ -34,46 +34,18 @@
 #define COLLISION_THRESHOLD 0.001
 
 /**********************************************************//**
- * @def PERTURB_DISTANCE
- * @brief Perturb the ray origin by this amount for more
- * precise shadow casting.
+ * @def INITIAL_REFRACTION
+ * @brief The index of refraction of the material
+ * containing the eye
  **************************************************************/
-#define PERTURB_DISTANCE 0.02
+#define INITIAL_REFRACTION 1.0
 
 /**********************************************************//**
- * @def SHADOW_PRECISION
- * @brief Number of shadow rays to shoot
+ * @def RECURSION_DEPTH
+ * @brief The maximum recursion depth for recursive ray
+ * tracing.
  **************************************************************/
-#define SHADOW_PRECISION 1
-
-/**********************************************************//**
- * @brief Shoot one ray into the scene and get a COLLISION.
- * @param closest: Output location of the closest collision.
- * @param ray: The ray to shoot.
- * @param scene: The scene the objects are in
- * @return SUCCESS or FAILURE
- **************************************************************/
-extern int raytrace_Cast(COLLISION *closest, const LINE *ray, const SCENE *scene);
-
-/**********************************************************//**
- * @brief Determine how shadowed the collision is from the
- * given light within the scene.
- * @param collision: The collision to check
- * @param light: The light to check
- * @param scene: The scene the objects are in
- * @param shadows: Location to write the shadow amount to
- * @return SUCCESS or FAILURE
- **************************************************************/
-extern int raytrace_Shadow(double *shadows, const COLLISION *collision, const LIGHT *light, const SCENE *scene);
-
-/**********************************************************//**
- * @brief Determine the color at the given collision
- * @param color: The color at the collision
- * @param collision: The collision to deal with
- * @param scene: The scene the collision is in
- * @return SUCCESS or FAILURE
- **************************************************************/
-extern int raytrace_Shade(COLOR *color, const COLLISION *collision, const SCENE *scene);
+#define RECURSION_DEPTH 5
 
 /**********************************************************//**
  * @brief Render the SCENE using a raytracing algorithm

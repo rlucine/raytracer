@@ -421,6 +421,10 @@ int shape_Collide(const SHAPE *shape, const LINE *ray, COLLISION *result) {
     result->material = shape->material;
     result->texture = shape->material->texture;
     
+    // Get incident direction
+    vector_Negate(&result->incident, &ray->direction);
+    vector_Normalize(&result->incident, &result->incident);
+
     // Map to specific collision checking functions
     switch (shape->shape) {
     case SHAPE_SPHERE:

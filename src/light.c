@@ -53,8 +53,8 @@ void light_CreateSpotlight(LIGHT *light, const POINT *where, const VECTOR *direc
  *============================================================*/
 int light_GetDirection(const LIGHT *light, const POINT *where, VECTOR *output, double *distance) {
     switch (light->type) {
-    case LIGHT_POINT:
     case LIGHT_SPOT:
+    case LIGHT_POINT:
         // Get direction to origin of light
         vector_Subtract(output, &light->where, where);
         
@@ -97,9 +97,11 @@ int light_BlinnPhongShade(const LIGHT *light, const COLLISION *collision, const 
     }
     
     // Check spotlight radius
-    double radians = light->angle * M_PI / 180;
     if (light->type == LIGHT_SPOT) {
-        if (vector_Angle(&to_light, &light->direction) > radians) {
+        double radians = light->angle * M_PI / 180;
+        VECTOR temp;
+        vector_Negate(&temp, &to_light);
+        if (vector_Angle(&temp, &light->direction) > radians) {
             // Outside the spotlight!
             return FAILURE;
         }
