@@ -158,7 +158,7 @@ static int raytrace_Cast(COLLISION *closest, const LINE *ray, const SCENE *scene
 /*============================================================*
  * Recursive ray tracing (shadows)
  *============================================================*/
-static int raytrace_Shadow(double *shadows, const COLLISION *collision, const LIGHT *light, const SCENE *scene) {
+static double raytrace_Shadow(double *shadows, const COLLISION *collision, const LIGHT *light, const SCENE *scene) {
     
     // Set up ray pointing to light
     LINE ray;
@@ -179,7 +179,17 @@ static int raytrace_Shadow(double *shadows, const COLLISION *collision, const LI
     // Check collisions
     if ((shadow.how != COLLISION_NONE) && (shadow.distance < distance) && (shadow.distance > COLLISION_THRESHOLD)) {
         // Something in between the light and us, and it isn't ourself!
-        *shadows = 0.0;
+        double alpha = 1.0 - shadow.material->opacity;
+        
+        // Check for all other collisions
+        double rest;
+        if (raytrace_Shadow(&rest, &shadow, light, scene) != SUCCESS) {
+            errmsg("Failed to shadow all objects in the scene");
+            return FAILURE;
+        }
+        
+        // Take product of all alpha values in the way
+        *shadows = alpha*rest;
     } else {
         *shadows = 1.0;
     }
@@ -189,6 +199,8 @@ static int raytrace_Shadow(double *shadows, const COLLISION *collision, const LI
 /*============================================================*
  * Recursive ray tracing (reflections)
  *============================================================*/
+
+// Mutual recursion stuff
 static int raytrace_Shade(COLOR *, const COLLISION *, const SCENE *, double, int);
 
 static int raytrace_Reflection(COLOR *color, const COLLISION *collision, const SCENE *scene, double irefract, int depth) {

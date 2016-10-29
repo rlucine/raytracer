@@ -4,9 +4,10 @@ viewdir 0 0 -1
 updir 0 1 0
 fovv 60
 imsize 128 128
-bkgcolor 0 0 0
+bkgcolor 0.5 0.5 0.5
 
 light 1 1 -1 0 1 1 1
-mtlcolor 1 0 0 1 1 1 0.1 0.4 0.4 10
+mtlcolor 1 0 0 1 1 1 0.1 0.4 0.4 10 1 1
 sphere 0 0 0 1
+mtlcolor 1 0 0 1 1 1 0.1 0.4 0.4 10 0.5 1
 sphere -1 -1 1 0.5
