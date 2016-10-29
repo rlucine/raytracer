@@ -740,13 +740,13 @@ static const char *parse_Face(PARSER_DATA *data, const char *string) {
         vertex = &face.vertices[i];
         
         // 3 formats for each vertex
-        if (sscanf(where, "%d/%d/%d%n", &vertex->vertex, &vertex->normal, &vertex->texture, &delta) == 3) {
+        if (sscanf(where, "%d/%d/%d%n", &vertex->vertex, &vertex->texture, &vertex->normal, &delta) == 3) {
             continue;
         }
-        if (sscanf(where, "%d//%d%n", &vertex->vertex, &vertex->texture, &delta) == 2) {
+        if (sscanf(where, "%d//%d%n", &vertex->vertex, &vertex->normal, &delta) == 2) {
             continue;
         }
-        if (sscanf(where, "%d/%d%n", &vertex->vertex, &vertex->normal, &delta) == 2) {
+        if (sscanf(where, "%d/%d%n", &vertex->vertex, &vertex->texture, &delta) == 2) {
             continue;
         }
         if (sscanf(where, "%d%n", &vertex->vertex, &delta) == 1) {
