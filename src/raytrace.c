@@ -223,13 +223,14 @@ static int raytrace_Reflection(COLOR *color, const COLLISION *collision, const S
     // Efficient computation of Fresnel reflectance
     const MATERIAL *material = collision->material;
     double cos_theta_i = vector_Dot(&reflection_normal, &collision->incident);
+    assert(cos_theta_i >= 0);
     double pow1 = 1 - cos_theta_i;
     double pow2 = pow1 * pow1;
     double pow5 = pow2 * (pow1 * pow2);
     double fresnel_zero = (material->refraction - irefract) / (material->refraction + irefract);
     fresnel_zero *= fresnel_zero;
     double fresnel = fresnel_zero + (1.0 - fresnel_zero)*pow5;
-    assert(0 <= fresnel);
+    assert(fresnel_zero <= fresnel);
     assert(fresnel <= 1);
     
     // Get the reflection ray's direction
