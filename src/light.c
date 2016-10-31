@@ -109,7 +109,7 @@ int light_BlinnPhongShade(const LIGHT *light, const COLLISION *collision, COLOR 
     
     // Get the view vector
     VECTOR view;
-    vector_Normalize(&view, &collision->incident);
+    vector_Copy(&view, &collision->incident);
     
     // Get the halfway vector
     VECTOR halfway;
