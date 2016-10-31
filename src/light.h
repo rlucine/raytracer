@@ -93,11 +93,10 @@ extern int light_GetDirection(const LIGHT *light, const POINT *where, VECTOR *ou
  * given collision location.
  * @param light: The light to calculate shading for
  * @param collision: The point of collision to check.
- * @param eye: The viewer's location in the scene
  * @param color: Output location for the color
  * @return SUCCESS or FAILURE
  **************************************************************/
-extern int light_BlinnPhongShade(const LIGHT *light, const COLLISION *collision, const POINT *eye, COLOR *color);
+extern int light_BlinnPhongShade(const LIGHT *light, const COLLISION *collision, COLOR *color);
 
 /*============================================================*/
 #endif // _LIGHT_H_

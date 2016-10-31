@@ -345,7 +345,7 @@ static int raytrace_Shade(COLOR *color, const COLLISION *collision, const SCENE 
         }
         
         // Get shading for this light
-        if (light_BlinnPhongShade(light, collision, &scene->eye, &temp) != SUCCESS) {
+        if (light_BlinnPhongShade(light, collision, &temp) != SUCCESS) {
             continue;
         }
         vector_Multiply(&temp, &temp, shadows);

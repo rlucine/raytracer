@@ -86,7 +86,7 @@ int light_GetDirection(const LIGHT *light, const POINT *where, VECTOR *output, d
 /*============================================================*
  * Light shader
  *============================================================*/
-int light_BlinnPhongShade(const LIGHT *light, const COLLISION *collision, const POINT *eye, COLOR *color) {
+int light_BlinnPhongShade(const LIGHT *light, const COLLISION *collision, COLOR *color) {
     // Shade the given collision with the light
     
     // Get the vector pointing from the collision to the light
@@ -109,8 +109,7 @@ int light_BlinnPhongShade(const LIGHT *light, const COLLISION *collision, const 
     
     // Get the view vector
     VECTOR view;
-    vector_Subtract(&view, eye, &collision->where);
-    vector_Normalize(&view, &view);
+    vector_Normalize(&view, &collision->incident);
     
     // Get the halfway vector
     VECTOR halfway;
@@ -146,7 +145,6 @@ int light_BlinnPhongShade(const LIGHT *light, const COLLISION *collision, const 
     
 #ifdef DEBUG
     errmsg("Normal is (%lf, %lf, %lf)\n", collision->normal.x, collision->normal.y, collision->normal.z);
-    errmsg("Eye is (%lf, %lf, %lf)\n", eye->x, eye->y, eye->z);
     errmsg("View is (%lf, %lf, %lf)\n", view.x, view.y, view.z);
     errmsg("Halfway is (%lf, %lf, %lf)\n", halfway.x, halfway.y, halfway.z);
     errmsg("Light is (%lf, %lf, %lf)\n", to_light.x, to_light.y, to_light.z);
