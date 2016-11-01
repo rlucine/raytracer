@@ -105,13 +105,13 @@ spotless: clean
 	-rm -rf $(DOC_DIR)
 
 #============= Turnin ==============#
-SCENES := data/checker.scene data/teapot.scene data/teapot_flat.scene data/teapot_parallel.scene data/earth.scene
+SCENES := data/checker.scene data/bubble.scene data/sphere_reflect.scene data/transparent.scene data/tetrahedron_reflect.scene
 TEXTURES := data/texture/checker.ppm data/texture/earth.ppm
-IMAGES := $(wildcard data/image/*.png)
-WEB := README.md Doxyfile mainpage.html
+IMAGES := data/image/checker.png data/image/bubble.png data/image/sphere_reflect.png data/image/transparent.png data/image/tetrahedron_reflect.png
+ELSE := README.md Doxyfile mainpage.html src/driver/main.c Makefile
 
 .PHONY: turnin
 turnin: $(TURNIN)
 
-$(TURNIN): $(CFILES) $(HFILES) $(INCFILES) $(SCENES) $(TEXTURES) $(IMAGES) $(WEB) src/driver/main.c Makefile
+$(TURNIN): $(CFILES) $(HFILES) $(INCFILES) $(SCENES) $(TEXTURES) $(IMAGES) $(WEB) $(ELSE)
 	tar -cvf $@ $^
