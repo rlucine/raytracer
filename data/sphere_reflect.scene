@@ -1,23 +1,15 @@
 # Reflecting a tetrahedron
-eye 4 4 4
-viewdir -1 -1 -1
+eye 4 0 4
+viewdir -1 0 -1
 updir 0 0 1
 fovv 80
 imsize 500 500
 bkgcolor 0.1 0.1 0.1
-light 0 0 4 1 1 1 1
+light 4 0 4 1 1 1 1
 
 # Definition of the tetrahedron
-mtlcolor 1 0 0 1 1 1 0.2 0.4 0.4 20 1 1
-v 0 0 0
-v 3 0 0
-v 0 3 0
-v 0 0 3
- 
-f 1 3 2
-f 1 4 3
-f 1 2 4
-f 2 3 4
+mtlcolor 1 0 0 1 1 1 0.2 0.4 0.4 20 0.2 2.6
+sphere 1 0 1 1
 
 # Definition of walls reflecting the tetrahedron
 mtlcolor 0 0 0 1 1 1 0.2 0.4 0.4 20 1 2.5
@@ -32,21 +24,13 @@ vt 0 1
 vt 1 0
 vt 1 1
 
-f 5/1 6/2 7/3
-f 8/4 6/2 7/3
+f 1/1 2/2 3/3
+f 4/4 2/2 3/3
 
 v -1 -10 -10
 v -1 -10 10
 v -1 10 -10
 v -1 10 10
 
-f 9/1 10/2 11/3
-f 12/4 10/2 11/3
-
-v -10 -1 -10
-v -10 -1 10
-v 10 -1 -10
-v 10 -1 10
-
-f 13/1 14/2 15/3
-f 16/4 14/2 15/3
+f 5/1 6/2 7/3
+f 8/4 6/2 7/3
