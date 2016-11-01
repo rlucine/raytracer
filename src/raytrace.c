@@ -227,8 +227,17 @@ static int raytrace_Reflection(COLOR *color, const COLLISION *collision, const S
     double pow1 = 1 - cos_theta_i;
     double pow2 = pow1 * pow1;
     double pow5 = pow2 * (pow1 * pow2);
-    double fresnel_zero = (material->refraction - irefract) / (material->refraction + irefract);
+    
+    // Use the right value for fresnel_zero depending on opacity
+    double fresnel_zero;
+    if (fabs(material->opacity - 1.0) < DBL_EPSILON) {
+        fresnel_zero = (material->refraction - 1.0) / (material->refraction + 1.0);
+    } else {
+        fresnel_zero = (material->refraction - irefract) / (material->refraction + irefract);
+    }
     fresnel_zero *= fresnel_zero;
+    
+    // Compute the fresnel reflectance
     double fresnel = fresnel_zero + (1.0 - fresnel_zero)*pow5;
     assert(fresnel_zero <= fresnel);
     assert(fresnel <= 1);
@@ -270,7 +279,12 @@ static int raytrace_Reflection(COLOR *color, const COLLISION *collision, const S
     // Set up the transparency ray direction
     LINE transparency;
     double ratio = irefract / collision->material->refraction;
-    vector_Multiply(&transparency.direction, &reflection_normal, -sqrt(1 - ((ratio*ratio)*(1 - cos_theta_i*cos_theta_i))));
+    double tir_check = 1 - ((ratio*ratio)*(1 - cos_theta_i*cos_theta_i));
+    if (tir_check < 0) {
+        // Early exit on total internal refraction
+        return SUCCESS;
+    }
+    vector_Multiply(&transparency.direction, &reflection_normal, -sqrt(tir_check));
     VECTOR temp;
     vector_Multiply(&temp, &reflection_normal, cos_theta_i);
     vector_Subtract(&temp, &temp, &collision->incident);
