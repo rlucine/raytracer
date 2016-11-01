@@ -25,7 +25,7 @@ In this format, `<vector>` refers to a list of 3 decimals separated by whitespac
 * `parallel`: Render the scene using paralell projection.
 
 #### Material properties
-* `mtlcolor <color> <color> ka kd ks n`: The color of all subsequent shapes. May be redefined arbitrarily, but must be defined before any shapes. The first color is the diffuse color and the second is the specular highlight color. The `ka`, `kd`, and `ks` are respectively the ambient, diffuse, and specular reflectivity of the objects. `n` is the specular exponent.
+* `mtlcolor <color> <color> ka kd ks n alpha eta`: The color of all subsequent shapes. May be redefined arbitrarily, but must be defined before any shapes. The first color is the diffuse color and the second is the specular highlight color. The `ka`, `kd`, and `ks` are respectively the ambient, diffuse, and specular reflectivity of the objects. `n` is the specular exponent. `alpha` defines the opacity from 0 to 1, with 0 being transparent and 1 being opaque. `eta` defines the index of refraction from `1` to infinity. `1.3` is dense and `2.6` is very dense.
 * `texture <filename>`: This loads the given P3 PPM file as a texture and applies it to all subsequent images. It assumes the filename is rooted at the current directory.
 
 #### Light definitions
