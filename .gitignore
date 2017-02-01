@@ -1,29 +1,26 @@
-#####################################
-######## C project gitignore ########
-#####################################
-
-# Ignore the build directory
-build/
+# Ignore built files
 *.o
 *.d
 *.gch
 
 # Ignore compiled files
+*.a
 *.exe
 *.dll
-
-# Ignore error logs
-*.log
-
-# Ignore handouts and turnins
-*.tar
-*.pdf
+*.out
 
 # Ignore vim stuff
 *.swp
 
-# Ignore documentation pages
-doc/
+# Ignore LaTeX stuff
+*.aux
+*.synctex.gz
+*.pdf
 
-# Ignore ppm images from testing
-data/*.ppm
+# Ignore compressed files
+*.tar
+*.tar.gz
+*.zip
+
+# Ignore libraries
+lib
