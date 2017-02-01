@@ -1,9 +1,41 @@
-# Source files
+# Sources
 *.c text
 *.h text
+*.cpp text
+*.hpp text
 *.inc text
 
-# Compiled files
-*.exe binary
+# Shaders
+*.glsl text
+
+# Compiled stuff
 *.o binary
 *.gch binary
+
+# Binaries
+*.a binary
+*.dll binary
+*.exe binary
+*.out binary
+
+# Linguist overrides
+*.c linguist-language=C
+*.h linguist-language=C
+*.inc linguist-language=C
+*.cpp linguist-language=C++
+*.hpp linguist-language=C++
+
+# Shaders
+*.frag linguist-language=GLSL
+*.vert linguist-language=GLSL
+*.pix linguist-language=GLSL
+*.vrt linguist-language=GLSL
+*.geom linguist-language=GLSL
+*.glsl linguist-language=GLSL
+
+# Linguist documentation
+*.html linguist-documentation
+*.dox linguist-documentation
+
+# Allegro
+lib/* linguist-vendored
