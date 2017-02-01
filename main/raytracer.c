@@ -1,9 +1,7 @@
 /**********************************************************//**
- * @file main.c
+ * @file raytracer.c
  * @brief Main module for raytracer
  * @author Alec Shinomiya
- * @mainpage
- * @htmlinclude mainpage.html
  **************************************************************/
 
 // Standard library
