@@ -13,16 +13,11 @@
 // This project
 #include "image.h"  // IMAGE
 
-/**********************************************************//**
- * @def PPM_MAX_COLOR
- * @brief The maximum color value for a PPM image
- **************************************************************/
+//*************************************************************
+/// The maximum color value for a PPM image
 #define PPM_MAX_COLOR RGB_MAX
 
-/**********************************************************//**
- * @def PPM_MAX_LINE
- * @brief The maximum number of characters on a line of a PPM
- **************************************************************/
+/// The maximum number of characters on a line of a PPM.
 #define PPM_MAX_LINE 70
 
 /**********************************************************//**
