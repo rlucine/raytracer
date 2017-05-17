@@ -54,7 +54,7 @@ int main(void) {
     const SHAPE *shape = scene_GetShape(&scene, 0);
     assert(shape->shape == SHAPE_SPHERE);
     
-    const SPHERE *sphere = shape_GetSphere(shape);
+    const SPHERE *sphere = (SPHERE *)shape->data;
     assert(fabs(sphere->radius - 1.0) < DBL_EPSILON);
     vector.x = vector.y = vector.z = 0.0;
     assert(vector_IsEqual(&sphere->center, &vector));

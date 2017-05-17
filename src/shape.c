@@ -115,34 +115,6 @@ void shape_SetMaterial(SHAPE *shape, const MATERIAL *material) {
     shape->material = material;
 }
 
-const SPHERE *shape_GetSphere(const SHAPE *shape) {
-    if (shape->shape == SHAPE_SPHERE) {
-        return (SPHERE *)shape->data;
-    }
-    return NULL;
-}
-
-const ELLIPSOID *shape_GetEllipsoid(const SHAPE *shape) {
-    if (shape->shape == SHAPE_ELLIPSOID) {
-        return (ELLIPSOID *)shape->data;
-    }
-    return NULL;
-}
-
-const PLANE *shape_GetPlane(const SHAPE *shape) {
-    if (shape->shape == SHAPE_PLANE) {
-        return (PLANE *)shape->data;
-    }
-    return NULL;
-}
-
-const FACE *shape_GetFace(const SHAPE *shape) {
-    if (shape->shape == SHAPE_FACE) {
-        return (FACE *)shape->data;
-    }
-    return NULL;
-}
-
 /**********************************************************//**
  * @brief Collide a ray with a sphere.
  * @param sphere: The sphere to check.

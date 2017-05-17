@@ -177,38 +177,6 @@ extern const MATERIAL *shape_GetMaterial(const SHAPE *shape);
 extern void shape_SetMaterial(SHAPE *shape, const MATERIAL *material);
 
 /**********************************************************//**
- * @brief Get the SPHERE data embedded in the shape.
- * @param shape: The shape to read
- * @return Pointer to a SPHERE struct on success, or NULL if
- * the shape is not a sphere.
- **************************************************************/
-extern const SPHERE *shape_GetSphere(const SHAPE *shape);
-
-/**********************************************************//**
- * @brief Get the ELLIPSOID data embedded in the shape.
- * @param shape: The shape to read
- * @return Pointer to a ELLIPSOID struct on success, or NULL if
- * the shape is not an ellipsoid.
- **************************************************************/
-extern const ELLIPSOID *shape_GetEllipsoid(const SHAPE *shape);
-
-/**********************************************************//**
- * @brief Get the PLANE data embedded in the shape.
- * @param shape: The shape to read
- * @return Pointer to a PLANE struct on success, or NULL if
- * the shape is not a plane.
- **************************************************************/
-extern const PLANE *shape_GetPlane(const SHAPE *shape);
-
-/**********************************************************//**
- * @brief Get the FACE data embedded in the shape.
- * @param shape: The shape to read
- * @return Pointer to a FACE struct on success, or NULL if
- * the shape is not a face.
- **************************************************************/
-extern const FACE *shape_GetFace(const SHAPE *shape);
-
-/**********************************************************//**
  * @brief Generalized collision function for all SHAPE_TYPE
  * @param shape: The shape to collide with
  * @param ray: The line to intersect with the shape
