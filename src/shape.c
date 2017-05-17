@@ -10,7 +10,6 @@
 #include <string.h>     // memcpy
 #include <math.h>       // sqrt, asin, M_PI, fabs, sqrt ...
 #include <stdio.h>      // fprintf, stderr ...
-#include <assert.h>     // assert
 #include <float.h>      // DBL_EPSILON
 
 // This project
@@ -21,7 +20,7 @@
 #include "mesh.h"       // MESH, FACE ...
 
 // Debugging modules
-#include "debug.h"
+#include "debug.h"      // eprintf, assert
 
 /*============================================================*
  * Shape creation

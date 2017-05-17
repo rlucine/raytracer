@@ -12,7 +12,6 @@
 #include <stdio.h>      // fprintf, stderr, fopen, fclose ...
 #include <string.h>     // strcmp
 #include <ctype.h>      // isspace
-#include <assert.h>     // assert
 
 // This project
 #include "vector.h"     // VECTOR
@@ -24,7 +23,7 @@
 #include "mesh.h"       // MESH, FACE, VERTEX ...
 
 // Debugging modules
-#include "debug.h"
+#include "debug.h"      // eprintf, assert
 
 /**********************************************************//**
  * @enum PARSER_FLAG
@@ -335,7 +334,7 @@ static const char *parse_Material(PARSER_DATA *data, const char *string) {
     material->texture = last_Texture(data);
     
     // Add new material to array
-    assert(sizeof(MATERIAL *) == data->materials.itemsize);
+    assert(sizeof(MATERIAL *) == data->materials.itemSize);
     if (!list_Append(&data->materials, &material)) {
         eprintf("Unable to store new material\n");
         free(material);
@@ -383,7 +382,7 @@ static const char *parse_Sphere(PARSER_DATA *data, const char *string) {
     }
     
     // Add shape to list
-    assert(sizeof(SHAPE *) == data->shapes.itemsize);
+    assert(sizeof(SHAPE *) == data->shapes.itemSize);
     if (!list_Append(&data->shapes, &shape)) {
         eprintf("Unable to store new sphere\n");
         shape_Destroy(shape);
@@ -432,7 +431,7 @@ static const char *parse_Ellipsoid(PARSER_DATA *data, const char *string) {
     }
     
     // Add shape to list
-    assert(sizeof(SHAPE *) == data->shapes.itemsize);
+    assert(sizeof(SHAPE *) == data->shapes.itemSize);
     if (!list_Append(&data->shapes, &shape)) {
         eprintf("Unable to store new ellipsoid\n");
         shape_Destroy(shape);
@@ -486,7 +485,7 @@ static const char *parse_Light(PARSER_DATA *data, const char *string) {
     }
     
     // Add light to list
-    assert(sizeof(LIGHT *) == data->lights.itemsize);
+    assert(sizeof(LIGHT *) == data->lights.itemSize);
     if (!list_Append(&data->lights, &light)) {
         eprintf("Unable to store new light\n");
         free(light);
@@ -531,7 +530,7 @@ static const char *parse_Spotlight(PARSER_DATA *data, const char *string) {
     }
     
     // Add light to list
-    assert(sizeof(LIGHT *) == data->lights.itemsize);
+    assert(sizeof(LIGHT *) == data->lights.itemSize);
     if (!list_Append(&data->lights, &light)) {
         eprintf("Unable to store new light\n");
         free(light);
@@ -1166,7 +1165,7 @@ bool scene_Decode(SCENE *scene, const char *filename) {
         eprintf("Color is (%f, %f, %f)\n", material->color.x, material->color.y, material->color.z);
         eprintf("Highlight is (%f, %f, %f)\n", material->highlight.x, material->highlight.y, material->highlight.z);
         eprintf("Ka=%f, Kd=%f, Ks=%f, n=%d\n", material->ambient, material->diffuse, material->specular, material->exponent);
-        eprintf("Texture is 0x%p\n", material->texture);
+        eprintf("Texture is 0x%p\n", (void *)material->texture);
         eprintf("Alpha is %f, Refraction index is %f\n", material->opacity, material->refraction);
         n++;
     }

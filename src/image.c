@@ -11,14 +11,13 @@
 #include <limits.h>     // USHRT_MAX
 #include <sys/stat.h>   // stat, struct stat
 #include <string.h>     // strcpy
-#include <assert.h>     // assert
 
 // This project
 #include "image.h"      // IMAGE
 #include "color.h"      // COLOR, RGB ...
 
 // Debugging modules
-#include "debug.h"
+#include "debug.h"      // eprintf, assert
 
 /*============================================================*
  * Allocating IMAGE

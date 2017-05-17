@@ -10,7 +10,6 @@
 #include <string.h>     // memcpy
 #include <math.h>       // pow, tan, atan, INFINITY ...
 #include <stdio.h>      // fprintf, stderr ...
-#include <assert.h>     // assert
 #include <float.h>      // DBL_EPSILON
 
 // This project
@@ -22,7 +21,7 @@
 #include "raytrace.h"   // SHADOW_THRESHOLD ...
 
 // Debugging libraries
-#include "debug.h"
+#include "debug.h"      // eprintf, assert
 
 /*============================================================*
  * Viewing plane

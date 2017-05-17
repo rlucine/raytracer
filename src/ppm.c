@@ -10,14 +10,13 @@
 #include <stdio.h>      // fopen, fclose, fprintf, getline ...
 #include <limits.h>     // USHRT_MAX
 #include <string.h>     // strcpy
-#include <assert.h>     // assert
 
 // This project
 #include "image.h"      // IMAGE
 #include "ppm.h"        // PPM_MAX_COLOR ...
 
 // Debugging modules
-#include "debug.h"
+#include "debug.h"      // eprintf, assert
 
 /*============================================================*
  * Encoding PPM
