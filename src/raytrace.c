@@ -141,23 +141,6 @@ static bool raytrace_Cast(COLLISION *closest, const LINE *ray, const SCENE *scen
         }
         n++;
     }
-    
-#ifdef DEBUG
-    switch (closest->how) {
-    case COLLISION_SURFACE:
-        fprintf(stderr, "raytrace_Cast: Collided with %d at (%f, %f, %f)\n", who, closest->where.x, closest->where.y, closest->where.z);
-        break;
-    
-    case COLLISION_INSIDE:
-        fprintf(stderr, "raytrace_Cast: Point is inside object %d\n", who);
-        break;
-    
-    case COLLISION_NONE:
-    default:
-        fprintf(stderr, "raytrace_Cast: No collision\n");
-        break;
-    }
-#endif
 
     // Get the material properties
     if (who >= 0 && closest->how != COLLISION_NONE) {
@@ -434,13 +417,6 @@ bool raytrace_Render(IMAGE *image, const SCENE *scene) {
         return false;
     }
     
-#ifdef DEBUG
-    eprintf("Viewing plane origin is (%f, %f, %f)\n", view.origin.x, view.origin.y, view.origin.z);
-    eprintf("Viewing plane u is (%f, %f, %f)\n", view.u.x, view.u.y, view.u.z);
-    eprintf("Viewing plane v is (%f, %f, %f)\n", view.v.x, view.v.y, view.v.z);
-    eprintf("Viewing plane size is %f by %f\n", view.width, view.height);
-#endif
-    
     // Get the image output
     if (!image_Create(image, scene_GetWidth(scene), scene_GetHeight(scene))) {
         eprintf("Failed to create output image\n");
@@ -485,12 +461,6 @@ bool raytrace_Render(IMAGE *image, const SCENE *scene) {
             vector_Subtract(&ray.direction, scene_GetEyePosition(scene));
             vector_Normalize(&ray.direction);
             
-#ifdef DEBUG
-            eprintf("Ray (%d, %d)\n", x, y);
-            eprintf("Origin (%f, %f, %f)\n", ray.origin.x, ray.origin.y, ray.origin.z);
-            eprintf("Direction (%f, %f, %f)\n", ray.direction.x, ray.direction.y, ray.direction.z);
-#endif
-            
             // Cast this ray
             if (!raytrace_Cast(&collision, &ray, scene)) {
                 eprintf("Failed to cast ray (%d, %d)\n", x, y);
@@ -518,12 +488,6 @@ bool raytrace_Render(IMAGE *image, const SCENE *scene) {
                 eprintf("Failed to set color at (%d, %d)\n", x, y);
                 return false;
             }
-#ifdef DEBUG
-            const RGB *what = image_GetPixel(image, x, y);
-            assert(what->r == rgb.r);
-            assert(what->g == rgb.g);
-            assert(what->b == rgb.b);
-#endif
             
             // Step forward in x
             vector_Add(&target, &dx);
