@@ -72,33 +72,33 @@ typedef struct {
 static bool parser_Create(PARSER_DATA *data, SCENE *scene) {
     
     // Shape data arrays
-    if (list_Create(&data->shapes, sizeof(SHAPE *), 8) != true) {
+    if (!list_Create(&data->shapes, sizeof(SHAPE *), 8)) {
         eprintf("Cannot allocate shape data\n");
         return false;
     }
-    if (list_Create(&data->lights, sizeof(LIGHT *), 8) != true) {
+    if (!list_Create(&data->lights, sizeof(LIGHT *), 8)) {
         eprintf("Cannot allocate light data\n");
         return false;
     }
-    if (list_Create(&data->materials, sizeof(MATERIAL *), 8) != true) {
+    if (!list_Create(&data->materials, sizeof(MATERIAL *), 8)) {
         eprintf("Cannot allocate material data\n");
         return false;
     }
-    if (list_Create(&data->textures, sizeof(TEXTURE *), 8) != true) {
+    if (!list_Create(&data->textures, sizeof(TEXTURE *), 8)) {
         eprintf("Cannot allocate texture data\n");
         return false;
     }
     
     // Mesh data arrays
-    if (list_Create(&data->vertices, sizeof(VECTOR), 8) != true) {
+    if (!list_Create(&data->vertices, sizeof(VECTOR), 8)) {
         eprintf("Cannot allocate vertex table\n");
         return false;
     }
-    if (list_Create(&data->normals, sizeof(VECTOR), 8) != true) {
+    if (!list_Create(&data->normals, sizeof(VECTOR), 8)) {
         eprintf("Cannot allocate normal table\n");
         return false;
     }
-    if (list_Create(&data->texcoords, sizeof(TEXCOORD), 8) != true) {
+    if (!list_Create(&data->texcoords, sizeof(TEXCOORD), 8)) {
         eprintf("Cannot allocate texture coordinate table\n");
         return false;
     }
@@ -336,7 +336,7 @@ static const char *parse_Material(PARSER_DATA *data, const char *string) {
     
     // Add new material to array
     assert(sizeof(MATERIAL *) == data->materials.itemsize);
-    if (list_Append(&data->materials, &material) != true) {
+    if (!list_Append(&data->materials, &material)) {
         eprintf("Unable to store new material\n");
         free(material);
         return NULL;
@@ -376,7 +376,7 @@ static const char *parse_Sphere(PARSER_DATA *data, const char *string) {
         eprintf("Out of memory\n");
         return NULL;
     }
-    if (shape_CreateSphere(shape, &sphere, material) != true) {
+    if (!shape_CreateSphere(shape, &sphere, material)) {
         eprintf("Unable to allocate new sphere\n");
         free(shape);
         return NULL;
@@ -384,7 +384,7 @@ static const char *parse_Sphere(PARSER_DATA *data, const char *string) {
     
     // Add shape to list
     assert(sizeof(SHAPE *) == data->shapes.itemsize);
-    if (list_Append(&data->shapes, &shape) != true) {
+    if (!list_Append(&data->shapes, &shape)) {
         eprintf("Unable to store new sphere\n");
         shape_Destroy(shape);
         free(shape);
@@ -425,7 +425,7 @@ static const char *parse_Ellipsoid(PARSER_DATA *data, const char *string) {
         eprintf("Out of memory\n");
         return NULL;
     }
-    if (shape_CreateEllipsoid(shape, &ellipsoid, material) != true) {
+    if (!shape_CreateEllipsoid(shape, &ellipsoid, material)) {
         eprintf("Unable to allocate new ellipsoid\n");
         free(shape);
         return NULL;
@@ -433,7 +433,7 @@ static const char *parse_Ellipsoid(PARSER_DATA *data, const char *string) {
     
     // Add shape to list
     assert(sizeof(SHAPE *) == data->shapes.itemsize);
-    if (list_Append(&data->shapes, &shape) != true) {
+    if (!list_Append(&data->shapes, &shape)) {
         eprintf("Unable to store new ellipsoid\n");
         shape_Destroy(shape);
         free(shape);
@@ -487,7 +487,7 @@ static const char *parse_Light(PARSER_DATA *data, const char *string) {
     
     // Add light to list
     assert(sizeof(LIGHT *) == data->lights.itemsize);
-    if (list_Append(&data->lights, &light) != true) {
+    if (!list_Append(&data->lights, &light)) {
         eprintf("Unable to store new light\n");
         free(light);
         return NULL;
@@ -532,7 +532,7 @@ static const char *parse_Spotlight(PARSER_DATA *data, const char *string) {
     
     // Add light to list
     assert(sizeof(LIGHT *) == data->lights.itemsize);
-    if (list_Append(&data->lights, &light) != true) {
+    if (!list_Append(&data->lights, &light)) {
         eprintf("Unable to store new light\n");
         free(light);
         return NULL;
@@ -561,14 +561,14 @@ static const char *parse_Texture(PARSER_DATA *data, const char *string) {
     }
     
     // Try loading the file as a texture
-    if (ppm_Decode(texture, filename) != true) {
+    if (!ppm_Decode(texture, filename)) {
         eprintf("Failed to decode \"%s\"\n", filename);
         free(texture);
         return NULL;
     }
 
     // Install texture
-    if (list_Append(&data->textures, &texture) != true) {
+    if (!list_Append(&data->textures, &texture)) {
         eprintf("Unable to store new texture\n");
         image_Destroy(texture);
         free(texture);
@@ -588,7 +588,7 @@ static const char *parse_Texture(PARSER_DATA *data, const char *string) {
         new->texture = texture;
         
         // Storing new material copy
-        if (list_Append(&data->materials, &new) != true) {
+        if (!list_Append(&data->materials, &new)) {
             eprintf("Unable to store new material\n");
             // Don't deallocate the texture since it's properly in the array now!
             return NULL;
@@ -640,14 +640,14 @@ static const char *parse_Plane(PARSER_DATA *data, const char *string) {
         eprintf("Out of memory\n");
         return NULL;
     }
-    if (shape_CreatePlane(shape, &plane, material) != true) {
+    if (!shape_CreatePlane(shape, &plane, material)) {
         eprintf("Unable to allocate new plane\n");
         free(shape);
         return NULL;
     }
     
     // Add shape to list
-    if (list_Append(&data->shapes, shape) != true) {
+    if (!list_Append(&data->shapes, shape)) {
         eprintf("Unable to store new plane\n");
         shape_Destroy(shape);
         free(shape);
@@ -670,7 +670,7 @@ static const char *parse_Vertex(PARSER_DATA *data, const char *string) {
     }
     
     // Add vertex to our vertex list
-    if (list_Append(&data->vertices, &vertex) != true) {
+    if (!list_Append(&data->vertices, &vertex)) {
         eprintf("Unable to store new vertex\n");
         return NULL;
     }
@@ -690,7 +690,7 @@ static const char *parse_Normal(PARSER_DATA *data, const char *string) {
     }
     
     // Add normal to our normal list
-    if (list_Append(&data->normals, &normal) != true) {
+    if (!list_Append(&data->normals, &normal)) {
         eprintf("Unable to store new normal\n");
         return NULL;
     }
@@ -713,7 +713,7 @@ static const char *parse_TexCoord(PARSER_DATA *data, const char *string) {
     }
     
     // Add texture coordinate to list
-    if (list_Append(&data->texcoords, &tex) != true) {
+    if (!list_Append(&data->texcoords, &tex)) {
         eprintf("Unable to store new texture coordinate\n");
         return NULL;
     }
@@ -771,14 +771,14 @@ static const char *parse_Face(PARSER_DATA *data, const char *string) {
         eprintf("Out of memory\n");
         return NULL;
     }
-    if (shape_CreateFace(shape, &face, material) != true) {
+    if (!shape_CreateFace(shape, &face, material)) {
         eprintf("Unable to allocate new face\n");
         free(shape);
         return NULL;
     }
     
     // Install face
-    if (list_Append(&data->shapes, &shape) != true) {
+    if (!list_Append(&data->shapes, &shape)) {
         eprintf("Unable to store new plane\n");
         shape_Destroy(shape);
         free(shape);
@@ -993,7 +993,7 @@ bool scene_Decode(SCENE *scene, const char *filename) {
     
     // Set up parser data block
     PARSER_DATA data;
-    if (parser_Create(&data, scene) != true) {
+    if (!parser_Create(&data, scene)) {
         eprintf("Failed to allocate parser data block\n");
         fclose(file);
         return false;
@@ -1005,7 +1005,7 @@ bool scene_Decode(SCENE *scene, const char *filename) {
     int line = 0;
     while (line++, fgets(buf, BUF_SIZE, file)) {
         // Parse this line
-        if (parser_ParseLine(&data, buf) != true) {
+        if (!parser_ParseLine(&data, buf)) {
             eprintf("Parse error on line %d\n", line);
             parser_Destroy(&data);
             fclose(file);

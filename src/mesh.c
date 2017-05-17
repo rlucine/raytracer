@@ -209,7 +209,7 @@ bool face_GetPlane(const FACE *face, PLANE *plane) {
  * Containing points
  *============================================================*/
 bool face_Contains(const FACE *face, const VECTOR *where) {
-    return face_GetBarycentricCoordinates(face, where, NULL) == true;
+    return face_GetBarycentricCoordinates(face, where, NULL);
 }
 
 /*============================================================*
@@ -223,7 +223,7 @@ bool face_GetNormalAt(const FACE *face, const VECTOR *where, VECTOR *normal) {
     n2 = face_GetNormal(face, 2);
     if (n0 == NULL || n1 == NULL || n2 == NULL) {
         PLANE plane;
-        if (face_GetPlane(face, &plane) != true) {
+        if (!face_GetPlane(face, &plane)) {
             eprintf("Unable to generate normal vector.\n");
             return false;
         }
@@ -235,7 +235,7 @@ bool face_GetNormalAt(const FACE *face, const VECTOR *where, VECTOR *normal) {
     
     // Interpolate position
     VECTOR barycentric;
-    if (face_GetBarycentricCoordinates(face, where, &barycentric) != true) {
+    if (!face_GetBarycentricCoordinates(face, where, &barycentric)) {
         eprintf("Point out of bounds.\n");
         return false;
     }
@@ -280,7 +280,7 @@ bool face_GetTextureAt(const FACE *face, const VECTOR *where, TEXCOORD *tex) {
     
     // Interpolate position
     VECTOR barycentric;
-    if (face_GetBarycentricCoordinates(face, where, &barycentric) != true) {
+    if (!face_GetBarycentricCoordinates(face, where, &barycentric)) {
         eprintf("Point out of bounds.\n");
         return false;
     }

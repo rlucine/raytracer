@@ -126,9 +126,9 @@ bool ppm_Decode(IMAGE *ppm, const char *filename) {
     int height;
     int maxsize;
     int failure = 0;
-    failure = failure || (ppm_Parse(file, &width) != true);
-    failure = failure || (ppm_Parse(file, &height) != true);
-    failure = failure || (ppm_Parse(file, &maxsize) != true);
+    failure = failure || !ppm_Parse(file, &width);
+    failure = failure || !ppm_Parse(file, &height);
+    failure = failure || !ppm_Parse(file, &maxsize);
     if (failure) {
         eprintf("Failed to parse header information\n");
         fclose(file);
@@ -142,7 +142,7 @@ bool ppm_Decode(IMAGE *ppm, const char *filename) {
     
     // Read color information
     RGB rgb;
-    if (image_Create(ppm, width, height) != true) {
+    if (!image_Create(ppm, width, height)) {
         eprintf("Failed to parse header information\n");
         fclose(file);
         return false;
@@ -153,9 +153,9 @@ bool ppm_Decode(IMAGE *ppm, const char *filename) {
     for (y = 0; y < height; y++) {
         for (x = 0; x < width; x++) {
             failure = 0;
-            failure = failure || (ppm_Parse(file, &red) != true);
-            failure = failure || (ppm_Parse(file, &green) != true);
-            failure = failure || (ppm_Parse(file, &blue) != true);
+            failure = failure || !ppm_Parse(file, &red);
+            failure = failure || !ppm_Parse(file, &green);
+            failure = failure || !ppm_Parse(file, &blue);
             if (failure) {
                 eprintf("Parse error\n");
                 fclose(file);
@@ -166,7 +166,7 @@ bool ppm_Decode(IMAGE *ppm, const char *filename) {
             rgb.r = red * PPM_MAX_COLOR / maxsize;
             rgb.g = green * PPM_MAX_COLOR / maxsize;
             rgb.b = blue * PPM_MAX_COLOR / maxsize;
-            if (image_SetPixel(ppm, x, y, &rgb) != true) {
+            if (!image_SetPixel(ppm, x, y, &rgb)) {
                 eprintf("Failed to place colors in image\n");
                 fclose(file);
                 return false;

@@ -379,13 +379,13 @@ static bool face_Collide(const FACE *face, const LINE *ray, COLLISION *result) {
     
     // Get the plane of the face
     PLANE plane;
-    if (face_GetPlane(face, &plane) != true) {
+    if (!face_GetPlane(face, &plane)) {
         eprintf("Unable to generate face plane\n");
         return false;
     }
     
     // Determine collision with the plane
-    if (plane_Collide(&plane, ray, result) != true) {
+    if (!plane_Collide(&plane, ray, result)) {
         eprintf("Unable to collide with face plane\n");
         return false;
     }
@@ -399,13 +399,13 @@ static bool face_Collide(const FACE *face, const LINE *ray, COLLISION *result) {
         }
         
         // Need to set up the proper collision normal now
-        if (face_GetNormalAt(face, &result->where, &result->normal) != true) {
+        if (!face_GetNormalAt(face, &result->where, &result->normal)) {
             eprintf("Unable to interpolate face normal\n");
             return false;
         }
         
         // Set up texture coordinate if the face is textured at all
-        if (result->texture && face_GetTextureAt(face, &result->where, &result->texcoord) != true) {
+        if (result->texture && !face_GetTextureAt(face, &result->where, &result->texcoord)) {
             eprintf("Texture defined but missing texture coordinates\n");
             return false;
         }
@@ -462,7 +462,7 @@ bool shape_GetColorAt(const COLLISION *collision, COLOR *color) {
     
     // Get the diffuse color
     if (collision->material->texture != NULL) {
-        if (image_GetTexture(collision->material->texture, &collision->texcoord, color) != true) {
+        if (!image_GetTexture(collision->material->texture, &collision->texcoord, color)) {
             eprintf("Unable to access texture data\n");
             return false;
         }

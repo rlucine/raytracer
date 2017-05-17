@@ -120,7 +120,7 @@ static bool raytrace_Cast(COLLISION *closest, const LINE *ray, const SCENE *scen
         }
         
         // Collide with this shape
-        if (shape_Collide(shape, ray, &current) != true) {
+        if (!shape_Collide(shape, ray, &current)) {
             eprintf("Collision with shape %d failed\n", n);
             return false;
         }
@@ -171,14 +171,14 @@ static float raytrace_Shadow(float *shadows, const COLLISION *collision, const L
     LINE ray;
     float distance;
     memcpy(&ray.origin, &collision->where, sizeof(VECTOR));
-    if (light_GetDirection(light, &collision->where, &ray.direction, &distance) != true) {
+    if (!light_GetDirection(light, &collision->where, &ray.direction, &distance)) {
         eprintf("Invalid light\n");
         return false;
     }
     
     // Fire the shadow ray
     COLLISION shadow;
-    if (raytrace_Cast(&shadow, &ray, scene) != true) {
+    if (!raytrace_Cast(&shadow, &ray, scene)) {
         eprintf("Failed to shoot shadow ray\n");
         return false;
     }
@@ -190,7 +190,7 @@ static float raytrace_Shadow(float *shadows, const COLLISION *collision, const L
         
         // Check for all other collisions
         float rest;
-        if (raytrace_Shadow(&rest, &shadow, light, scene) != true) {
+        if (!raytrace_Shadow(&rest, &shadow, light, scene)) {
             eprintf("Failed to shadow all objects in the scene");
             return false;
         }
@@ -261,14 +261,14 @@ static bool raytrace_Reflection(COLOR *color, const COLLISION *collision, const 
 
     // Shoot the reflection ray
     COLLISION reflection_collision;
-    if (raytrace_Cast(&reflection_collision, &reflection, scene) != true) {
+    if (!raytrace_Cast(&reflection_collision, &reflection, scene)) {
         eprintf("Failed to shoot reflection ray\n");
         return false;
     }
 
     // Recursively shade the reflection color
     if (reflection_collision.how != COLLISION_NONE) {
-        if (raytrace_Shade(color, &reflection_collision, scene, irefract, depth+1) != true) {
+        if (!raytrace_Shade(color, &reflection_collision, scene, irefract, depth+1)) {
             eprintf("Failed to shade the reflection ray\n");
             return false;
         }
@@ -306,14 +306,14 @@ static bool raytrace_Reflection(COLOR *color, const COLLISION *collision, const 
     
     // Shoot the transparency ray
     COLLISION transparency_collision;
-    if (raytrace_Cast(&transparency_collision, &transparency, scene) != true) {
+    if (!raytrace_Cast(&transparency_collision, &transparency, scene)) {
         eprintf("Failed to shoot transparency ray\n");
         return false;
     }
     
     // Recursively shade transparency color
     COLOR transparency_color;
-    if (raytrace_Shade(&transparency_color, &transparency_collision, scene, material->refraction, depth+1) != true) {
+    if (!raytrace_Shade(&transparency_color, &transparency_collision, scene, material->refraction, depth+1)) {
         eprintf("Failed to shade the transparency ray\n");
         return false;
     }
@@ -342,7 +342,7 @@ static bool raytrace_Shade(COLOR *color, const COLLISION *collision, const SCENE
     
     // Get the diffuse color
     COLOR object_color;
-    if (shape_GetColorAt(collision, &object_color) != true) {
+    if (!shape_GetColorAt(collision, &object_color)) {
         eprintf("Failed to get object color\n");
         return false;
     }
@@ -361,7 +361,7 @@ static bool raytrace_Shade(COLOR *color, const COLLISION *collision, const SCENE
         light = scene_GetLight(scene, i);
         
         // Get shadows and check float 
-        if (raytrace_Shadow(&shadows, collision, light, scene) != true) {
+        if (!raytrace_Shadow(&shadows, collision, light, scene)) {
             eprintf("Failed to check shadows\n");
             return false;
         }
@@ -370,7 +370,7 @@ static bool raytrace_Shade(COLOR *color, const COLLISION *collision, const SCENE
         }
         
         // Get shading for this light
-        if (light_BlinnPhongShade(light, collision, &temp) != true) {
+        if (!light_BlinnPhongShade(light, collision, &temp)) {
             continue;
         }
         vector_Multiply(&temp, shadows);
@@ -382,7 +382,7 @@ static bool raytrace_Shade(COLOR *color, const COLLISION *collision, const SCENE
     if (depth < RECURSION_DEPTH) {
         // Determine any reflections
         COLOR reflection_color;
-        if (raytrace_Reflection(&reflection_color, collision, scene, irefract, depth) != true) {
+        if (!raytrace_Reflection(&reflection_color, collision, scene, irefract, depth)) {
             eprintf("Failed to get reflection color\n");
             return false;
         }
@@ -406,7 +406,7 @@ bool raytrace_Render(IMAGE *image, const SCENE *scene) {
     if (scene->flags & PROJECT_PARALLEL) {
         distance = 0.0;
     }
-    if (raytrace_GetView(&view, distance, scene) != true) {
+    if (!raytrace_GetView(&view, distance, scene)) {
         eprintf("Failed to generate viewing plane\n");
         return false;
     }
@@ -419,7 +419,7 @@ bool raytrace_Render(IMAGE *image, const SCENE *scene) {
 #endif
     
     // Get the image output
-    if (image_Create(image, scene_GetWidth(scene), scene_GetHeight(scene)) != true) {
+    if (!image_Create(image, scene_GetWidth(scene), scene_GetHeight(scene))) {
         eprintf("Failed to create output image\n");
         return false;
     }
@@ -476,7 +476,7 @@ bool raytrace_Render(IMAGE *image, const SCENE *scene) {
 #endif
             
             // Cast this ray
-            if (raytrace_Cast(&collision, &ray, scene) != true) {
+            if (!raytrace_Cast(&collision, &ray, scene)) {
                 eprintf("Failed to cast ray (%d, %d)\n", x, y);
                 return false;
             }
@@ -484,7 +484,7 @@ bool raytrace_Render(IMAGE *image, const SCENE *scene) {
             // Determine color
             if (collision.how != COLLISION_NONE) {
                 // Collided with the surface of the shape
-                if (raytrace_Shade(&color, &collision, scene, INITIAL_REFRACTION, 0) != true) {
+                if (!raytrace_Shade(&color, &collision, scene, INITIAL_REFRACTION, 0)) {
                     eprintf("Shader failed\n");
                     return false;
                 }
@@ -498,7 +498,7 @@ bool raytrace_Render(IMAGE *image, const SCENE *scene) {
             }
             
             // Put the color
-            if (image_SetPixel(image, x, y, &rgb) != true) {
+            if (!image_SetPixel(image, x, y, &rgb)) {
                 eprintf("Failed to set color at (%d, %d)\n", x, y);
                 return false;
             }

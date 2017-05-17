@@ -89,7 +89,7 @@ bool light_GetDirection(const LIGHT *light, const VECTOR *where, VECTOR *output,
 bool light_BlinnPhongShade(const LIGHT *light, const COLLISION *collision, COLOR *color) {
     // Get the vector pointing from the collision to the light
     VECTOR to_light;
-    if (light_GetDirection(light, &collision->where, &to_light, NULL) != true) {
+    if (!light_GetDirection(light, &collision->where, &to_light, NULL)) {
         eprintf("Cannot get direction to light\n");
         return false;
     }
@@ -115,7 +115,7 @@ bool light_BlinnPhongShade(const LIGHT *light, const COLLISION *collision, COLOR
     
     // Get the diffuse color
     COLOR object_color;
-    if (shape_GetColorAt(collision, &object_color) != true) {
+    if (!shape_GetColorAt(collision, &object_color)) {
         eprintf("Failed to get object color\n");
         return false;
     }
