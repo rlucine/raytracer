@@ -6,15 +6,11 @@
 
 // Standard library
 #include <stdbool.h>    // bool
-#include <stdlib.h>     // malloc, free, size_t
-#include <stdio.h>      // fopen, fclose, fprintf, getline ...
-#include <limits.h>     // USHRT_MAX
-#include <sys/stat.h>   // stat, struct stat
-#include <string.h>     // strcpy
+#include <stdlib.h>     // malloc, free
 
 // This project
 #include "image.h"      // IMAGE
-#include "color.h"      // COLOR, RGB ...
+#include "color.h"      // RGB
 
 // Debugging modules
 #include "debug.h"      // eprintf, assert
@@ -23,7 +19,6 @@
  * Allocating IMAGE
  *============================================================*/
 bool image_Create(IMAGE *image, int width, int height) {
-    
     // Error check the dimensions
     if (width <= 0 || width > MAX_DIMENSION) {
         eprintf("Invalid width %d\n", width);
@@ -35,12 +30,7 @@ bool image_Create(IMAGE *image, int width, int height) {
     }
     
     // Allocate the image data chunk
-    size_t size = sizeof(RGB)*width*height;
-    if ((long)size < 0 || (long)size > INT_MAX) {
-        eprintf("%d by %d image is too large\n", width, height);
-        return false;
-    }
-    RGB *data = (RGB *)malloc(size);
+    RGB *data = (RGB *)malloc(sizeof(RGB)*width*height);
     if (!data) {
         eprintf("Out of heap space\n");
         return false;
@@ -57,7 +47,6 @@ bool image_Create(IMAGE *image, int width, int height) {
  * Reading pixels
  *============================================================*/
 const RGB *image_GetPixel(const IMAGE *image, int x, int y) {
-    
     // Error check the index
     if (x < 0 || x >= image->width) {
         eprintf("Invalid x coordinate\n");
@@ -76,7 +65,6 @@ const RGB *image_GetPixel(const IMAGE *image, int x, int y) {
  * Modifying pixels
  *============================================================*/
 bool image_SetPixel(IMAGE *image, int x, int y, const RGB *color) {
-    
     // Error check the index
     if (x < 0 || x >= image->width) {
         eprintf("Invalid x coordinate\n");
@@ -93,8 +81,6 @@ bool image_SetPixel(IMAGE *image, int x, int y, const RGB *color) {
     where->r = color->r;
     where->g = color->g;
     where->b = color->b;
-    
-    // Done
     return true;
 }
 
@@ -102,7 +88,6 @@ bool image_SetPixel(IMAGE *image, int x, int y, const RGB *color) {
  * Texturing
  *============================================================*/
 bool image_GetTexture(const TEXTURE *texture, const TEXCOORD *coord, COLOR *color) {
-    
     // Mapping to pixels
     int x = (int)(coord->x * texture->width);
     int y = (int)(coord->y * texture->height);
@@ -126,17 +111,6 @@ bool image_GetTexture(const TEXTURE *texture, const TEXCOORD *coord, COLOR *colo
         return true;
     }
     return false;
-}
-
-/*============================================================*
- * Getters
- *============================================================*/
-int image_GetWidth(const IMAGE *image) {
-    return image->width;
-}
-
-int image_GetHeight(const IMAGE *image) {
-    return image->height;
 }
 
 /*============================================================*

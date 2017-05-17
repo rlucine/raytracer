@@ -9,26 +9,22 @@
 
 // Standard library
 #include <stdbool.h>    // bool
-#include <limits.h> // USHRT_MAX
 
 // This project
-#include "color.h"  // COLOR
-#include "vector.h" // VECTOR
+#include "vector.h"     // VECTOR
+#include "color.h"      // COLOR
 
-/**********************************************************//**
- * @def MAX_DIMENSION
- * @brief The largest image dimension
- **************************************************************/
-#define MAX_DIMENSION USHRT_MAX
+//*************************************************************
+#define MAX_DIMENSION 32767     ///< The largest image dimension.
 
 /**********************************************************//**
  * @struct IMAGE
  * @brief Struct for uncompressed RGB image data
  **************************************************************/
 typedef struct {
-    unsigned short width;   ///< Width of the image
-    unsigned short height;  ///< Height of the image
-    RGB *data;              ///< Do not access this variable
+    int width;          ///< Width of the image
+    int height;         ///< Height of the image
+    RGB *data;          ///< Do not access this variable
 } IMAGE;
 
 /**********************************************************//**
@@ -90,14 +86,18 @@ extern bool image_GetTexture(const TEXTURE *texture, const TEXCOORD *coord, COLO
  * @param image: The image data to read
  * @return The width of the image
  **************************************************************/
-extern int image_GetWidth(const IMAGE *image);
+static inline int image_GetWidth(const IMAGE *image) {
+    return image->width;
+}
 
 /**********************************************************//**
  * @brief Get the height of the image data
  * @param image: The image data to read
  * @return The height of the image
  **************************************************************/
-extern int image_GetHeight(const IMAGE *image);
+static inline int image_GetHeight(const IMAGE *image) {
+    return image->height;
+}
 
 /**********************************************************//**
  * @brief Delete an image without memory leaks
