@@ -15,22 +15,14 @@
 #include "image.h"      // TEXCOORD
 #include "geometry.h"   // PLANE, LINE
 
-/**********************************************************//**
- * @def N_VERTICES
- * @brief How many vertexes each face has
- **************************************************************/
+//*************************************************************
+/// How many vertexes each face has,
 #define N_VERTICES 3
 
-/**********************************************************//**
- * @def NO_NORMAL
- * @brief The vertex has no normal specified
- **************************************************************/
+/// The vertex has no normal specified,
 #define NO_NORMAL 0
 
-/**********************************************************//**
- * @def NO_TEXTURE
- * @brief The vertex has no texture coordinate specified
- **************************************************************/
+/// The vertex has no texture coordinate specified.
 #define NO_TEXTURE 0
 
 /**********************************************************//**

@@ -6,9 +6,7 @@
 
 // Standard library
 #include <stdbool.h>    // bool
-#include <stdlib.h>     // NULL
-#include <stdio.h>      // fprintf, stderr ...
-#include <float.h>      // DBL_EPSILON
+#include <stdlib.h>     // malloc, free
 
 // This project
 #include "vector.h"     // VECTOR, VECTOR ...

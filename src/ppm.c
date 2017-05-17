@@ -7,7 +7,7 @@
 // Standard library
 #include <stdbool.h>    // bool
 #include <stdlib.h>     // malloc, free, size_t
-#include <stdio.h>      // fopen, fclose, fprintf, getline ...
+#include <stdio.h>      // fopen, fclose, fprintf ...
 #include <limits.h>     // USHRT_MAX
 #include <string.h>     // strcpy
 

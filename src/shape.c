@@ -9,7 +9,6 @@
 #include <stdlib.h>     // free
 #include <string.h>     // memcpy
 #include <math.h>       // sqrt, asin, M_PI, fabs, sqrt ...
-#include <stdio.h>      // fprintf, stderr ...
 #include <float.h>      // DBL_EPSILON
 
 // This project

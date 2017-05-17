@@ -7,7 +7,6 @@
 // Standard library
 #include <stdbool.h>    // bool
 #include <math.h>       // pow, INFINITY, M_PI
-#include <stdio.h>      // stderr, fprintf
 
 // This project
 #include "light.h"      // LIGHT
