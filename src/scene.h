@@ -72,7 +72,9 @@ extern bool scene_Decode(SCENE *scene, const char *filename);
  * @param scene: The scene to read
  * @return Pointer to the eye position
  **************************************************************/
-extern const VECTOR *scene_GetEyePosition(const SCENE *scene);
+static inline const VECTOR *scene_GetEyePosition(const SCENE *scene) {
+    return &scene->eye;
+}
 
 /**********************************************************//**
  * @brief Get the view direction in the scene
@@ -80,7 +82,9 @@ extern const VECTOR *scene_GetEyePosition(const SCENE *scene);
  * @return Pointer to the view direction. The view direction
  * may not be normalized and may not be orthogonal to the up.
  **************************************************************/
-extern const VECTOR *scene_GetViewDirection(const SCENE *scene);
+static inline const VECTOR *scene_GetViewDirection(const SCENE *scene) {
+    return &scene->view;
+}
 
 /**********************************************************//**
  * @brief Get the up direction in the scene
@@ -88,35 +92,45 @@ extern const VECTOR *scene_GetViewDirection(const SCENE *scene);
  * @return Pointer to the up direction. The up direction may
  * not be normalized and may not be orthogonal to the view.
  **************************************************************/
-extern const VECTOR *scene_GetUpDirection(const SCENE *scene);
+static inline const VECTOR *scene_GetUpDirection(const SCENE *scene) {
+    return &scene->up;
+}
 
 /**********************************************************//**
  * @brief Get the FOV in degrees
  * @param scene: The scene to read
  * @return The field of view in degrees
  **************************************************************/
-extern float scene_GetFieldOfView(const SCENE *scene);
+static inline float scene_GetFieldOfView(const SCENE *scene) {
+    return scene->fov;
+}
 
 /**********************************************************//**
  * @brief Get the scene width in pixels
  * @param scene: The scene to read
  * @return The width of the scene in pixels
  **************************************************************/
-extern int scene_GetWidth(const SCENE *scene);
+static inline int scene_GetWidth(const SCENE *scene) {
+    return scene->width;
+}
 
 /**********************************************************//**
  * @brief Get the scene height in pixels
  * @param scene: The scene to read
  * @return The height of the scene in pixels
  **************************************************************/
-extern int scene_GetHeight(const SCENE *scene);
+static inline int scene_GetHeight(const SCENE *scene) {
+    return scene->height;
+}
 
 /**********************************************************//**
  * @brief Get the background color of the scene
  * @param scene: The scene to read
  * @return Pointer to the background color
  **************************************************************/
-extern const COLOR *scene_GetBackgroundColor(const SCENE *scene);
+static inline const COLOR *scene_GetBackgroundColor(const SCENE *scene) {
+    return &scene->background;
+}
 
 /**********************************************************//**
  * @brief Get how many shapes are in the scene
@@ -125,7 +139,9 @@ extern const COLOR *scene_GetBackgroundColor(const SCENE *scene);
  * is guaranteed not to fail for non-negative int less than
  * this returned value.
  **************************************************************/
-extern int scene_GetNumberOfShapes(const SCENE *scene);
+static inline int scene_GetNumberOfShapes(const SCENE *scene) {
+    return scene->nshapes;
+}
 
 /**********************************************************//**
  * @brief Get the shape from the scene
@@ -134,7 +150,9 @@ extern int scene_GetNumberOfShapes(const SCENE *scene);
  * minus one.
  * @return Pointer to the shape
  **************************************************************/
-extern const SHAPE *scene_GetShape(const SCENE *scene, int index);
+static inline const SHAPE *scene_GetShape(const SCENE *scene, int index) {
+    return scene->shapes[index];
+}
 
 /**********************************************************//**
  * @brief Get how many lights are in the scene
@@ -143,7 +161,9 @@ extern const SHAPE *scene_GetShape(const SCENE *scene, int index);
  * is guaranteed not to fail for non-negative int less than
  * this returned value.
  **************************************************************/
-extern int scene_GetNumberOfLights(const SCENE *scene);
+static inline int scene_GetNumberOfLights(const SCENE *scene) {
+    return scene->nlights;
+}
 
 /**********************************************************//**
  * @brief Get the light from the scene
@@ -152,7 +172,9 @@ extern int scene_GetNumberOfLights(const SCENE *scene);
  * minus one.
  * @return Pointer to the light
  **************************************************************/
-extern const LIGHT *scene_GetLight(const SCENE *scene, int index);
+static inline const LIGHT *scene_GetLight(const SCENE *scene, int index) {
+    return scene->lights[index];
+}
 
 /**********************************************************//**
  * @brief Destroy the SCENE structure. The structure cannot

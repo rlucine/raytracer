@@ -5,77 +5,25 @@
  **************************************************************/
 
 // Standard library
-#include <stdbool.h>    // bool
-#include <stdlib.h>     // malloc, free, realloc, size_t ...
-#include <stdio.h>      // fprintf, stderr, fopen, fclose ...
-#include <string.h>     // strcmp
-#include <ctype.h>      // isspace
+#include <stdlib.h>     // free
 
 // This project
 #include "image.h"      // IMAGE
 #include "vector.h"     // VECTOR
 #include "shape.h"      // SHAPE
-#include "scene.h"      // SCENE
 #include "light.h"      // LIGHT
+#include "mesh.h"       // MESH
 
 // Debugging modules
-#include "debug.h"
+#include "debug.h"      // eprintf, assert
 
 // Included files
 #include "parser.inc"
 
 /*============================================================*
- * Scene getters
- *============================================================*/
-const VECTOR *scene_GetEyePosition(const SCENE *scene) {
-    return &scene->eye;
-}
-
-const VECTOR *scene_GetViewDirection(const SCENE *scene) {
-    return &scene->view;
-}
-
-const VECTOR *scene_GetUpDirection(const SCENE *scene) {
-    return &scene->up;
-}
-
-float scene_GetFieldOfView(const SCENE *scene) {
-    return scene->fov;
-}
-
-int scene_GetWidth(const SCENE *scene) {
-    return scene->width;
-}
-
-int scene_GetHeight(const SCENE *scene) {
-    return scene->height;
-}
-
-const COLOR *scene_GetBackgroundColor(const SCENE *scene) {
-    return &scene->background;
-}
-
-int scene_GetNumberOfShapes(const SCENE *scene) {
-    return scene->nshapes;
-}
-
-const SHAPE *scene_GetShape(const SCENE *scene, int index) {
-    return scene->shapes[index];
-}
-
-int scene_GetNumberOfLights(const SCENE *scene) {
-    return scene->nlights;
-}
-
-const LIGHT *scene_GetLight(const SCENE *scene, int index) {
-    return scene->lights[index];
-}
-
-/*============================================================*
  * Scene destructor
  *============================================================*/
 void scene_Destroy(SCENE *scene) {
-    
     // Free all the allocated shape data
     int i;
     
