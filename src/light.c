@@ -16,7 +16,7 @@
 #include "shape.h"      // SHAPE
 
 // Debugging libraries
-#include "debug.h"
+#include "debug.h"      // eprintf, assert
 
 /*============================================================*
  * Creation
@@ -141,16 +141,6 @@ bool light_BlinnPhongShade(const LIGHT *light, const COLLISION *collision, COLOR
         vector_Multiply(&temp, specular);
         vector_Add(color, &temp);
     }
-    
-#ifdef DEBUG
-    eprintf("Normal is (%f, %f, %f)\n", collision->normal.x, collision->normal.y, collision->normal.z);
-    eprintf("View is (%f, %f, %f)\n", view.x, view.y, view.z);
-    eprintf("Halfway is (%f, %f, %f)\n", halfway.x, halfway.y, halfway.z);
-    eprintf("Light is (%f, %f, %f)\n", to_light.x, to_light.y, to_light.z);
-    eprintf("Diffuse coefficient is %f\n", diffuse);
-    eprintf("Specular coefficient is %f\n", specular);
-    eprintf("Dot is %f and dot^%d is %f\n", dot, material->exponent, pow(dot, material->exponent));
-#endif
     
     // Scale by light's own color
     color_Clamp(color);

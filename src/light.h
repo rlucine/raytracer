@@ -15,17 +15,9 @@
 #include "vector.h"     // VECTOR
 #include "shape.h"      // COLLISION
 
-/**********************************************************//**
- * @def MAX_ANGLE
- * @brief The maximum angle for a spotlight
- **************************************************************/
-#define MAX_ANGLE 360
-
-/**********************************************************//**
- * @def MIN_ANGLE
- * @brief The minimum angle for a spotlight
- **************************************************************/
-#define MIN_ANGLE 0
+//*************************************************************
+#define MAX_ANGLE 360   ///< The maximum angle for a spotlight.
+#define MIN_ANGLE 0     ///< The minimum angle for a spotlight.
 
 /**********************************************************//**
  * @enum LIGHT_TYPE
