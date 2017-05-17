@@ -74,7 +74,7 @@ int light_GetDirection(const LIGHT *light, const POINT *where, VECTOR *output, d
     
     case LIGHT_NONE:
     default:
-        errmsg("Light type undefined\n");
+        eprintf("Light type undefined\n");
         return FAILURE;
     }
     
@@ -92,7 +92,7 @@ int light_BlinnPhongShade(const LIGHT *light, const COLLISION *collision, COLOR 
     // Get the vector pointing from the collision to the light
     VECTOR to_light;
     if (light_GetDirection(light, &collision->where, &to_light, NULL) != SUCCESS) {
-        errmsg("Cannot get direction to light\n");
+        eprintf("Cannot get direction to light\n");
         return FAILURE;
     }
     
@@ -119,7 +119,7 @@ int light_BlinnPhongShade(const LIGHT *light, const COLLISION *collision, COLOR 
     // Get the diffuse color
     COLOR object_color;
     if (shape_GetColorAt(collision, &object_color) != SUCCESS) {
-        errmsg("Failed to get object color\n");
+        eprintf("Failed to get object color\n");
         return FAILURE;
     }
     
@@ -144,13 +144,13 @@ int light_BlinnPhongShade(const LIGHT *light, const COLLISION *collision, COLOR 
     }
     
 #ifdef DEBUG
-    errmsg("Normal is (%lf, %lf, %lf)\n", collision->normal.x, collision->normal.y, collision->normal.z);
-    errmsg("View is (%lf, %lf, %lf)\n", view.x, view.y, view.z);
-    errmsg("Halfway is (%lf, %lf, %lf)\n", halfway.x, halfway.y, halfway.z);
-    errmsg("Light is (%lf, %lf, %lf)\n", to_light.x, to_light.y, to_light.z);
-    errmsg("Diffuse coefficient is %lf\n", diffuse);
-    errmsg("Specular coefficient is %lf\n", specular);
-    errmsg("Dot is %lf and dot^%d is %lf\n", dot, material->exponent, pow(dot, material->exponent));
+    eprintf("Normal is (%lf, %lf, %lf)\n", collision->normal.x, collision->normal.y, collision->normal.z);
+    eprintf("View is (%lf, %lf, %lf)\n", view.x, view.y, view.z);
+    eprintf("Halfway is (%lf, %lf, %lf)\n", halfway.x, halfway.y, halfway.z);
+    eprintf("Light is (%lf, %lf, %lf)\n", to_light.x, to_light.y, to_light.z);
+    eprintf("Diffuse coefficient is %lf\n", diffuse);
+    eprintf("Specular coefficient is %lf\n", specular);
+    eprintf("Dot is %lf and dot^%d is %lf\n", dot, material->exponent, pow(dot, material->exponent));
 #endif
     
     // Scale by light's own color

@@ -26,7 +26,7 @@ int mesh_Create(MESH *mesh, int nvertices, int nnormals, int ntextures) {
     if (nvertices > 0) {
         mesh->vertices = (POINT *)malloc(nvertices*sizeof(POINT));
         if (!mesh->vertices) {
-            errmsg("Out of memory\n");
+            eprintf("Out of memory\n");
             return FAILURE;
         }
     } else {
@@ -38,7 +38,7 @@ int mesh_Create(MESH *mesh, int nvertices, int nnormals, int ntextures) {
     if (nnormals > 0) {
         mesh->normals = (POINT *)malloc(nnormals*sizeof(VECTOR));
         if (!mesh->normals) {
-            errmsg("Out of memory\n");
+            eprintf("Out of memory\n");
             return FAILURE;
         }
     } else {
@@ -50,7 +50,7 @@ int mesh_Create(MESH *mesh, int nvertices, int nnormals, int ntextures) {
     if (ntextures > 0) {
         mesh->texture = (TEXCOORD *)malloc(ntextures*sizeof(TEXCOORD));
         if (!mesh->texture) {
-            errmsg("Out of memory\n");
+            eprintf("Out of memory\n");
             return FAILURE;
         }
     } else {
@@ -129,7 +129,7 @@ static int face_GetBarycentricCoordinates(const FACE *face, const POINT *where, 
     v1 = face_GetVertex(face, 1);
     v2 = face_GetVertex(face, 2);
     if (v0 == NULL || v1 == NULL || v2 == NULL) {
-        errmsg("Illegal vertex index\n");
+        eprintf("Illegal vertex index\n");
         return FAILURE;
     }
     
@@ -179,7 +179,7 @@ int face_GetPlane(const FACE *face, PLANE *plane) {
     v1 = face_GetVertex(face, 1);
     v2 = face_GetVertex(face, 2);
     if (v0 == NULL || v1 == NULL || v2 == NULL) {
-        errmsg("Illegal vertex index\n");
+        eprintf("Illegal vertex index\n");
         return FAILURE;
     }
     
@@ -210,7 +210,7 @@ int face_GetNormalAt(const FACE *face, const POINT *where, VECTOR *normal) {
     if (n0 == NULL || n1 == NULL || n2 == NULL) {
         PLANE plane;
         if (face_GetPlane(face, &plane) != SUCCESS) {
-            errmsg("Unable to generate normal vector.\n");
+            eprintf("Unable to generate normal vector.\n");
             return FAILURE;
         }
         vector_Cross(normal, &plane.u, &plane.v);
@@ -221,7 +221,7 @@ int face_GetNormalAt(const FACE *face, const POINT *where, VECTOR *normal) {
     // Interpolate position
     VECTOR barycentric;
     if (face_GetBarycentricCoordinates(face, where, &barycentric) != SUCCESS) {
-        errmsg("Point out of bounds.\n");
+        eprintf("Point out of bounds.\n");
         return FAILURE;
     }
     
@@ -257,14 +257,14 @@ int face_GetTextureAt(const FACE *face, const POINT *where, TEXCOORD *tex) {
     t1 = face_GetTexture(face, 1);
     t2 = face_GetTexture(face, 2);
     if (t0 == NULL || t1 == NULL || t2 == NULL) {
-        errmsg("Missing texture coordinate.\n");
+        eprintf("Missing texture coordinate.\n");
         return FAILURE;
     }
     
     // Interpolate position
     VECTOR barycentric;
     if (face_GetBarycentricCoordinates(face, where, &barycentric) != SUCCESS) {
-        errmsg("Point out of bounds.\n");
+        eprintf("Point out of bounds.\n");
         return FAILURE;
     }
     

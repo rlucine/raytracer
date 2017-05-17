@@ -32,7 +32,7 @@ int shape_CreateSphere(SHAPE *shape, const SPHERE *sphere, const MATERIAL *mater
     // Copy data into the shape
     shape->data = malloc(sizeof(SPHERE));
     if (!shape->data) {
-        errmsg("Out of memory\n");
+        eprintf("Out of memory\n");
         return FAILURE;
     }
     memcpy(shape->data, sphere, sizeof(SPHERE));
@@ -49,7 +49,7 @@ int shape_CreateEllipsoid(SHAPE *shape, const ELLIPSOID *ellipsoid, const MATERI
     // Copy data into the shape
     shape->data = malloc(sizeof(ELLIPSOID));
     if (!shape->data) {
-        errmsg("Out of memory\n");
+        eprintf("Out of memory\n");
         return FAILURE;
     }
     memcpy(shape->data, ellipsoid, sizeof(ELLIPSOID));
@@ -66,7 +66,7 @@ int shape_CreatePlane(SHAPE *shape, const PLANE *plane, const MATERIAL *material
     // Copy data into the shape
     shape->data = malloc(sizeof(PLANE));
     if (!shape->data) {
-        errmsg("Out of memory\n");
+        eprintf("Out of memory\n");
         return FAILURE;
     }
     memcpy(shape->data, plane, sizeof(PLANE));
@@ -83,7 +83,7 @@ int shape_CreateFace(SHAPE *shape, const FACE *face, const MATERIAL *material) {
     // Copy data into the shape
     shape->data = malloc(sizeof(FACE));
     if (!shape->data) {
-        errmsg("Out of memory\n");
+        eprintf("Out of memory\n");
         return FAILURE;
     }
     memcpy(shape->data, face, sizeof(FACE));
@@ -150,11 +150,11 @@ static int sphere_Collide(const SPHERE *sphere, const LINE *ray, COLLISION *resu
     
     // Error checking
     if (vector_IsZero(&ray->direction)) {
-        errmsg("direction is the null vector\n");
+        eprintf("direction is the null vector\n");
         return FAILURE;
     }
     if (sphere->radius <= 0.0) {
-        errmsg("Sphere radius nonpositive\n");
+        eprintf("Sphere radius nonpositive\n");
         return FAILURE;
     }
 
@@ -225,13 +225,13 @@ static int ellipsoid_Collide(const ELLIPSOID *ellipsoid, const LINE *ray, COLLIS
     
     // Error checking
     if (vector_IsZero(&ray->direction)) {
-        errmsg("direction is the null vector\n");
+        eprintf("direction is the null vector\n");
         return FAILURE;
     }
     
     const VECTOR *dimension = &ellipsoid->dimension;
     if (dimension->x <= 0.0 || dimension->y <= 0.0 || dimension->z <= 0.0) {
-        errmsg("Ellipsoid with negative dimension\n");
+        eprintf("Ellipsoid with negative dimension\n");
         return FAILURE;
     }
 
@@ -309,7 +309,7 @@ static int plane_Collide(const PLANE *plane, const LINE *ray, COLLISION *result)
     
     // Collide the ray with the plane
     if (vector_IsZero(&ray->direction)) {
-        errmsg("direction is the null vector\n");
+        eprintf("direction is the null vector\n");
         return FAILURE;
     }
     
@@ -374,13 +374,13 @@ static int face_Collide(const FACE *face, const LINE *ray, COLLISION *result) {
     // Get the plane of the face
     PLANE plane;
     if (face_GetPlane(face, &plane) != SUCCESS) {
-        errmsg("Unable to generate face plane\n");
+        eprintf("Unable to generate face plane\n");
         return FAILURE;
     }
     
     // Determine collision with the plane
     if (plane_Collide(&plane, ray, result) != SUCCESS) {
-        errmsg("Unable to collide with face plane\n");
+        eprintf("Unable to collide with face plane\n");
         return FAILURE;
     }
     
@@ -394,13 +394,13 @@ static int face_Collide(const FACE *face, const LINE *ray, COLLISION *result) {
         
         // Need to set up the proper collision normal now
         if (face_GetNormalAt(face, &result->where, &result->normal) != SUCCESS) {
-            errmsg("Unable to interpolate face normal\n");
+            eprintf("Unable to interpolate face normal\n");
             return FAILURE;
         }
         
         // Set up texture coordinate if the face is textured at all
         if (result->texture && face_GetTextureAt(face, &result->where, &result->texcoord) != SUCCESS) {
-            errmsg("Texture defined but missing texture coordinates\n");
+            eprintf("Texture defined but missing texture coordinates\n");
             return FAILURE;
         }
     }
@@ -415,7 +415,7 @@ int shape_Collide(const SHAPE *shape, const LINE *ray, COLLISION *result) {
     
     // Get collision material
     if (shape->material == NULL) {
-        errmsg("No material defined for this shape\n");
+        eprintf("No material defined for this shape\n");
         return FAILURE;
     }
     result->material = shape->material;
@@ -444,7 +444,7 @@ int shape_Collide(const SHAPE *shape, const LINE *ray, COLLISION *result) {
         break;
     }
     
-    errmsg("No collision for shape type %d\n", shape->shape);
+    eprintf("No collision for shape type %d\n", shape->shape);
     return FAILURE;
 }
 
@@ -456,7 +456,7 @@ int shape_GetColorAt(const COLLISION *collision, COLOR *color) {
     // Get the diffuse color
     if (collision->material->texture != NULL) {
         if (image_GetTexture(collision->material->texture, &collision->texcoord, color) != SUCCESS) {
-            errmsg("Unable to access texture data\n");
+            eprintf("Unable to access texture data\n");
             return FAILURE;
         }
     } else {

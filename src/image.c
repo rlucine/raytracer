@@ -27,23 +27,23 @@ int image_Create(IMAGE *image, int width, int height) {
     
     // Error check the dimensions
     if (width <= 0 || width > MAX_DIMENSION) {
-        errmsg("Invalid width %d\n", width);
+        eprintf("Invalid width %d\n", width);
         return FAILURE;
 
     } else if (height <= 0 || height > MAX_DIMENSION) {
-        errmsg("Invalid height %d\n", height);
+        eprintf("Invalid height %d\n", height);
         return FAILURE;
     }
     
     // Allocate the image data chunk
     size_t size = sizeof(RGB)*width*height;
     if ((long)size < 0 || (long)size > INT_MAX) {
-        errmsg("%d by %d image is too large\n", width, height);
+        eprintf("%d by %d image is too large\n", width, height);
         return FAILURE;
     }
     RGB *data = (RGB *)malloc(size);
     if (!data) {
-        errmsg("Out of heap space\n");
+        eprintf("Out of heap space\n");
         return FAILURE;
     }
     
@@ -61,11 +61,11 @@ const RGB *image_GetPixel(const IMAGE *image, int x, int y) {
     
     // Error check the index
     if (x < 0 || x >= image->width) {
-        errmsg("Invalid x coordinate\n");
+        eprintf("Invalid x coordinate\n");
         return NULL;
     }
     if (y < 0 || y >= image->height) {
-        errmsg("Invalid y coordinate\n");
+        eprintf("Invalid y coordinate\n");
         return NULL;
     }
     
@@ -80,11 +80,11 @@ int image_SetPixel(IMAGE *image, int x, int y, const RGB *color) {
     
     // Error check the index
     if (x < 0 || x >= image->width) {
-        errmsg("Invalid x coordinate\n");
+        eprintf("Invalid x coordinate\n");
         return FAILURE;
     }
     if (y < 0 || y >= image->height) {
-        errmsg("Invalid y coordinate\n");
+        eprintf("Invalid y coordinate\n");
         return FAILURE;
     }
     

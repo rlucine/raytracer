@@ -52,7 +52,7 @@ static int raytrace_GetView(VIEWPLANE *view, double view_distance, const SCENE *
     vector_Cross(&view->u, scene_GetViewDirection(scene), scene_GetUpDirection(scene));
     vector_Normalize(&view->u, &view->u);
     if (vector_IsZero(&view->u)) {
-        errmsg("Null u vector (%lf, %lf, %lf)\n", view->u.x, view->u.y, view->u.z);
+        eprintf("Null u vector (%lf, %lf, %lf)\n", view->u.x, view->u.y, view->u.z);
         return FAILURE;
     }
     
@@ -60,7 +60,7 @@ static int raytrace_GetView(VIEWPLANE *view, double view_distance, const SCENE *
     vector_Cross(&view->v, &view->u, scene_GetViewDirection(scene));
     vector_Normalize(&view->v, &view->v);
     if (vector_IsZero(&view->v)) {
-        errmsg("Null v vector (%lf, %lf, %lf)\n", view->v.x, view->v.y, view->v.z);
+        eprintf("Null v vector (%lf, %lf, %lf)\n", view->v.x, view->v.y, view->v.z);
         return FAILURE;
     }
     
@@ -108,13 +108,13 @@ static int raytrace_Cast(COLLISION *closest, const LINE *ray, const SCENE *scene
         // Read the shape data
         shape = scene_GetShape(scene, n);
         if (!shape) {
-            errmsg("No shape with identifier %d\n", n);
+            eprintf("No shape with identifier %d\n", n);
             return FAILURE;
         }
         
         // Collide with this shape
         if (shape_Collide(shape, ray, &current) != SUCCESS) {
-            errmsg("Collision with shape %d failed\n", n);
+            eprintf("Collision with shape %d failed\n", n);
             return FAILURE;
         }
         
@@ -165,14 +165,14 @@ static double raytrace_Shadow(double *shadows, const COLLISION *collision, const
     double distance;
     memcpy(&ray.origin, &collision->where, sizeof(POINT));
     if (light_GetDirection(light, &collision->where, &ray.direction, &distance) != SUCCESS) {
-        errmsg("Invalid light\n");
+        eprintf("Invalid light\n");
         return FAILURE;
     }
     
     // Fire the shadow ray
     COLLISION shadow;
     if (raytrace_Cast(&shadow, &ray, scene) != SUCCESS) {
-        errmsg("Failed to shoot shadow ray\n");
+        eprintf("Failed to shoot shadow ray\n");
         return FAILURE;
     }
     
@@ -184,7 +184,7 @@ static double raytrace_Shadow(double *shadows, const COLLISION *collision, const
         // Check for all other collisions
         double rest;
         if (raytrace_Shadow(&rest, &shadow, light, scene) != SUCCESS) {
-            errmsg("Failed to shadow all objects in the scene");
+            eprintf("Failed to shadow all objects in the scene");
             return FAILURE;
         }
         
@@ -253,14 +253,14 @@ static int raytrace_Reflection(COLOR *color, const COLLISION *collision, const S
     // Shoot the reflection ray
     COLLISION reflection_collision;
     if (raytrace_Cast(&reflection_collision, &reflection, scene) != SUCCESS) {
-        errmsg("Failed to shoot reflection ray\n");
+        eprintf("Failed to shoot reflection ray\n");
         return FAILURE;
     }
 
     // Recursively shade the reflection color
     if (reflection_collision.how != COLLISION_NONE) {
         if (raytrace_Shade(color, &reflection_collision, scene, irefract, depth+1) != SUCCESS) {
-            errmsg("Failed to shade the reflection ray\n");
+            eprintf("Failed to shade the reflection ray\n");
             return FAILURE;
         }
         
@@ -297,14 +297,14 @@ static int raytrace_Reflection(COLOR *color, const COLLISION *collision, const S
     // Shoot the transparency ray
     COLLISION transparency_collision;
     if (raytrace_Cast(&transparency_collision, &transparency, scene) != SUCCESS) {
-        errmsg("Failed to shoot transparency ray\n");
+        eprintf("Failed to shoot transparency ray\n");
         return FAILURE;
     }
     
     // Recursively shade transparency color
     COLOR transparency_color;
     if (raytrace_Shade(&transparency_color, &transparency_collision, scene, material->refraction, depth+1) != SUCCESS) {
-        errmsg("Failed to shade the transparency ray\n");
+        eprintf("Failed to shade the transparency ray\n");
         return FAILURE;
     }
         
@@ -333,7 +333,7 @@ static int raytrace_Shade(COLOR *color, const COLLISION *collision, const SCENE 
     // Get the diffuse color
     COLOR object_color;
     if (shape_GetColorAt(collision, &object_color) != SUCCESS) {
-        errmsg("Failed to get object color\n");
+        eprintf("Failed to get object color\n");
         return FAILURE;
     }
     
@@ -351,7 +351,7 @@ static int raytrace_Shade(COLOR *color, const COLLISION *collision, const SCENE 
         
         // Get shadows and check float 
         if (raytrace_Shadow(&shadows, collision, light, scene) != SUCCESS) {
-            errmsg("Failed to check shadows\n");
+            eprintf("Failed to check shadows\n");
             return FAILURE;
         }
         if (shadows < SHADOW_THRESHOLD) {
@@ -372,7 +372,7 @@ static int raytrace_Shade(COLOR *color, const COLLISION *collision, const SCENE 
         // Determine any reflections
         COLOR reflection_color;
         if (raytrace_Reflection(&reflection_color, collision, scene, irefract, depth) != SUCCESS) {
-            errmsg("Failed to get reflection color\n");
+            eprintf("Failed to get reflection color\n");
             return FAILURE;
         }
         
@@ -396,20 +396,20 @@ int raytrace_Render(IMAGE *image, const SCENE *scene) {
         distance = 0.0;
     }
     if (raytrace_GetView(&view, distance, scene) != SUCCESS) {
-        errmsg("Failed to generate viewing plane\n");
+        eprintf("Failed to generate viewing plane\n");
         return FAILURE;
     }
     
 #ifdef DEBUG
-    errmsg("Viewing plane origin is (%lf, %lf, %lf)\n", view.origin.x, view.origin.y, view.origin.z);
-    errmsg("Viewing plane u is (%lf, %lf, %lf)\n", view.u.x, view.u.y, view.u.z);
-    errmsg("Viewing plane v is (%lf, %lf, %lf)\n", view.v.x, view.v.y, view.v.z);
-    errmsg("Viewing plane size is %lf by %lf\n", view.width, view.height);
+    eprintf("Viewing plane origin is (%lf, %lf, %lf)\n", view.origin.x, view.origin.y, view.origin.z);
+    eprintf("Viewing plane u is (%lf, %lf, %lf)\n", view.u.x, view.u.y, view.u.z);
+    eprintf("Viewing plane v is (%lf, %lf, %lf)\n", view.v.x, view.v.y, view.v.z);
+    eprintf("Viewing plane size is %lf by %lf\n", view.width, view.height);
 #endif
     
     // Get the image output
     if (image_Create(image, scene_GetWidth(scene), scene_GetHeight(scene)) != SUCCESS) {
-        errmsg("Failed to create output image\n");
+        eprintf("Failed to create output image\n");
         return FAILURE;
     }
     
@@ -457,14 +457,14 @@ int raytrace_Render(IMAGE *image, const SCENE *scene) {
             }
             
 #ifdef DEBUG
-            errmsg("Ray (%d, %d)\n", x, y);
-            errmsg("Origin (%lf, %lf, %lf)\n", ray.origin.x, ray.origin.y, ray.origin.z);
-            errmsg("Direction (%lf, %lf, %lf)\n", ray.direction.x, ray.direction.y, ray.direction.z);
+            eprintf("Ray (%d, %d)\n", x, y);
+            eprintf("Origin (%lf, %lf, %lf)\n", ray.origin.x, ray.origin.y, ray.origin.z);
+            eprintf("Direction (%lf, %lf, %lf)\n", ray.direction.x, ray.direction.y, ray.direction.z);
 #endif
             
             // Cast this ray
             if (raytrace_Cast(&collision, &ray, scene) != SUCCESS) {
-                errmsg("Failed to cast ray (%d, %d)\n", x, y);
+                eprintf("Failed to cast ray (%d, %d)\n", x, y);
                 return FAILURE;
             }
             
@@ -472,7 +472,7 @@ int raytrace_Render(IMAGE *image, const SCENE *scene) {
             if (collision.how != COLLISION_NONE) {
                 // Collided with the surface of the shape
                 if (raytrace_Shade(&color, &collision, scene, INITIAL_REFRACTION, 0) != SUCCESS) {
-                    errmsg("Shader failed\n");
+                    eprintf("Shader failed\n");
                     return FAILURE;
                 }
                 
@@ -486,7 +486,7 @@ int raytrace_Render(IMAGE *image, const SCENE *scene) {
             
             // Put the color
             if (image_SetPixel(image, x, y, &rgb) != SUCCESS) {
-                errmsg("Failed to set color at (%d, %d)\n", x, y);
+                eprintf("Failed to set color at (%d, %d)\n", x, y);
                 return FAILURE;
             }
 #ifdef DEBUG

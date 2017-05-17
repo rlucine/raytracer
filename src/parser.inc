@@ -74,33 +74,33 @@ static int parser_Create(PARSER_DATA *data, SCENE *scene) {
     
     // Shape data arrays
     if (arraylist_Create(&data->shapes, sizeof(SHAPE *), 8) != SUCCESS) {
-        errmsg("Cannot allocate shape data\n");
+        eprintf("Cannot allocate shape data\n");
         return FAILURE;
     }
     if (arraylist_Create(&data->lights, sizeof(LIGHT *), 8) != SUCCESS) {
-        errmsg("Cannot allocate light data\n");
+        eprintf("Cannot allocate light data\n");
         return FAILURE;
     }
     if (arraylist_Create(&data->materials, sizeof(MATERIAL *), 8) != SUCCESS) {
-        errmsg("Cannot allocate material data\n");
+        eprintf("Cannot allocate material data\n");
         return FAILURE;
     }
     if (arraylist_Create(&data->textures, sizeof(TEXTURE *), 8) != SUCCESS) {
-        errmsg("Cannot allocate texture data\n");
+        eprintf("Cannot allocate texture data\n");
         return FAILURE;
     }
     
     // Mesh data arrays
     if (arraylist_Create(&data->vertices, sizeof(POINT), 8) != SUCCESS) {
-        errmsg("Cannot allocate vertex table\n");
+        eprintf("Cannot allocate vertex table\n");
         return FAILURE;
     }
     if (arraylist_Create(&data->normals, sizeof(VECTOR), 8) != SUCCESS) {
-        errmsg("Cannot allocate normal table\n");
+        eprintf("Cannot allocate normal table\n");
         return FAILURE;
     }
     if (arraylist_Create(&data->texcoords, sizeof(TEXCOORD), 8) != SUCCESS) {
-        errmsg("Cannot allocate texture coordinate table\n");
+        eprintf("Cannot allocate texture coordinate table\n");
         return FAILURE;
     }
     
@@ -212,11 +212,11 @@ static const char *parse_View(PARSER_DATA *data, const char *string) {
         data->flags |= FLAG_VIEW;
     }
     if (vector_IsZero(&data->scene->view)) {
-        errmsg("View vector cannot be zero\n");
+        eprintf("View vector cannot be zero\n");
         return NULL;
     }
     if (data->flags & FLAG_UP && vector_IsColinear(&data->scene->up, &data->scene->view)) {
-        errmsg("Up vector parallel to view vector\n");
+        eprintf("Up vector parallel to view vector\n");
         return NULL;
     }
     
@@ -232,11 +232,11 @@ static const char *parse_Up(PARSER_DATA *data, const char *string) {
         data->flags |= FLAG_UP;
     }
     if (vector_IsZero(&data->scene->up)) {
-        errmsg("Up vector cannot be zero\n");
+        eprintf("Up vector cannot be zero\n");
         return NULL;
     }
     if (data->flags & FLAG_VIEW && vector_IsColinear(&data->scene->up, &data->scene->view)) {
-        errmsg("Up vector parallel to view vector\n");
+        eprintf("Up vector parallel to view vector\n");
         return NULL;
     }
     return result;
@@ -253,7 +253,7 @@ static const char *parse_Fov(PARSER_DATA *data, const char *string) {
     
     double fov = data->scene->fov;
     if (fov > MAX_FOV || fov < MIN_FOV) {
-        errmsg("Fov cannot be %lf\n", fov);
+        eprintf("Fov cannot be %lf\n", fov);
         return NULL;
     }
     return result;
@@ -272,7 +272,7 @@ static const char *parse_Size(PARSER_DATA *data, const char *string) {
         return NULL;
     }
     if (data->scene->width < 0) {
-        errmsg("Invalid width %d\n", data->scene->width);
+        eprintf("Invalid width %d\n", data->scene->width);
         return NULL;
     }
     
@@ -282,7 +282,7 @@ static const char *parse_Size(PARSER_DATA *data, const char *string) {
         return where;
     }
     if (data->scene->height < 0) {
-        errmsg("Invalid height %d\n", data->scene->height);
+        eprintf("Invalid height %d\n", data->scene->height);
         return NULL;
     }
     
@@ -310,7 +310,7 @@ static const char *parse_Material(PARSER_DATA *data, const char *string) {
     // Allocate new material
     MATERIAL *material = (MATERIAL *)malloc(sizeof(MATERIAL));
     if (!material) {
-        errmsg("Out of memory\n");
+        eprintf("Out of memory\n");
         return NULL;
     }
     
@@ -336,7 +336,7 @@ static const char *parse_Material(PARSER_DATA *data, const char *string) {
     // Add new material to array
     assert(sizeof(MATERIAL *) == data->materials.itemsize);
     if (arraylist_Append(&data->materials, &material) != SUCCESS) {
-        errmsg("Unable to store new material\n");
+        eprintf("Unable to store new material\n");
         free(material);
         return NULL;
     }
@@ -358,25 +358,25 @@ static const char *parse_Sphere(PARSER_DATA *data, const char *string) {
         return NULL;
     }
     if (sphere.radius < 0) {
-        errmsg("Invalid radius %lf\n", sphere.radius);
+        eprintf("Invalid radius %lf\n", sphere.radius);
         return NULL;
     }
     
     // Set up material
     MATERIAL *material = last_Material(data);
     if (!material) {
-        errmsg("Missing material definition\n");
+        eprintf("Missing material definition\n");
         return NULL;
     }
     
     // Set up shape
     SHAPE *shape = (SHAPE *)malloc(sizeof(SHAPE));
     if (!shape) {
-        errmsg("Out of memory\n");
+        eprintf("Out of memory\n");
         return NULL;
     }
     if (shape_CreateSphere(shape, &sphere, material) != SUCCESS) {
-        errmsg("Unable to allocate new sphere\n");
+        eprintf("Unable to allocate new sphere\n");
         free(shape);
         return NULL;
     }
@@ -384,7 +384,7 @@ static const char *parse_Sphere(PARSER_DATA *data, const char *string) {
     // Add shape to list
     assert(sizeof(SHAPE *) == data->shapes.itemsize);
     if (arraylist_Append(&data->shapes, &shape) != SUCCESS) {
-        errmsg("Unable to store new sphere\n");
+        eprintf("Unable to store new sphere\n");
         shape_Destroy(shape);
         free(shape);
         return NULL;
@@ -407,25 +407,25 @@ static const char *parse_Ellipsoid(PARSER_DATA *data, const char *string) {
         return NULL;
     }
     if (ellipsoid.dimension.x < 0 || ellipsoid.dimension.y < 0 || ellipsoid.dimension.z < 0) {
-        errmsg("Invalid dimensions (%lf, %lf, %lf)\n", ellipsoid.dimension.x, ellipsoid.dimension.y, ellipsoid.dimension.z);
+        eprintf("Invalid dimensions (%lf, %lf, %lf)\n", ellipsoid.dimension.x, ellipsoid.dimension.y, ellipsoid.dimension.z);
         return NULL;
     }
     
     // Set up material
     MATERIAL *material = last_Material(data);
     if (!material) {
-        errmsg("Missing material definition\n");
+        eprintf("Missing material definition\n");
         return NULL;
     }
     
     // Set up shape
     SHAPE *shape = (SHAPE *)malloc(sizeof(SHAPE));
     if (!shape) {
-        errmsg("Out of memory\n");
+        eprintf("Out of memory\n");
         return NULL;
     }
     if (shape_CreateEllipsoid(shape, &ellipsoid, material) != SUCCESS) {
-        errmsg("Unable to allocate new ellipsoid\n");
+        eprintf("Unable to allocate new ellipsoid\n");
         free(shape);
         return NULL;
     }
@@ -433,7 +433,7 @@ static const char *parse_Ellipsoid(PARSER_DATA *data, const char *string) {
     // Add shape to list
     assert(sizeof(SHAPE *) == data->shapes.itemsize);
     if (arraylist_Append(&data->shapes, &shape) != SUCCESS) {
-        errmsg("Unable to store new ellipsoid\n");
+        eprintf("Unable to store new ellipsoid\n");
         shape_Destroy(shape);
         free(shape);
         return NULL;
@@ -452,7 +452,7 @@ static const char *parse_Light(PARSER_DATA *data, const char *string) {
     // Set up light
     LIGHT *light = (LIGHT *)malloc(sizeof(LIGHT));
     if (!light) {
-        errmsg("Out of memory\n");
+        eprintf("Out of memory\n");
         return NULL;
     }
     
@@ -469,7 +469,7 @@ static const char *parse_Light(PARSER_DATA *data, const char *string) {
         light->type = LIGHT_DIRECTED;
         memcpy(&light->direction, &temp, sizeof(VECTOR));
         if (vector_IsZero(&light->direction)) {
-            errmsg("Direction cannot be zero\n");
+            eprintf("Direction cannot be zero\n");
             free(light);
             return NULL;
         }
@@ -479,7 +479,7 @@ static const char *parse_Light(PARSER_DATA *data, const char *string) {
         memcpy(&light->where, &temp, sizeof(VECTOR));
         
     } else {
-        errmsg("Invalid homogeneous coordinate %lf\n", directed);
+        eprintf("Invalid homogeneous coordinate %lf\n", directed);
         free(light);
         return NULL;
     }
@@ -487,7 +487,7 @@ static const char *parse_Light(PARSER_DATA *data, const char *string) {
     // Add light to list
     assert(sizeof(LIGHT *) == data->lights.itemsize);
     if (arraylist_Append(&data->lights, &light) != SUCCESS) {
-        errmsg("Unable to store new light\n");
+        eprintf("Unable to store new light\n");
         free(light);
         return NULL;
     }
@@ -503,7 +503,7 @@ static const char *parse_Spotlight(PARSER_DATA *data, const char *string) {
     // Set up light
     LIGHT *light = (LIGHT *)malloc(sizeof(LIGHT));
     if (!light) {
-        errmsg("Out of memory\n");
+        eprintf("Out of memory\n");
         return NULL;
     }
     
@@ -519,12 +519,12 @@ static const char *parse_Spotlight(PARSER_DATA *data, const char *string) {
         return NULL;
     }
     if (vector_IsZero(&light->direction)) {
-        errmsg("Direction cannot be zero\n");
+        eprintf("Direction cannot be zero\n");
         free(light);
         return NULL;
     }
     if (light->angle > MAX_ANGLE || light->angle < MIN_ANGLE) {
-        errmsg("Invalid angle %lf\n", light->angle);
+        eprintf("Invalid angle %lf\n", light->angle);
         free(light);
         return NULL;
     }
@@ -532,7 +532,7 @@ static const char *parse_Spotlight(PARSER_DATA *data, const char *string) {
     // Add light to list
     assert(sizeof(LIGHT *) == data->lights.itemsize);
     if (arraylist_Append(&data->lights, &light) != SUCCESS) {
-        errmsg("Unable to store new light\n");
+        eprintf("Unable to store new light\n");
         free(light);
         return NULL;
     }
@@ -555,20 +555,20 @@ static const char *parse_Texture(PARSER_DATA *data, const char *string) {
     // Load texture
     TEXTURE *texture = (TEXTURE *)malloc(sizeof(TEXTURE));
     if (!texture) {
-        errmsg("Out of memory\n");
+        eprintf("Out of memory\n");
         return NULL;
     }
     
     // Try loading the file as a texture
     if (ppm_Decode(texture, filename) != SUCCESS) {
-        errmsg("Failed to decode \"%s\"\n", filename);
+        eprintf("Failed to decode \"%s\"\n", filename);
         free(texture);
         return NULL;
     }
 
     // Install texture
     if (arraylist_Append(&data->textures, &texture) != SUCCESS) {
-        errmsg("Unable to store new texture\n");
+        eprintf("Unable to store new texture\n");
         image_Destroy(texture);
         free(texture);
         return NULL;
@@ -588,7 +588,7 @@ static const char *parse_Texture(PARSER_DATA *data, const char *string) {
         
         // Storing new material copy
         if (arraylist_Append(&data->materials, &new) != SUCCESS) {
-            errmsg("Unable to store new material\n");
+            eprintf("Unable to store new material\n");
             // Don't deallocate the texture since it's properly in the array now!
             return NULL;
         }
@@ -622,32 +622,32 @@ static const char *parse_Plane(PARSER_DATA *data, const char *string) {
         return NULL;
     }
     if (vector_IsColinear(&plane.u, &plane.v)) {
-        errmsg("Basis vectors are colinear\n");
+        eprintf("Basis vectors are colinear\n");
         return NULL;
     }
     
     // Set up material
     MATERIAL *material = last_Material(data);
     if (!material) {
-        errmsg("Missing material definition\n");
+        eprintf("Missing material definition\n");
         return NULL;
     }
     
     // Set up shape
     SHAPE *shape = (SHAPE *)malloc(sizeof(SHAPE));
     if (!shape) {
-        errmsg("Out of memory\n");
+        eprintf("Out of memory\n");
         return NULL;
     }
     if (shape_CreatePlane(shape, &plane, material) != SUCCESS) {
-        errmsg("Unable to allocate new plane\n");
+        eprintf("Unable to allocate new plane\n");
         free(shape);
         return NULL;
     }
     
     // Add shape to list
     if (arraylist_Append(&data->shapes, shape) != SUCCESS) {
-        errmsg("Unable to store new plane\n");
+        eprintf("Unable to store new plane\n");
         shape_Destroy(shape);
         free(shape);
         return NULL;
@@ -670,7 +670,7 @@ static const char *parse_Vertex(PARSER_DATA *data, const char *string) {
     
     // Add vertex to our vertex list
     if (arraylist_Append(&data->vertices, &vertex) != SUCCESS) {
-        errmsg("Unable to store new vertex\n");
+        eprintf("Unable to store new vertex\n");
         return NULL;
     }
     return where;
@@ -690,7 +690,7 @@ static const char *parse_Normal(PARSER_DATA *data, const char *string) {
     
     // Add normal to our normal list
     if (arraylist_Append(&data->normals, &normal) != SUCCESS) {
-        errmsg("Unable to store new normal\n");
+        eprintf("Unable to store new normal\n");
         return NULL;
     }
     return where;
@@ -713,7 +713,7 @@ static const char *parse_TexCoord(PARSER_DATA *data, const char *string) {
     
     // Add texture coordinate to list
     if (arraylist_Append(&data->texcoords, &tex) != SUCCESS) {
-        errmsg("Unable to store new texture coordinate\n");
+        eprintf("Unable to store new texture coordinate\n");
         return NULL;
     }
     return where;
@@ -753,32 +753,32 @@ static const char *parse_Face(PARSER_DATA *data, const char *string) {
         if (sscanf(where, "%d%n", &vertex->vertex, &delta) == 1) {
             continue;
         }
-        errmsg("Invalid vertex format\n");
+        eprintf("Invalid vertex format\n");
         return NULL;
     }
     
     // Set up material
     MATERIAL *material = last_Material(data);
     if (!material) {
-        errmsg("Missing material definition\n");
+        eprintf("Missing material definition\n");
         return NULL;
     }
     
     // Set up shape
     SHAPE *shape = (SHAPE *)malloc(sizeof(SHAPE));
     if (!shape) {
-        errmsg("Out of memory\n");
+        eprintf("Out of memory\n");
         return NULL;
     }
     if (shape_CreateFace(shape, &face, material) != SUCCESS) {
-        errmsg("Unable to allocate new face\n");
+        eprintf("Unable to allocate new face\n");
         free(shape);
         return NULL;
     }
     
     // Install face
     if (arraylist_Append(&data->shapes, &shape) != SUCCESS) {
-        errmsg("Unable to store new plane\n");
+        eprintf("Unable to store new plane\n");
         shape_Destroy(shape);
         free(shape);
         return NULL;
@@ -906,10 +906,10 @@ static int parser_ParseLine(PARSER_DATA *data, const char *line) {
             
             // Determine result of parser function
             if (result == NULL) {
-                errmsg("Error parsing %s keyword\n", keyword);
+                eprintf("Error parsing %s keyword\n", keyword);
                 return FAILURE;
             } else if (!scanner_IsEmpty(result)) {
-                errmsg("Trailing \"%s\"\n", result);
+                eprintf("Trailing \"%s\"\n", result);
                 return FAILURE;
             }
             return SUCCESS;
@@ -917,7 +917,7 @@ static int parser_ParseLine(PARSER_DATA *data, const char *line) {
     }
     
     // Failed to find a keyword match
-    errmsg("Invalid keyword \"%s\"\n", keyword);
+    eprintf("Invalid keyword \"%s\"\n", keyword);
     return FAILURE;
 }
 
@@ -986,14 +986,14 @@ int scene_Decode(SCENE *scene, const char *filename) {
     // File reading initialize
     FILE *file = fopen(filename, "r");
     if (!file) {
-        errmsg("Cannot open file %s\n", filename);
+        eprintf("Cannot open file %s\n", filename);
         return FAILURE;
     }
     
     // Set up parser data block
     PARSER_DATA data;
     if (parser_Create(&data, scene) != SUCCESS) {
-        errmsg("Failed to allocate parser data block\n");
+        eprintf("Failed to allocate parser data block\n");
         fclose(file);
         return FAILURE;
     }
@@ -1005,7 +1005,7 @@ int scene_Decode(SCENE *scene, const char *filename) {
     while (line++, fgets(buf, BUF_SIZE, file)) {
         // Parse this line
         if (parser_ParseLine(&data, buf) != SUCCESS) {
-            errmsg("Parse error on line %d\n", line);
+            eprintf("Parse error on line %d\n", line);
             parser_Destroy(&data);
             fclose(file);
             return FAILURE;
@@ -1022,7 +1022,7 @@ int scene_Decode(SCENE *scene, const char *filename) {
             which <<= 1;
             index++;
         }
-        errmsg("Missing %s definition\n", KEYWORDS[index]);
+        eprintf("Missing %s definition\n", KEYWORDS[index]);
         parser_Destroy(&data);
         return FAILURE;
     }
@@ -1085,35 +1085,35 @@ int scene_Decode(SCENE *scene, const char *filename) {
 
 #ifdef DEBUG
     // Echo all information in the scene
-    errmsg("Eye is (%lf, %lf, %lf)\n", scene->eye.x, scene->eye.y, scene->eye.z);
-    errmsg("View is (%lf, %lf, %lf)\n", scene->view.x, scene->view.y, scene->view.z);
-    errmsg("Up is (%lf, %lf, %lf)\n", scene->up.x, scene->up.y, scene->up.z);
-    errmsg("FovV is %lf\n", scene->fov);
-    errmsg("Image size is (%d, %d)\n", scene->width, scene->height);
-    errmsg("Background color is (%lf, %lf, %lf)\n", scene->background.x, scene->background.y, scene->background.z);
+    eprintf("Eye is (%lf, %lf, %lf)\n", scene->eye.x, scene->eye.y, scene->eye.z);
+    eprintf("View is (%lf, %lf, %lf)\n", scene->view.x, scene->view.y, scene->view.z);
+    eprintf("Up is (%lf, %lf, %lf)\n", scene->up.x, scene->up.y, scene->up.z);
+    eprintf("FovV is %lf\n", scene->fov);
+    eprintf("Image size is (%d, %d)\n", scene->width, scene->height);
+    eprintf("Background color is (%lf, %lf, %lf)\n", scene->background.x, scene->background.y, scene->background.z);
     if (scene->flags & PROJECT_PARALLEL) {
-        errmsg("Parallel projection\n");
+        eprintf("Parallel projection\n");
     } else {
-        errmsg("Perspective projection\n");
+        eprintf("Perspective projection\n");
     }
     
     // Printing mesh
     int m;
-    errmsg("%d vertices\n", scene->mesh.nvertices);
+    eprintf("%d vertices\n", scene->mesh.nvertices);
     for (m = 0; m < scene->mesh.nvertices; m++) {
-        errmsg("Vertex %d is (%lf, %lf, %lf)\n", m+1, scene->mesh.vertices[m].x, scene->mesh.vertices[m].y, scene->mesh.vertices[m].z);
+        eprintf("Vertex %d is (%lf, %lf, %lf)\n", m+1, scene->mesh.vertices[m].x, scene->mesh.vertices[m].y, scene->mesh.vertices[m].z);
     }
-    errmsg("%d normals\n", scene->mesh.nnormals);
+    eprintf("%d normals\n", scene->mesh.nnormals);
     for (m = 0; m < scene->mesh.nnormals; m++) {
-        errmsg("Normal %d is (%lf, %lf, %lf)\n", m+1, scene->mesh.normals[m].x, scene->mesh.normals[m].y, scene->mesh.normals[m].z);
+        eprintf("Normal %d is (%lf, %lf, %lf)\n", m+1, scene->mesh.normals[m].x, scene->mesh.normals[m].y, scene->mesh.normals[m].z);
     }
-    errmsg("%d texture coordinates\n", scene->mesh.ntextures);
+    eprintf("%d texture coordinates\n", scene->mesh.ntextures);
     for (m = 0; m < scene->mesh.ntextures; m++) {
-        errmsg("Texture coordinate %d is (%lf, %lf)\n", m+1, scene->mesh.texture[m].x, scene->mesh.texture[m].y);
+        eprintf("Texture coordinate %d is (%lf, %lf)\n", m+1, scene->mesh.texture[m].x, scene->mesh.texture[m].y);
     }
     
     // Printing shapes
-    errmsg("Number of shapes is %d\n", scene->nshapes);
+    eprintf("Number of shapes is %d\n", scene->nshapes);
     int n = 0;
     const SHAPE *shape;
     const MATERIAL *material;
@@ -1125,79 +1125,79 @@ int scene_Decode(SCENE *scene, const char *filename) {
         shape = scene_GetShape(scene, n);
         switch (shape->shape) {
         case SHAPE_SPHERE:
-            errmsg("Shape %d is a sphere\n", n);
+            eprintf("Shape %d is a sphere\n", n);
             sphere = shape_GetSphere(shape);
-            errmsg("Radius is %lf\n", sphere->radius);
-            errmsg("Center is (%lf, %lf, %lf)\n", sphere->center.x, sphere->center.y, sphere->center.z);
+            eprintf("Radius is %lf\n", sphere->radius);
+            eprintf("Center is (%lf, %lf, %lf)\n", sphere->center.x, sphere->center.y, sphere->center.z);
             break;
         
         case SHAPE_ELLIPSOID:
-            errmsg("Shape %d is an ellipsoid\n", n);
+            eprintf("Shape %d is an ellipsoid\n", n);
             ellipsoid = shape_GetEllipsoid(shape);
-            errmsg("Dimensions are (%lf, %lf, %lf)\n", ellipsoid->dimension.x, ellipsoid->dimension.y, ellipsoid->dimension.z);
-            errmsg("Center is (%lf, %lf, %lf)\n", ellipsoid->center.x, ellipsoid->center.y, ellipsoid->center.z);
+            eprintf("Dimensions are (%lf, %lf, %lf)\n", ellipsoid->dimension.x, ellipsoid->dimension.y, ellipsoid->dimension.z);
+            eprintf("Center is (%lf, %lf, %lf)\n", ellipsoid->center.x, ellipsoid->center.y, ellipsoid->center.z);
             break;
             
         case SHAPE_PLANE:
-            errmsg("Shape %d is a plane\n", n);
+            eprintf("Shape %d is a plane\n", n);
             plane = shape_GetPlane(shape);
-            errmsg("Origin is (%lf, %lf, %lf)\n", plane->origin.x, plane->origin.y, plane->origin.z);
-            errmsg("Basis u is (%lf, %lf, %lf)\n", plane->u.x, plane->u.y, plane->u.z);
-            errmsg("Basis v is (%lf, %lf, %lf)\n", plane->v.x, plane->v.y, plane->v.z);
+            eprintf("Origin is (%lf, %lf, %lf)\n", plane->origin.x, plane->origin.y, plane->origin.z);
+            eprintf("Basis u is (%lf, %lf, %lf)\n", plane->u.x, plane->u.y, plane->u.z);
+            eprintf("Basis v is (%lf, %lf, %lf)\n", plane->v.x, plane->v.y, plane->v.z);
             break;
             
         case SHAPE_FACE:
-            errmsg("Shape %d is a face\n", n);
+            eprintf("Shape %d is a face\n", n);
             face = shape_GetFace(shape);
             int vertex;
             for (vertex = 0; vertex < N_VERTICES; vertex++) {
-                errmsg("Vertex %d is %d/%d/%d\n", vertex, face->vertices[vertex].vertex, face->vertices[vertex].normal, face->vertices[vertex].texture);
+                eprintf("Vertex %d is %d/%d/%d\n", vertex, face->vertices[vertex].vertex, face->vertices[vertex].normal, face->vertices[vertex].texture);
             }
             break;
         
         default:
-            errmsg("Shape %d is undefined\n", n);
+            eprintf("Shape %d is undefined\n", n);
             break;
         }
         
         // Print material properties
         material = shape_GetMaterial(shape);
-        errmsg("Color is (%lf, %lf, %lf)\n", material->color.x, material->color.y, material->color.z);
-        errmsg("Highlight is (%lf, %lf, %lf)\n", material->highlight.x, material->highlight.y, material->highlight.z);
-        errmsg("Ka=%lf, Kd=%lf, Ks=%lf, n=%d\n", material->ambient, material->diffuse, material->specular, material->exponent);
-        errmsg("Texture is 0x%p\n", material->texture);
-        errmsg("Alpha is %lf, Refraction index is %lf\n", material->opacity, material->refraction);
+        eprintf("Color is (%lf, %lf, %lf)\n", material->color.x, material->color.y, material->color.z);
+        eprintf("Highlight is (%lf, %lf, %lf)\n", material->highlight.x, material->highlight.y, material->highlight.z);
+        eprintf("Ka=%lf, Kd=%lf, Ks=%lf, n=%d\n", material->ambient, material->diffuse, material->specular, material->exponent);
+        eprintf("Texture is 0x%p\n", material->texture);
+        eprintf("Alpha is %lf, Refraction index is %lf\n", material->opacity, material->refraction);
         n++;
     }
     
     // Printing lights
-    errmsg("Number of lights is %d\n", scene->nlights);
+    eprintf("Number of lights is %d\n", scene->nlights);
     n = 0;
     const LIGHT *light;
     while (n < scene->nlights) {
         light = scene_GetLight(scene, n);
         switch (light->type) {
         case LIGHT_POINT:
-            errmsg("Light %d is a point\n", n);
-            errmsg("Position is (%lf, %lf, %lf)\n", light->where.x, light->where.y, light->where.z);
-            errmsg("Color is (%lf, %lf, %lf)\n", light->color.x, light->color.y, light->color.z);
+            eprintf("Light %d is a point\n", n);
+            eprintf("Position is (%lf, %lf, %lf)\n", light->where.x, light->where.y, light->where.z);
+            eprintf("Color is (%lf, %lf, %lf)\n", light->color.x, light->color.y, light->color.z);
             break;
         
         case LIGHT_DIRECTED:
-            errmsg("Light %d is a direction\n", n);
-            errmsg("Direction is (%lf, %lf, %lf)\n", light->direction.x, light->direction.y, light->direction.z);
-            errmsg("Color is (%lf, %lf, %lf)\n", light->color.x, light->color.y, light->color.z);
+            eprintf("Light %d is a direction\n", n);
+            eprintf("Direction is (%lf, %lf, %lf)\n", light->direction.x, light->direction.y, light->direction.z);
+            eprintf("Color is (%lf, %lf, %lf)\n", light->color.x, light->color.y, light->color.z);
             break;
             
         case LIGHT_SPOT:
-            errmsg("Light %d is a spotlight\n", n);
-            errmsg("Position is (%lf, %lf, %lf)\n", light->where.x, light->where.y, light->where.z);
-            errmsg("Direction is (%lf, %lf, %lf)\n", light->direction.x, light->direction.y, light->direction.z);
-            errmsg("Color is (%lf, %lf, %lf)\n", light->color.x, light->color.y, light->color.z);
+            eprintf("Light %d is a spotlight\n", n);
+            eprintf("Position is (%lf, %lf, %lf)\n", light->where.x, light->where.y, light->where.z);
+            eprintf("Direction is (%lf, %lf, %lf)\n", light->direction.x, light->direction.y, light->direction.z);
+            eprintf("Color is (%lf, %lf, %lf)\n", light->color.x, light->color.y, light->color.z);
             break;
         
         default:
-            errmsg("Light %d is undefined\n", n);
+            eprintf("Light %d is undefined\n", n);
             break;
         }
         n++;

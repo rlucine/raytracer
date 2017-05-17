@@ -22,11 +22,11 @@
 int arraylist_Create(ARRAYLIST *list, size_t itemsize, int maxlength) {
     // Error checking
     if (itemsize <= 0) {
-        errmsg("Invalid item size\n");
+        eprintf("Invalid item size\n");
         return FAILURE;
     }
     if (maxlength <= 0) {
-        errmsg("Invalid capacity\n");
+        eprintf("Invalid capacity\n");
         return FAILURE;
     }
     
@@ -38,7 +38,7 @@ int arraylist_Create(ARRAYLIST *list, size_t itemsize, int maxlength) {
     // Set up data array
     list->data = malloc(itemsize * maxlength);
     if (!list->data) {
-        errmsg("Out of memory\n");
+        eprintf("Out of memory\n");
         return FAILURE;
     }
     return SUCCESS;
@@ -58,12 +58,12 @@ void *arraylist_At(ARRAYLIST *list, int index) {
     // Perform pointer arithmetic
     char *temp = list->data;
     if (sizeof(char) != 1) {
-        errmsg("sizeof(char) is %d on this system\n", (int)sizeof(char));
+        eprintf("sizeof(char) is %d on this system\n", (int)sizeof(char));
         return NULL;
     }
     
     if (index < 0 || index >= (int)list->maxlength) {
-        errmsg("Index %d out of bounds\n", index);
+        eprintf("Index %d out of bounds\n", index);
         return NULL;
     }
     
@@ -94,7 +94,7 @@ int arraylist_Append(ARRAYLIST *list, const void *item) {
     if (list->length >= list->maxlength) {
         void *new = malloc(list->itemsize * list->maxlength * 2);
         if (!new) {
-            errmsg("Out of memory\n");
+            eprintf("Out of memory\n");
             return FAILURE;
         }
         memcpy(new, list->data, list->length * list->itemsize);
@@ -106,7 +106,7 @@ int arraylist_Append(ARRAYLIST *list, const void *item) {
     // Copy the new item into the arraylist
     void *destination = arraylist_At(list, list->length);
     if (!destination) {
-        errmsg("Unable to offset into data field\n");
+        eprintf("Unable to offset into data field\n");
         return FAILURE;
     }
     memcpy(destination, item, list->itemsize);
@@ -121,7 +121,7 @@ int arraylist_Compress(ARRAYLIST *list) {
     // Tries to reduce size usage
     void *new = malloc(list->itemsize * list->length);
     if (!new) {
-        errmsg("Out of memory\n");
+        eprintf("Out of memory\n");
         return FAILURE;
     }
     memcpy(new, list->data, list->length * list->itemsize);
