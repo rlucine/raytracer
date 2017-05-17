@@ -58,6 +58,13 @@ ALL_EXECUTABLES := $(MCFILES:$(MAIN_DIR)/%.c=%.exe)
 TESTS := $(filter test_%.exe,$(ALL_EXECUTABLES))
 EXECUTABLES := $(filter-out test_%.exe,$(ALL_EXECUTABLES))
 
+#========== libwes64 Setup =========#
+LIB_DIR := lib
+LIBWES64_DIR := $(LIB_DIR)/libwes64
+INCLUDE += -I$(LIBWES64_DIR)/include
+LIBRARY += -L$(LIBWES64_DIR)/bin -lwes64
+IMPORTANT += $(LIBWES64_DIR)
+
 #========== Documentation ==========#
 # Doxygen documentation setup
 DOC_DIR := doc
@@ -70,7 +77,7 @@ IMPORTANT += $(DOXYFILE)
 #============== Rules ==============#
 # Default: just make executables
 .PHONY: default
-default: $(BUILD_DIR) $(OFILES) $(EXECUTABLES)
+default: $(BUILD_DIR) libwes64 $(OFILES) $(EXECUTABLES)
 
 # Make just the tests
 .PHONY: tests
@@ -79,6 +86,11 @@ tests: $(BUILD_DIR) $(OFILES) $(TESTS)
 # Default - make the executable
 .PHONY: all
 all: default tests
+
+# Make libwes64
+.PHONY: libwes64
+libwes64:
+	$(MAKE) -C $(LIBWES64_DIR) default
 
 # Put all the .o files in the build directory
 $(BUILD_DIR):
