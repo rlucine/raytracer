@@ -1,0 +1,2 @@
+# data
+The scenes in this directory should render with the raytracer, which will generate a PPM image with the same base name. Sample output is included in the `image/` directory. Textures are used from the `texture/` directory.
