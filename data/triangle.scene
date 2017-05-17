@@ -5,7 +5,7 @@ updir 0 1 0
 fovv 60
 imsize 500 500
 bkgcolor 0.1 0.1 0.1
-mtlcolor 1 0 0 1 1 1 0.2 0.4 0.4 10
+mtlcolor 1 0 0 1 1 1 0.2 0.4 0.4 10 1 1
 light -1 -1 -1 0 1 1 1
 
 v 0 0 0

@@ -64,12 +64,12 @@ int main(void) {
 
     // Decode a weird scene
     printf("Decoding weird.scene...\n");
-    assert(scene_Decode(&scene, "data/weird.scene"));
+    assert(scene_Decode(&scene, "data/test_scene/weird.scene"));
     scene_Destroy(&scene);
     printf("Success!\n\n");
 
     printf("Decoding empty.scene...\n");
-    assert(scene_Decode(&scene, "data/empty.scene"));
+    assert(scene_Decode(&scene, "data/test_scene/empty.scene"));
     scene_Destroy(&scene);
     printf("Success!\n\n");
     
@@ -78,18 +78,18 @@ int main(void) {
     scene_Destroy(&scene);
     printf("Success!\n\n");
     
-    printf("Decoding sample0.scene...\n");
-    assert(scene_Decode(&scene, "data/sample0.scene"));
+    printf("Decoding earth.scene...\n");
+    assert(scene_Decode(&scene, "data/earth.scene"));
     scene_Destroy(&scene);
     printf("Success!\n\n");
     
-    printf("Decoding sample1.scene...\n");
-    assert(scene_Decode(&scene, "data/sample1.scene"));
+    printf("Decoding ellipsoid.scene...\n");
+    assert(scene_Decode(&scene, "data/ellipsoid.scene"));
     scene_Destroy(&scene);
     printf("Success!\n\n");
     
-    printf("Decoding sample2.scene...\n");
-    assert(scene_Decode(&scene, "data/sample2.scene"));
+    printf("Decoding teapot.scene...\n");
+    assert(scene_Decode(&scene, "data/teapot.scene"));
     scene_Destroy(&scene);
     printf("Success!\n\n");
     
@@ -99,7 +99,7 @@ int main(void) {
     printf("Success!\n\n");
     
     printf("Decoding test...\n");
-    assert(scene_Decode(&scene, "data/test"));
+    assert(scene_Decode(&scene, "data/test_scene/test"));
     scene_Destroy(&scene);
     printf("Success!\n\n");
     
@@ -111,27 +111,27 @@ int main(void) {
     
     // Fail to decode these scenes
     printf("Catching errors in bad.scene...\n");
-    assert(!scene_Decode(&scene, "data/bad.scene"));
+    assert(!scene_Decode(&scene, "data/test_scene/bad.scene"));
     printf("Success!\n\n");
     
     printf("Catching errors in bounds.scene...\n");
-    assert(!scene_Decode(&scene, "data/bounds.scene"));
+    assert(!scene_Decode(&scene, "data/test_scene/bounds.scene"));
     printf("Success!\n\n");
     
     printf("Catching errors in extra.scene...\n");
-    assert(!scene_Decode(&scene, "data/extra.scene"));
+    assert(!scene_Decode(&scene, "data/test_scene/extra.scene"));
     printf("Success!\n\n");
     
     printf("Catching errors in missing.scene...\n");
-    assert(!scene_Decode(&scene, "data/missing.scene"));
+    assert(!scene_Decode(&scene, "data/test_scene/missing.scene"));
     printf("Success!\n\n");
     
     printf("Catching errors in paralell.scene...\n");
-    assert(!scene_Decode(&scene, "data/paralell.scene"));
+    assert(!scene_Decode(&scene, "data/test_scene/paralell.scene"));
     printf("Success!\n\n");
     
     printf("Catching errors in nonexistant file...\n");
-    assert(!scene_Decode(&scene, "data/doesnotexist.scene"));
+    assert(!scene_Decode(&scene, "data/test_scene/doesnotexist.scene"));
     printf("Success!\n\n");
     
     printf("Catching errors in bad file...\n");
