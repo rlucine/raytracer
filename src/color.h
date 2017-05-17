@@ -10,29 +10,11 @@
 // This project
 #include "vector.h"     // VECTOR
 
-/**********************************************************//**
- * @def RGB_MAX
- * @brief The maximum value for an RGB color
- **************************************************************/
-#define RGB_MAX 255
-
-/**********************************************************//**
- * @def RGB_MIN
- * @brief The minimum value for an RGB color
- **************************************************************/
-#define RGB_MIN 0
-
-/**********************************************************//**
- * @def COLOR_MAX
- * @brief The maximum value for a COLOR component
- **************************************************************/
-#define COLOR_MAX 1.0
-
-/**********************************************************//**
- * @def COLOR_MIN
- * @brief The minimum value for a COLOR component
- **************************************************************/
-#define COLOR_MIN 0.0
+//*************************************************************
+#define RGB_MAX 255     ///< The maximum value for an RGB color.
+#define RGB_MIN 0       ///< The minimum value for an RGB color.
+#define COLOR_MAX 1.0   ///< The maximum value for a COLOR component.
+#define COLOR_MIN 0.0   ///< The minimum value for a COLOR component.
 
 /**********************************************************//**
  * @struct RGB
@@ -57,14 +39,22 @@ typedef VECTOR COLOR;
  * @param rgb: The rgb struct to fill with data.
  * @param color: The color struct to read.
  **************************************************************/
-extern void color_ToRgb(RGB *rgb, const COLOR *color);
+static inline void color_ToRgb(RGB *rgb, const COLOR *color) {
+    rgb->r = color->x * RGB_MAX;
+    rgb->g = color->y * RGB_MAX;
+    rgb->b = color->z * RGB_MAX;
+}
 
 /**********************************************************//**
  * @brief Convert RGB to COLOR struct
  * @param color: The color struct to fill with data.
  * @param rgb: The rgb struct to read.
  **************************************************************/
-extern void rgb_ToColor(COLOR *color, const RGB *rgb);
+static inline void rgb_ToColor(COLOR *color, const RGB *rgb) {
+    color->x = (float)rgb->r / RGB_MAX;
+    color->y = (float)rgb->g / RGB_MAX;
+    color->z = (float)rgb->b / RGB_MAX;
+}
 
 /**********************************************************//**
  * @brief Clamp the color in the proper range from COLOR_MIN
