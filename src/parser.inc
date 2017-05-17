@@ -21,7 +21,7 @@
 #include "image.h"      // IMAGE, TEXCOORD
 #include "shape.h"      // SHAPE, PLANE ...
 #include "scene.h"      // SCENE
-#include "arraylist.h"  // ARRAYLIST, arraylist_Compress ...
+#include "list.h"  // LIST, list_Compress ...
 #include "mesh.h"       // MESH, FACE, VERTEX ...
 
 // Debugging modules
@@ -55,13 +55,13 @@ typedef struct {
     SCENE *scene;           ///< The SCENE to read data into
     
     // Shape definitions
-    ARRAYLIST shapes;       ///< List of all shapes defined
-    ARRAYLIST lights;       ///< List of all lights defined
-    ARRAYLIST materials;    ///< List of all materials defined
-    ARRAYLIST textures;     ///< List of all textures defined
-    ARRAYLIST vertices;     ///< All vertices loaded
-    ARRAYLIST normals;      ///< All normals loaded
-    ARRAYLIST texcoords;    ///< All texture coordinates loaded
+    LIST shapes;       ///< List of all shapes defined
+    LIST lights;       ///< List of all lights defined
+    LIST materials;    ///< List of all materials defined
+    LIST textures;     ///< List of all textures defined
+    LIST vertices;     ///< All vertices loaded
+    LIST normals;      ///< All normals loaded
+    LIST texcoords;    ///< All texture coordinates loaded
 } PARSER_DATA;
 
 /**********************************************************//**
@@ -73,33 +73,33 @@ typedef struct {
 static int parser_Create(PARSER_DATA *data, SCENE *scene) {
     
     // Shape data arrays
-    if (arraylist_Create(&data->shapes, sizeof(SHAPE *), 8) != SUCCESS) {
+    if (list_Create(&data->shapes, sizeof(SHAPE *), 8) != SUCCESS) {
         eprintf("Cannot allocate shape data\n");
         return FAILURE;
     }
-    if (arraylist_Create(&data->lights, sizeof(LIGHT *), 8) != SUCCESS) {
+    if (list_Create(&data->lights, sizeof(LIGHT *), 8) != SUCCESS) {
         eprintf("Cannot allocate light data\n");
         return FAILURE;
     }
-    if (arraylist_Create(&data->materials, sizeof(MATERIAL *), 8) != SUCCESS) {
+    if (list_Create(&data->materials, sizeof(MATERIAL *), 8) != SUCCESS) {
         eprintf("Cannot allocate material data\n");
         return FAILURE;
     }
-    if (arraylist_Create(&data->textures, sizeof(TEXTURE *), 8) != SUCCESS) {
+    if (list_Create(&data->textures, sizeof(TEXTURE *), 8) != SUCCESS) {
         eprintf("Cannot allocate texture data\n");
         return FAILURE;
     }
     
     // Mesh data arrays
-    if (arraylist_Create(&data->vertices, sizeof(VECTOR), 8) != SUCCESS) {
+    if (list_Create(&data->vertices, sizeof(VECTOR), 8) != SUCCESS) {
         eprintf("Cannot allocate vertex table\n");
         return FAILURE;
     }
-    if (arraylist_Create(&data->normals, sizeof(VECTOR), 8) != SUCCESS) {
+    if (list_Create(&data->normals, sizeof(VECTOR), 8) != SUCCESS) {
         eprintf("Cannot allocate normal table\n");
         return FAILURE;
     }
-    if (arraylist_Create(&data->texcoords, sizeof(TEXCOORD), 8) != SUCCESS) {
+    if (list_Create(&data->texcoords, sizeof(TEXCOORD), 8) != SUCCESS) {
         eprintf("Cannot allocate texture coordinate table\n");
         return FAILURE;
     }
@@ -176,19 +176,21 @@ static int scanner_IsEmpty(const char *string) {
  *============================================================*/
 static MATERIAL *last_Material(PARSER_DATA *data) {
     // Get the last material from the data
-    void *location = arraylist_End(&data->materials);
-    if (!location) {
+    int index = list_Length(&data->materials)-1;
+    if (index < 0) {
         return NULL;
     }
+    void *location = list_At(&data->materials, index);
     return *((MATERIAL **)location);
 }
 
 static TEXTURE *last_Texture(PARSER_DATA *data) {
     // Get the last texture from the data
-    void *location = arraylist_End(&data->textures);
-    if (!location) {
+    int index = list_Length(&data->textures)-1;
+    if (index < 0) {
         return NULL;
     }
+    void *location = list_At(&data->textures, index);
     return *((TEXTURE **)location);
 }
 
@@ -335,7 +337,7 @@ static const char *parse_Material(PARSER_DATA *data, const char *string) {
     
     // Add new material to array
     assert(sizeof(MATERIAL *) == data->materials.itemsize);
-    if (arraylist_Append(&data->materials, &material) != SUCCESS) {
+    if (list_Append(&data->materials, &material) != SUCCESS) {
         eprintf("Unable to store new material\n");
         free(material);
         return NULL;
@@ -383,7 +385,7 @@ static const char *parse_Sphere(PARSER_DATA *data, const char *string) {
     
     // Add shape to list
     assert(sizeof(SHAPE *) == data->shapes.itemsize);
-    if (arraylist_Append(&data->shapes, &shape) != SUCCESS) {
+    if (list_Append(&data->shapes, &shape) != SUCCESS) {
         eprintf("Unable to store new sphere\n");
         shape_Destroy(shape);
         free(shape);
@@ -432,7 +434,7 @@ static const char *parse_Ellipsoid(PARSER_DATA *data, const char *string) {
     
     // Add shape to list
     assert(sizeof(SHAPE *) == data->shapes.itemsize);
-    if (arraylist_Append(&data->shapes, &shape) != SUCCESS) {
+    if (list_Append(&data->shapes, &shape) != SUCCESS) {
         eprintf("Unable to store new ellipsoid\n");
         shape_Destroy(shape);
         free(shape);
@@ -486,7 +488,7 @@ static const char *parse_Light(PARSER_DATA *data, const char *string) {
     
     // Add light to list
     assert(sizeof(LIGHT *) == data->lights.itemsize);
-    if (arraylist_Append(&data->lights, &light) != SUCCESS) {
+    if (list_Append(&data->lights, &light) != SUCCESS) {
         eprintf("Unable to store new light\n");
         free(light);
         return NULL;
@@ -531,7 +533,7 @@ static const char *parse_Spotlight(PARSER_DATA *data, const char *string) {
     
     // Add light to list
     assert(sizeof(LIGHT *) == data->lights.itemsize);
-    if (arraylist_Append(&data->lights, &light) != SUCCESS) {
+    if (list_Append(&data->lights, &light) != SUCCESS) {
         eprintf("Unable to store new light\n");
         free(light);
         return NULL;
@@ -567,7 +569,7 @@ static const char *parse_Texture(PARSER_DATA *data, const char *string) {
     }
 
     // Install texture
-    if (arraylist_Append(&data->textures, &texture) != SUCCESS) {
+    if (list_Append(&data->textures, &texture) != SUCCESS) {
         eprintf("Unable to store new texture\n");
         image_Destroy(texture);
         free(texture);
@@ -576,7 +578,7 @@ static const char *parse_Texture(PARSER_DATA *data, const char *string) {
 
     // Generating a new texture means we have to push a new material
     // But only if materials defined already!
-    if (arraylist_Length(&data->materials) > 0) {
+    if (list_Length(&data->materials) > 0) {
         // Copying the old material
         const MATERIAL *old = last_Material(data);
         MATERIAL *new = (MATERIAL *)malloc(sizeof(MATERIAL));
@@ -587,7 +589,7 @@ static const char *parse_Texture(PARSER_DATA *data, const char *string) {
         new->texture = texture;
         
         // Storing new material copy
-        if (arraylist_Append(&data->materials, &new) != SUCCESS) {
+        if (list_Append(&data->materials, &new) != SUCCESS) {
             eprintf("Unable to store new material\n");
             // Don't deallocate the texture since it's properly in the array now!
             return NULL;
@@ -646,7 +648,7 @@ static const char *parse_Plane(PARSER_DATA *data, const char *string) {
     }
     
     // Add shape to list
-    if (arraylist_Append(&data->shapes, shape) != SUCCESS) {
+    if (list_Append(&data->shapes, shape) != SUCCESS) {
         eprintf("Unable to store new plane\n");
         shape_Destroy(shape);
         free(shape);
@@ -669,7 +671,7 @@ static const char *parse_Vertex(PARSER_DATA *data, const char *string) {
     }
     
     // Add vertex to our vertex list
-    if (arraylist_Append(&data->vertices, &vertex) != SUCCESS) {
+    if (list_Append(&data->vertices, &vertex) != SUCCESS) {
         eprintf("Unable to store new vertex\n");
         return NULL;
     }
@@ -689,7 +691,7 @@ static const char *parse_Normal(PARSER_DATA *data, const char *string) {
     }
     
     // Add normal to our normal list
-    if (arraylist_Append(&data->normals, &normal) != SUCCESS) {
+    if (list_Append(&data->normals, &normal) != SUCCESS) {
         eprintf("Unable to store new normal\n");
         return NULL;
     }
@@ -712,7 +714,7 @@ static const char *parse_TexCoord(PARSER_DATA *data, const char *string) {
     }
     
     // Add texture coordinate to list
-    if (arraylist_Append(&data->texcoords, &tex) != SUCCESS) {
+    if (list_Append(&data->texcoords, &tex) != SUCCESS) {
         eprintf("Unable to store new texture coordinate\n");
         return NULL;
     }
@@ -777,7 +779,7 @@ static const char *parse_Face(PARSER_DATA *data, const char *string) {
     }
     
     // Install face
-    if (arraylist_Append(&data->shapes, &shape) != SUCCESS) {
+    if (list_Append(&data->shapes, &shape) != SUCCESS) {
         eprintf("Unable to store new plane\n");
         shape_Destroy(shape);
         free(shape);
@@ -932,50 +934,50 @@ void parser_Destroy(PARSER_DATA *data) {
     
     // Destroy all the shapes
     SHAPE *shape;
-    for (i = 0; i < arraylist_Length(&data->shapes); i++) {
-        location = arraylist_At(&data->shapes, i);
+    for (i = 0; i < list_Length(&data->shapes); i++) {
+        location = list_At(&data->shapes, i);
         if (location) {
             shape = *(SHAPE **)location;
             shape_Destroy(shape);
             free(shape);
         }
     }
-    arraylist_Destroy(&data->shapes);
+    list_Destroy(&data->shapes);
     
     // Destroy all the lights
-    for (i = 0; i < arraylist_Length(&data->lights); i++) {
-        location = arraylist_At(&data->lights, i);
+    for (i = 0; i < list_Length(&data->lights); i++) {
+        location = list_At(&data->lights, i);
         if (location) {
             free(*(LIGHT **)location);
         }
     }
-    arraylist_Destroy(&data->lights);
+    list_Destroy(&data->lights);
     
     // Destory all the materials
-    for (i = 0; i < arraylist_Length(&data->materials); i++) {
-        location = arraylist_At(&data->materials, i);
+    for (i = 0; i < list_Length(&data->materials); i++) {
+        location = list_At(&data->materials, i);
         if (location) {
             free(*(MATERIAL **)location);
         }
     }
-    arraylist_Destroy(&data->materials);
+    list_Destroy(&data->materials);
     
     // Destroy all the textures
     TEXTURE *texture;
-    for (i = 0; i < arraylist_Length(&data->textures); i++) {
-        location = arraylist_At(&data->textures, i);
+    for (i = 0; i < list_Length(&data->textures); i++) {
+        location = list_At(&data->textures, i);
         if (location) {
             texture = *(TEXTURE **)location;
             image_Destroy(texture);
             free(texture);
         }
     }
-    arraylist_Destroy(&data->textures);
+    list_Destroy(&data->textures);
     
     // Destroy the mesh
-    arraylist_Destroy(&data->vertices);
-    arraylist_Destroy(&data->normals);
-    arraylist_Destroy(&data->texcoords);
+    list_Destroy(&data->vertices);
+    list_Destroy(&data->normals);
+    list_Destroy(&data->texcoords);
 }
 
 /*============================================================*
@@ -1028,58 +1030,58 @@ int scene_Decode(SCENE *scene, const char *filename) {
     }
 
     // Move shapes arraylist into scene
-    arraylist_Compress(&data.shapes);
-    if ((scene->nshapes = arraylist_Length(&data.shapes)) > 0) {
-        scene->shapes = (SHAPE **)arraylist_GetData(&data.shapes);
+    list_Compress(&data.shapes);
+    if ((scene->nshapes = list_Length(&data.shapes)) > 0) {
+        scene->shapes = (SHAPE **)list_Data(&data.shapes);
     } else {
-        arraylist_Destroy(&data.shapes);
+        list_Destroy(&data.shapes);
         scene->shapes = NULL;
     }
     
     // Move lights into scene
-    arraylist_Compress(&data.lights);
-    if ((scene->nlights = arraylist_Length(&data.lights)) > 0) {
-        scene->lights = (LIGHT **)arraylist_GetData(&data.lights);
+    list_Compress(&data.lights);
+    if ((scene->nlights = list_Length(&data.lights)) > 0) {
+        scene->lights = (LIGHT **)list_Data(&data.lights);
     } else {
-        arraylist_Destroy(&data.lights);
+        list_Destroy(&data.lights);
         scene->lights = NULL;
     }
     
     // Move materials into scene
-    arraylist_Compress(&data.materials);
-    if ((scene->nmaterials = arraylist_Length(&data.materials)) > 0) {
-        scene->materials = (MATERIAL **)arraylist_GetData(&data.materials);
+    list_Compress(&data.materials);
+    if ((scene->nmaterials = list_Length(&data.materials)) > 0) {
+        scene->materials = (MATERIAL **)list_Data(&data.materials);
     } else {
-        arraylist_Destroy(&data.materials);
+        list_Destroy(&data.materials);
         scene->materials = NULL;
     }
     
     // Move textures into scene
-    arraylist_Compress(&data.textures);
-    if ((scene->ntextures = arraylist_Length(&data.textures)) > 0) {
-        scene->textures = (TEXTURE **)arraylist_GetData(&data.textures);
+    list_Compress(&data.textures);
+    if ((scene->ntextures = list_Length(&data.textures)) > 0) {
+        scene->textures = (TEXTURE **)list_Data(&data.textures);
     } else {
-        arraylist_Destroy(&data.textures);
+        list_Destroy(&data.textures);
         scene->textures = NULL;
     }
     
     // Place all mesh data into the mesh
-    if ((scene->mesh.nvertices = arraylist_Length(&data.vertices)) > 0) {
-        scene->mesh.vertices = (VECTOR *)arraylist_GetData(&data.vertices);
+    if ((scene->mesh.nvertices = list_Length(&data.vertices)) > 0) {
+        scene->mesh.vertices = (VECTOR *)list_Data(&data.vertices);
     } else {
-        arraylist_Destroy(&data.vertices);
+        list_Destroy(&data.vertices);
         scene->mesh.vertices = NULL;
     }
-    if ((scene->mesh.nnormals = arraylist_Length(&data.normals)) > 0) {
-        scene->mesh.normals = (VECTOR *)arraylist_GetData(&data.normals);
+    if ((scene->mesh.nnormals = list_Length(&data.normals)) > 0) {
+        scene->mesh.normals = (VECTOR *)list_Data(&data.normals);
     } else {
-        arraylist_Destroy(&data.normals);
+        list_Destroy(&data.normals);
         scene->mesh.normals = NULL;
     }
-    if ((scene->mesh.ntextures = arraylist_Length(&data.texcoords)) > 0) {
-        scene->mesh.texture = (TEXCOORD *)arraylist_GetData(&data.texcoords);
+    if ((scene->mesh.ntextures = list_Length(&data.texcoords)) > 0) {
+        scene->mesh.texture = (TEXCOORD *)list_Data(&data.texcoords);
     } else {
-        arraylist_Destroy(&data.texcoords);
+        list_Destroy(&data.texcoords);
         scene->mesh.texture = NULL;
     }
 
