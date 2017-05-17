@@ -429,9 +429,6 @@ bool raytrace_Render(IMAGE *image, const SCENE *scene) {
     // Get the scene view
     VIEWPLANE view;
     float distance = VIEW_DISTANCE;
-    if (scene->flags & PROJECT_PARALLEL) {
-        distance = 0.0;
-    }
     if (!raytrace_GetView(&view, distance, scene)) {
         eprintf("Failed to generate viewing plane\n");
         return false;
@@ -483,17 +480,10 @@ bool raytrace_Render(IMAGE *image, const SCENE *scene) {
     while (y < height) {
         x = 0;
         while (x < width) {
-            if (scene->flags & PROJECT_PARALLEL) {
-                // Parallel direction is always the same
-                ray.origin = target;
-                ray.direction = *scene_GetViewDirection(scene);
-                vector_Normalize(&ray.direction);
-            } else {
-                // Perspective aimed at target
-                ray.direction = target;
-                vector_Subtract(&ray.direction, scene_GetEyePosition(scene));
-                vector_Normalize(&ray.direction);
-            }
+            // Perspective aimed at target
+            ray.direction = target;
+            vector_Subtract(&ray.direction, scene_GetEyePosition(scene));
+            vector_Normalize(&ray.direction);
             
 #ifdef DEBUG
             eprintf("Ray (%d, %d)\n", x, y);

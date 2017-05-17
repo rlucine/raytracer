@@ -111,7 +111,6 @@ static bool parser_Create(PARSER_DATA *data, SCENE *scene) {
     scene->materials = NULL;
     scene->ntextures = 0;
     scene->textures = NULL;
-    scene->flags = PROJECT_PERSPECTIVE;
     
     // Set up current properties
     data->flags = FLAG_NONE;
@@ -597,66 +596,6 @@ static const char *parse_Texture(PARSER_DATA *data, const char *string) {
 }
 
 /*============================================================*
- * Parsing parallel
- *============================================================*/
-static const char *parse_Parallel(PARSER_DATA *data, const char *string) {
-    // The string should be empty!
-    data->scene->flags |= PROJECT_PARALLEL;
-    return string;
-}
-
-/*============================================================*
- * Parsing plane
- *============================================================*/
-#ifdef DEBUG
-static const char *parse_Plane(PARSER_DATA *data, const char *string) {
-    const char *where = string;
-    
-    // Parsing features
-    PLANE plane;
-    bool failure = false;
-    failure = failure || (where = parse_Vector(where, &plane.origin)) == NULL;
-    failure = failure || (where = parse_Vector(where, &plane.u)) == NULL;
-    failure = failure || (where = parse_Vector(where, &plane.v)) == NULL;
-    if (failure) {
-        return NULL;
-    }
-    if (vector_IsColinear(&plane.u, &plane.v)) {
-        eprintf("Basis vectors are colinear\n");
-        return NULL;
-    }
-    
-    // Set up material
-    MATERIAL *material = last_Material(data);
-    if (!material) {
-        eprintf("Missing material definition\n");
-        return NULL;
-    }
-    
-    // Set up shape
-    SHAPE *shape = (SHAPE *)malloc(sizeof(SHAPE));
-    if (!shape) {
-        eprintf("Out of memory\n");
-        return NULL;
-    }
-    if (!shape_CreatePlane(shape, &plane, material)) {
-        eprintf("Unable to allocate new plane\n");
-        free(shape);
-        return NULL;
-    }
-    
-    // Add shape to list
-    if (!list_Append(&data->shapes, shape)) {
-        eprintf("Unable to store new plane\n");
-        shape_Destroy(shape);
-        free(shape);
-        return NULL;
-    }
-    return where;
-}
-#endif
-
-/*============================================================*
  * Parsing vertex
  *============================================================*/
 static const char *parse_Vertex(PARSER_DATA *data, const char *string) {
@@ -788,14 +727,9 @@ static const char *parse_Face(PARSER_DATA *data, const char *string) {
 
 /**********************************************************//**
  * @def N_KEYWORDS
- * @brief The number of distinct keywords. There exist keywords
- * that are usable only in DEBUG mode.
+ * @brief The number of distinct keywords.
  **************************************************************/
-#ifdef DEBUG
-#define N_KEYWORDS 18
-#else
-#define N_KEYWORDS 17
-#endif
+#define N_KEYWORDS 16
 
 /**********************************************************//**
  * @typedef PARSER
@@ -822,16 +756,10 @@ static const char *KEYWORDS[N_KEYWORDS] = {
     "light",
     "spotlight",
     "texture",
-    "parallel",
     "v",
     "vn",
     "vt",
     "f",
-    
-#ifdef DEBUG
-    // Unnecessary keywords
-    "plane",
-#endif
 };
 
 /**********************************************************//**
@@ -852,16 +780,10 @@ static const PARSER PARSERS[N_KEYWORDS] = {
     &parse_Light,
     &parse_Spotlight,
     &parse_Texture,
-    &parse_Parallel,
     &parse_Vertex,
     &parse_Normal,
     &parse_TexCoord,
     &parse_Face,
-    
-#ifdef DEBUG
-    // Unnecessary keywords
-    &parse_Plane,
-#endif
 };
 
 /**********************************************************//**
@@ -1091,11 +1013,6 @@ bool scene_Decode(SCENE *scene, const char *filename) {
     eprintf("FovV is %f\n", scene->fov);
     eprintf("Image size is (%d, %d)\n", scene->width, scene->height);
     eprintf("Background color is (%f, %f, %f)\n", scene->background.x, scene->background.y, scene->background.z);
-    if (scene->flags & PROJECT_PARALLEL) {
-        eprintf("Parallel projection\n");
-    } else {
-        eprintf("Perspective projection\n");
-    }
     
     // Printing mesh
     int m;

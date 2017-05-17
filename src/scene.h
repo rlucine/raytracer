@@ -27,25 +27,10 @@
 #define MAX_FOV 180.0
 
 /**********************************************************//**
- * @def PROJECT_PARALLEL
- * @brief Render the scene with paralllel projection
- **************************************************************/
-#define PROJECT_PARALLEL 1
-
-/**********************************************************//**
- * @def PROJECT_PERSPECTIVE
- * @brief Render the scene with perspective projection
- **************************************************************/
-#define PROJECT_PERSPECTIVE 0
-
-/**********************************************************//**
  * @struct SCENE
  * @brief Struct for storing all scene data
  **************************************************************/
 typedef struct {
-    // Bit flags
-    int flags;      ///< Rendering flags
-    
     // Required components
     VECTOR eye;          ///< Position of the eye in the scene
     VECTOR view;        ///< Direction the eye is pointing
