@@ -67,12 +67,10 @@ IMPORTANT += $(LIBWES64_DIR)
 
 #========== Documentation ==========#
 # Doxygen documentation setup
-DOC_DIR := doc
-WEB_DIR := web
+DOC_DIR := docs
 DOXYFILE := Doxyfile
-DOXFILES := $(wildcard doc/*.dox)
-DOXFILES += $(wildcard doc/*.html)
-IMPORTANT += $(DOXYFILE)
+DOXFILES := $(wildcard doxygen/*)
+IMPORTANT += $(DOXYFILE) $(DOXFILES)
 
 #============== Rules ==============#
 # Default: just make executables
@@ -115,8 +113,8 @@ $(BUILD_DIR)/$(MAIN_DIR)/%.o: $(MAIN_DIR)/%.c $(MAKEFILE)
 
 # Documentation
 .PHONY: documentation
-documentation: $(WEB_DIR)
-$(WEB_DIR): $(DOXFILES) $(CFILES) $(HFILES) $(MCFILES)
+documentation: $(DOC_DIR)
+$(DOC_DIR): $(DOXFILES) $(CFILES) $(IFILES) $(HFILES) $(MCFILES)
 	doxygen Doxyfile
 
 # Make executable for each driver
@@ -127,7 +125,7 @@ $(WEB_DIR): $(DOXFILES) $(CFILES) $(HFILES) $(MCFILES)
 # Clean up build files and executable
 .PHONY: clean
 clean:
-	-rm -rf $(BUILD_DIR) $(WEB_DIR) $(EXECUTABLES) $(TESTS)
+	-rm -rf $(BUILD_DIR) $(EXECUTABLES) $(TESTS)
 	
 #============= Archive =============#
 # Package all the files into a tar.

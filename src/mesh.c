@@ -119,9 +119,14 @@ const TEXCOORD *face_GetTexture(const FACE *face, int index) {
     return &face->mesh->texture[texture-1];
 }
 
-/*============================================================*
- * Barycentric coordinates
- *============================================================*/
+/**********************************************************//**
+ * @brief Get the barycentric coordinates of the point in
+ * the face.
+ * @param face: The face to check.
+ * @param where: The point to check.
+ * @param barycentric: Output for the coordinates, or NULL.
+ * @return Whether the point is in the face.
+ **************************************************************/
 static bool face_GetBarycentricCoordinates(const FACE *face, const VECTOR *where, VECTOR *barycentric) {
     // Get the total face area
     VECTOR u, v, temp;

@@ -143,9 +143,13 @@ const FACE *shape_GetFace(const SHAPE *shape) {
     return NULL;
 }
 
-/*============================================================*
- * Sphere geometry
- *============================================================*/
+/**********************************************************//**
+ * @brief Collide a ray with a sphere.
+ * @param sphere: The sphere to check.
+ * @param ray: The line to intersect with the shape
+ * @param result: Output location for collision data.
+ * @return Whether the collision detection succeeded.
+ **************************************************************/
 static bool sphere_Collide(const SPHERE *sphere, const LINE *ray, COLLISION *result) {
     
     // Error checking
@@ -220,9 +224,13 @@ static bool sphere_Collide(const SPHERE *sphere, const LINE *ray, COLLISION *res
     return true;
 }
 
-/*============================================================*
- * Ellipsoid geometry
- *============================================================*/
+/**********************************************************//**
+ * @brief Collide a ray with an ellipsoid.
+ * @param ellipsoid: The ellipsoid to check.
+ * @param ray: The line to intersect with the shape
+ * @param result: Output location for collision data.
+ * @return Whether the collision detection succeeded.
+ **************************************************************/
 static bool ellipsoid_Collide(const ELLIPSOID *ellipsoid, const LINE *ray, COLLISION *result) {
     
     // Error checking
@@ -306,9 +314,13 @@ static bool ellipsoid_Collide(const ELLIPSOID *ellipsoid, const LINE *ray, COLLI
     return true;
 }
 
-/*============================================================*
- * Plane geometry
- *============================================================*/
+/**********************************************************//**
+ * @brief Collide a ray with a plane.
+ * @param plane: The plane to check.
+ * @param ray: The line to intersect with the shape
+ * @param result: Output location for collision data.
+ * @return Whether the collision detection succeeded.
+ **************************************************************/
 static bool plane_Collide(const PLANE *plane, const LINE *ray, COLLISION *result) {
     
     // Collide the ray with the plane
@@ -371,9 +383,13 @@ static bool plane_Collide(const PLANE *plane, const LINE *ray, COLLISION *result
     return true;
 }
 
-/*============================================================*
- * Face geometry
- *============================================================*/
+/**********************************************************//**
+ * @brief Collide a ray with a face.
+ * @param face: The face to check.
+ * @param ray: The line to intersect with the shape
+ * @param result: Output location for collision data.
+ * @return Whether the collision detection succeeded.
+ **************************************************************/
 static bool face_Collide(const FACE *face, const LINE *ray, COLLISION *result) {
     
     // Get the plane of the face

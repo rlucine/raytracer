@@ -35,9 +35,14 @@ typedef struct {
     VECTOR center;   // The center of the viewing plane
 } VIEWPLANE;
 
-/*============================================================*
- * Get the viewing plane
- *============================================================*/
+/**********************************************************//**
+ * @brief Assemble the viewing plane.
+ * @param view: The VIEWPLANE to construct.
+ * @param view_distance: The distance of the viewing plane to
+ * the camera's eye.
+ * @param scene: The scene to initialize from.
+ * @return Whether the viewing plane was built.
+ **************************************************************/
 static bool raytrace_GetView(VIEWPLANE *view, float view_distance, const SCENE *scene) {
     
     // Get the aspect ratio
@@ -94,9 +99,13 @@ static bool raytrace_GetView(VIEWPLANE *view, float view_distance, const SCENE *
     return true;
 }
 
-/*============================================================*
- * Cast one ray
- *============================================================*/
+/**********************************************************//**
+ * @brief Shoots one ray into the scene.
+ * @param closest: The collision report for the ray.
+ * @param ray: The ray to shoot.
+ * @param scene: The scene to shoot the ray into.
+ * @return Whether the cast was successful.
+ **************************************************************/
 static bool raytrace_Cast(COLLISION *closest, const LINE *ray, const SCENE *scene) {
     
     // Collision detectors
@@ -161,10 +170,15 @@ static bool raytrace_Cast(COLLISION *closest, const LINE *ray, const SCENE *scen
     return true;
 }
 
-/*============================================================*
- * Recursive ray tracing (shadows)
- *============================================================*/
-static float raytrace_Shadow(float *shadows, const COLLISION *collision, const LIGHT *light, const SCENE *scene) {
+/**********************************************************//**
+ * @brief Shoots one ray into the scene.
+ * @param shadows: Output for the shadow value of the ray.
+ * @param collision: The collision location for the ray.
+ * @param light: The light to check shadows for.
+ * @param scene: The scene to shoot the ray into.
+ * @return Whether the cast was successful.
+ **************************************************************/
+static bool raytrace_Shadow(float *shadows, const COLLISION *collision, const LIGHT *light, const SCENE *scene) {
     
     // Set up ray pointing to light
     LINE ray;
@@ -202,13 +216,19 @@ static float raytrace_Shadow(float *shadows, const COLLISION *collision, const L
     return true;
 }
 
-/*============================================================*
- * Recursive ray tracing (reflections)
- *============================================================*/
-
 // Mutual recursion stuff
 static bool raytrace_Shade(COLOR *, const COLLISION *, const SCENE *, float, int);
 
+/**********************************************************//**
+ * @brief Gets the reflected color at the given collision.
+ * @param color: Output for reflected color.
+ * @param collision: The collision location to reflect for.
+ * @param scene: The scene to shoot the ray into.
+ * @param irefract: Initial refraction coefficient for the
+ * medium the eye is inside of.
+ * @param depth: Recursion depth.
+ * @return Whether the cast was successful.
+ **************************************************************/
 static bool raytrace_Reflection(COLOR *color, const COLLISION *collision, const SCENE *scene, float irefract, int depth) {
     
     // Stack overflow
@@ -328,9 +348,16 @@ static bool raytrace_Reflection(COLOR *color, const COLLISION *collision, const 
     return true;
 }
 
-/*============================================================*
- * Shader
- *============================================================*/
+/**********************************************************//**
+ * @brief Gets the color at the collision site.
+ * @param color: Output for collision color.
+ * @param collision: The collision location to shade.
+ * @param scene: The scene to shoot the ray into.
+ * @param irefract: Initial refraction coefficient for the
+ * medium the eye is inside of.
+ * @param depth: Recursion depth.
+ * @return Whether the cast was successful.
+ **************************************************************/
 static bool raytrace_Shade(COLOR *color, const COLLISION *collision, const SCENE *scene, float irefract, int depth) {
     
     // Error check

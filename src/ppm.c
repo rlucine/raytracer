@@ -49,9 +49,12 @@ bool ppm_Encode(const IMAGE *ppm, const char *filename) {
     return true;
 }
 
-/*============================================================*
- * Decoding PPM
- *============================================================*/
+/**********************************************************//**
+ * @brief Parse the next integer from the PPM stream.
+ * @param file: An open PPM file stream.
+ * @param output: The integer to output.
+ * @return Whether an integer was parsed.
+ **************************************************************/
 bool ppm_Parse(FILE *file, int *output) {
     // Get the next integer from the PPM stream
     char current;
@@ -89,6 +92,9 @@ bool ppm_Parse(FILE *file, int *output) {
     return false;
 }
 
+/*============================================================*
+ * Decoding PPM
+ *============================================================*/
 bool ppm_Decode(IMAGE *ppm, const char *filename) {
     
 #ifdef DEBUG
