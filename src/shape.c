@@ -104,17 +104,6 @@ void shape_Destroy(SHAPE *shape) {
     return;
 }
 
-/*============================================================*
- * Shape accessors
- *============================================================*/
-const MATERIAL *shape_GetMaterial(const SHAPE *shape) {
-    return shape->material;
-}
-
-void shape_SetMaterial(SHAPE *shape, const MATERIAL *material) {
-    shape->material = material;
-}
-
 /**********************************************************//**
  * @brief Collide a ray with a sphere.
  * @param sphere: The sphere to check.

@@ -167,14 +167,18 @@ extern void shape_Destroy(SHAPE *shape);
  * @param shape: The shape to read
  * @return Pointer to a MATERIAL struct
  **************************************************************/
-extern const MATERIAL *shape_GetMaterial(const SHAPE *shape);
+static inline const MATERIAL *shape_GetMaterial(const SHAPE *shape) {
+    return shape->material;
+}
 
 /**********************************************************//**
  * @brief Set the material properties of the shape
  * @param shape: The shape to set
  * @param material: Pointer to the material struct
  **************************************************************/
-extern void shape_SetMaterial(SHAPE *shape, const MATERIAL *material);
+static inline void shape_SetMaterial(SHAPE *shape, const MATERIAL *material) {
+    shape->material = material;
+}
 
 /**********************************************************//**
  * @brief Generalized collision function for all SHAPE_TYPE
