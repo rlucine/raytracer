@@ -9,7 +9,6 @@
 #include <time.h>       // time
 #include <stdio.h>      // printf, fopen, fclose ...
 #include <string.h>     // strcmp, strncmp, strlen ...
-#include <assert.h>     // assert
 
 // This project
 #include "image.h"
@@ -18,7 +17,7 @@
 #include "raytrace.h"
 
 // Debugging libraries
-#include "debug.h"
+#include "debug.h"      // eprintf, assert
 
 /**********************************************************//**
  * @brief Driver function for raytracer

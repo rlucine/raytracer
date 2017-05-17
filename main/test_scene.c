@@ -6,16 +6,15 @@
 
 // Standard library
 #include <stdio.h>      // fprintf ...
-#include <assert.h>     // assert
 #include <float.h>      // DBL_EPSILON
 #include <math.h>       // fabs
 
 // This project
-#include "macro.h"
 #include "scene.h"
 #include "vector.h"
 #include "image.h"
 #include "shape.h"
+#include "debug.h"
 
 /**********************************************************//**
  * @brief Test suite driver function
@@ -26,9 +25,9 @@ int main(void) {
     
     // Decode a correct scene
     printf("Decoding test.scene...\n");
-    assert(scene_Decode(&scene, "data/test.scene") == SUCCESS);
+    assert(scene_Decode(&scene, "data/test.scene"));
     
-    vector.z = vector.y = 0.0;
+    vector.x = vector.y = 0.0;
     vector.z = 4.0;
     assert(vector_IsEqual(scene_GetEyePosition(&scene), &vector));
     
@@ -46,9 +45,9 @@ int main(void) {
     assert(scene_GetHeight(&scene) == 100);
     
     const COLOR *color = scene_GetBackgroundColor(&scene);
-    assert(color->x == 0.1);
-    assert(color->y == 0.1);
-    assert(color->z == 0.1);
+    assert(iszero(color->x - 0.1));
+    assert(iszero(color->y - 0.1));
+    assert(iszero(color->z - 0.1));
     
     assert(scene_GetNumberOfShapes(&scene) == 1);
     
@@ -65,78 +64,78 @@ int main(void) {
 
     // Decode a weird scene
     printf("Decoding weird.scene...\n");
-    assert(scene_Decode(&scene, "data/weird.scene") == SUCCESS);
+    assert(scene_Decode(&scene, "data/weird.scene"));
     scene_Destroy(&scene);
     printf("Success!\n\n");
 
     printf("Decoding empty.scene...\n");
-    assert(scene_Decode(&scene, "data/empty.scene") == SUCCESS);
+    assert(scene_Decode(&scene, "data/empty.scene"));
     scene_Destroy(&scene);
     printf("Success!\n\n");
     
     printf("Decoding many.scene...\n");
-    assert(scene_Decode(&scene, "data/many.scene") == SUCCESS);
+    assert(scene_Decode(&scene, "data/many.scene"));
     scene_Destroy(&scene);
     printf("Success!\n\n");
     
     printf("Decoding sample0.scene...\n");
-    assert(scene_Decode(&scene, "data/sample0.scene") == SUCCESS);
+    assert(scene_Decode(&scene, "data/sample0.scene"));
     scene_Destroy(&scene);
     printf("Success!\n\n");
     
     printf("Decoding sample1.scene...\n");
-    assert(scene_Decode(&scene, "data/sample1.scene") == SUCCESS);
+    assert(scene_Decode(&scene, "data/sample1.scene"));
     scene_Destroy(&scene);
     printf("Success!\n\n");
     
     printf("Decoding sample2.scene...\n");
-    assert(scene_Decode(&scene, "data/sample2.scene") == SUCCESS);
+    assert(scene_Decode(&scene, "data/sample2.scene"));
     scene_Destroy(&scene);
     printf("Success!\n\n");
     
     printf("Decoding art.scene...\n");
-    assert(scene_Decode(&scene, "data/art.scene") == SUCCESS);
+    assert(scene_Decode(&scene, "data/art.scene"));
     scene_Destroy(&scene);
     printf("Success!\n\n");
     
     printf("Decoding test...\n");
-    assert(scene_Decode(&scene, "data/test") == SUCCESS);
+    assert(scene_Decode(&scene, "data/test"));
     scene_Destroy(&scene);
     printf("Success!\n\n");
     
     printf("Decoding complex.scene...\n");
-    assert(scene_Decode(&scene, "data/complex.scene") == SUCCESS);
+    assert(scene_Decode(&scene, "data/complex.scene"));
     scene_Destroy(&scene);
     printf("Success!\n\n");
     
     
     // Fail to decode these scenes
     printf("Catching errors in bad.scene...\n");
-    assert(scene_Decode(&scene, "data/bad.scene") == FAILURE);
+    assert(!scene_Decode(&scene, "data/bad.scene"));
     printf("Success!\n\n");
     
     printf("Catching errors in bounds.scene...\n");
-    assert(scene_Decode(&scene, "data/bounds.scene") == FAILURE);
+    assert(!scene_Decode(&scene, "data/bounds.scene"));
     printf("Success!\n\n");
     
     printf("Catching errors in extra.scene...\n");
-    assert(scene_Decode(&scene, "data/extra.scene") == FAILURE);
+    assert(!scene_Decode(&scene, "data/extra.scene"));
     printf("Success!\n\n");
     
     printf("Catching errors in missing.scene...\n");
-    assert(scene_Decode(&scene, "data/missing.scene") == FAILURE);
+    assert(!scene_Decode(&scene, "data/missing.scene"));
     printf("Success!\n\n");
     
     printf("Catching errors in paralell.scene...\n");
-    assert(scene_Decode(&scene, "data/paralell.scene") == FAILURE);
+    assert(!scene_Decode(&scene, "data/paralell.scene"));
     printf("Success!\n\n");
     
     printf("Catching errors in nonexistant file...\n");
-    assert(scene_Decode(&scene, "data/doesnotexist.scene") == FAILURE);
+    assert(!scene_Decode(&scene, "data/doesnotexist.scene"));
     printf("Success!\n\n");
     
     printf("Catching errors in bad file...\n");
-    assert(scene_Decode(&scene, "data") == FAILURE);
+    assert(!scene_Decode(&scene, "data"));
     printf("Success!\n\n");
     
     

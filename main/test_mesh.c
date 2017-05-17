@@ -6,13 +6,12 @@
 
 // Standard library
 #include <stdio.h>      // fprintf ...
-#include <assert.h>     // assert
 
 // This project
-#include "macro.h"      // SUCCESS, FAILURE
 #include "vector.h"     // VECTOR
 #include "image.h"      // TEXCOORD
 #include "mesh.h"       // MESH, FACE ...
+#include "debug.h"      // assert
 
 /**********************************************************//**
  * @brief Test suite driver function
@@ -40,11 +39,11 @@ int main(void) {
     
     // Set up a mesh
     MESH mesh;
-    assert(mesh_Create(&mesh, 3, 3, 3) == SUCCESS);
+    assert(mesh_Create(&mesh, 3, 3, 3));
     for (i = 0; i < N_VERTICES; i++) {
-        vector_Copy(&mesh.vertices[i], &v[i]);
-        vector_Copy(&mesh.normals[i], &n[i]);
-        vector_Copy(&mesh.texture[i], &t[i]);
+        mesh.vertices[i] = v[i];
+        mesh.normals[i] = n[i];
+        mesh.texture[i] = t[i];
     }
     
     // Set up a face
@@ -74,10 +73,10 @@ int main(void) {
     // Test normal interpolation
     VECTOR test;
     for (i = 0; i < N_VERTICES; i++) {
-        assert(face_GetNormalAt(&face, &v[i], &test) == SUCCESS);
-        assert(vector_IsEqual(&n[i], &test));
-        assert(face_GetTextureAt(&face, &v[i], &test) == SUCCESS);
-        assert(vector_IsEqual(&t[i], &test));
+        assert(face_GetNormalAt(&face, &v[i], &test));
+        assert(vector_IsColinear(&n[i], &test));
+        assert(face_GetTextureAt(&face, &v[i], &test));
+        assert(vector_IsColinear(&t[i], &test));
     }
     
     // Done

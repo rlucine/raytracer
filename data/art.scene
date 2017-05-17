@@ -12,20 +12,20 @@ light 10 0 12 1 0.8 0.8 1
 light 0 -10 12 1 0.8 1 0.8
 
 # Main body
-mtlcolor 0.3 0.3 0.3 1 1 1 0 0.5 0.5 16
+mtlcolor 0.3 0.3 0.3 1 1 1 0 0.5 0.5 16 1 1
 sphere 1 0 -4 6
 sphere -1 0 -4 6
 sphere 0 -1 -4 6
 
 # Face
-mtlcolor 0.6 0.3 0.6 1 1 1 0 0.3 0.7 50
+mtlcolor 0.6 0.3 0.6 1 1 1 0 0.3 0.7 50 1 1
 sphere 0 0 0 3
 sphere 1 0 1 2
 sphere -1 0 1 2
 sphere 0 -1 1 2
 
 # Smaller particles
-mtlcolor 0.6 0.6 1 1 1 1 0 0.5 0.5 16
+mtlcolor 0.6 0.6 1 1 1 1 0 0.5 0.5 16 1 1
 sphere 2 0 2 1
 sphere -2 0 2 1
 sphere 0 -2 2 1
@@ -43,7 +43,7 @@ sphere -8 0 8 0.125
 sphere 0 -8 8 0.125
 
 # Side parts
-mtlcolor 0 0.15 0.15 1 1 1 0 0.3 0.7 50
+mtlcolor 0 0.15 0.15 1 1 1 0 0.3 0.7 50 1 1
 ellipsoid 8 0 -4 4 1 1
 ellipsoid -8 0 -4 4 1 1
 ellipsoid 0 -8 -4 1 4 1

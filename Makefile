@@ -7,7 +7,7 @@
 # -DTRACE: Trace malloc and free
 
 # Uncomment this line for release
-DEBUG := -DNDEBUG -UDEBUG -DVERBOSE -UTRACE
+DEBUG := -UNDEBUG -DDEBUG -DVERBOSE -UTRACE
 
 # Uncomment this line for debug
 #DEBUG := -DDEBUG -DVERBOSE -DTRACE
