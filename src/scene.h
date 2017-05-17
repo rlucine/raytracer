@@ -14,17 +14,9 @@
 #include "light.h"      // LIGHT
 #include "mesh.h"       // MESH
 
-/**********************************************************//**
- * @def MIN_FOV
- * @brief The minimum field of view
- **************************************************************/
-#define MIN_FOV 0.0
-
-/**********************************************************//**
- * @def MAX_FOV
- * @brief The maximum field of view
- **************************************************************/
-#define MAX_FOV 180.0
+//*************************************************************
+#define MIN_FOV 0.0     ///< The minimum field of view.
+#define MAX_FOV 180.0   ///< The maximum field of view.
 
 /**********************************************************//**
  * @struct SCENE

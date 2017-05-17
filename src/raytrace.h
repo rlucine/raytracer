@@ -16,38 +16,20 @@
 #include "color.h"  // COLOR
 #include "shape.h"  // COLLISION
 
-/**********************************************************//**
- * @def VIEW_DISTANCE
- * @brief Distance of viewing plane from eye
- **************************************************************/
+//*************************************************************
+/// Distance of viewing plane from eye.
 #define VIEW_DISTANCE 1.0
 
-/**********************************************************//**
- * @def SHADOW_THRESHOLD
- * @brief Considered completely dark if under this value
- * because 0.003 < (1 / 255).
- **************************************************************/
+/// Considered completely dark if under this value because 0.003 < (1 / 255).
 #define SHADOW_THRESHOLD 0.003
 
-/**********************************************************//**
- * @def COLLISION_THRESHOLD
- * @brief Only consider collisions greater than this distance
- * for shadow casting.
- **************************************************************/
+/// Only consider collisions greater than this distance for shadow casting.
 #define COLLISION_THRESHOLD 0.001
 
-/**********************************************************//**
- * @def INITIAL_REFRACTION
- * @brief The index of refraction of the material
- * containing the eye
- **************************************************************/
+/// The index of refraction of the material containing the eye.
 #define INITIAL_REFRACTION 1.0
 
-/**********************************************************//**
- * @def RECURSION_DEPTH
- * @brief The maximum recursion depth for recursive ray
- * tracing.
- **************************************************************/
+/// The maximum recursion depth for recursive ray tracing.
 #define RECURSION_DEPTH 5
 
 /**********************************************************//**
