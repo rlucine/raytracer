@@ -5,15 +5,16 @@
  **************************************************************/
 
 // Standard library
-#include <stdlib.h> // NULL
-#include <stdio.h>  // fprintf, stderr ...
-#include <float.h>  // DBL_EPSILON
+#include <stdlib.h>     // NULL
+#include <stdio.h>      // fprintf, stderr ...
+#include <float.h>      // DBL_EPSILON
 
 // This project
-#include "macro.h"  // SUCCESS, FAILURE
-#include "vector.h" // VECTOR, POINT ...
-#include "image.h"  // TEXCOORD
-#include "mesh.h"   // FACE, VERTEX
+#include "macro.h"      // SUCCESS, FAILURE
+#include "vector.h"     // VECTOR, VECTOR ...
+#include "image.h"      // TEXCOORD
+#include "mesh.h"       // FACE, VERTEX
+#include "geometry.h"   // PLANE, LINE
 
 // Debugging libraries
 #include "debug.h"
@@ -24,7 +25,7 @@
 int mesh_Create(MESH *mesh, int nvertices, int nnormals, int ntextures) {
     // Allocate vertexes
     if (nvertices > 0) {
-        mesh->vertices = (POINT *)malloc(nvertices*sizeof(POINT));
+        mesh->vertices = (VECTOR *)malloc(nvertices*sizeof(VECTOR));
         if (!mesh->vertices) {
             eprintf("Out of memory\n");
             return FAILURE;
@@ -36,7 +37,7 @@ int mesh_Create(MESH *mesh, int nvertices, int nnormals, int ntextures) {
     
     // Allocate normals
     if (nnormals > 0) {
-        mesh->normals = (POINT *)malloc(nnormals*sizeof(VECTOR));
+        mesh->normals = (VECTOR *)malloc(nnormals*sizeof(VECTOR));
         if (!mesh->normals) {
             eprintf("Out of memory\n");
             return FAILURE;
@@ -85,7 +86,7 @@ void mesh_Destroy(MESH *mesh) {
 /*============================================================*
  * Data structure business
  *============================================================*/
-const POINT *face_GetVertex(const FACE *face, int index) {
+const VECTOR *face_GetVertex(const FACE *face, int index) {
     if (index < 0 || index >= N_VERTICES) {
         return NULL;
     }
@@ -121,7 +122,7 @@ const TEXCOORD *face_GetTexture(const FACE *face, int index) {
 /*============================================================*
  * Barycentric coordinates
  *============================================================*/
-static int face_GetBarycentricCoordinates(const FACE *face, const POINT *where, VECTOR *barycentric) {
+static int face_GetBarycentricCoordinates(const FACE *face, const VECTOR *where, VECTOR *barycentric) {
     // Get the total face area
     VECTOR u, v, temp;
     const VECTOR *v0, *v1, *v2;
@@ -133,26 +134,38 @@ static int face_GetBarycentricCoordinates(const FACE *face, const POINT *where, 
         return FAILURE;
     }
     
-    vector_Subtract(&u, v1, v0);
-    vector_Subtract(&v, v2, v0);
-    vector_Cross(&temp, &u, &v);
-    double total_area = vector_Magnitude(&temp) / 2.0;
+    u = *v1;
+    vector_Subtract(&u, v0);
+    v = *v2;
+    vector_Subtract(&v, v0);
+    temp = u;
+    vector_Cross(&temp, &v);
+    float total_area = vector_Length(&temp) / 2.0;
     
     // Get each sub-face area
-    vector_Subtract(&u, v1, where);
-    vector_Subtract(&v, v2, where);
-    vector_Cross(&temp, &u, &v);
-    double a = vector_Magnitude(&temp) / 2.0;
+    u = *v1;
+    vector_Subtract(&u, where);
+    v = *v2;
+    vector_Subtract(&v, where);
+    temp = u;
+    vector_Cross(&temp, &v);
+    float a = vector_Length(&temp) / 2.0;
 
-    vector_Subtract(&u, where, v0);
-    vector_Subtract(&v, v2, v0);
-    vector_Cross(&temp, &u, &v);
-    double b = vector_Magnitude(&temp) / 2.0;
+    u = *where;
+    vector_Subtract(&u, v0);
+    v = *v2;
+    vector_Subtract(&v, v0);
+    temp = u;
+    vector_Cross(&temp, &v);
+    float b = vector_Length(&temp) / 2.0;
     
-    vector_Subtract(&u, v1, v0);
-    vector_Subtract(&v, where, v0);
-    vector_Cross(&temp, &u, &v);
-    double c = vector_Magnitude(&temp) / 2.0;
+    u = *v1;
+    vector_Subtract(&u, v0);
+    v = *where;
+    vector_Subtract(&v, v0);
+    temp = u;
+    vector_Cross(&temp, &v);
+    float c = vector_Length(&temp) / 2.0;
     
     // Determine if the point actually in the face
     // TODO if the image becomes grainy increment the multiple of DBL_EPSILON again!
@@ -184,24 +197,25 @@ int face_GetPlane(const FACE *face, PLANE *plane) {
     }
     
     // Convert face to plane
-    vector_Copy(&plane->origin, v0);
-    vector_Subtract(&plane->u, v1, v0);
-    vector_Subtract(&plane->v, v2, v1);
+    plane->origin = *v0;
+    plane->u = *v1;
+    vector_Subtract(&plane->u, v0);
+    plane->v = *v2;
+    vector_Subtract(&plane->v, v1);
     return SUCCESS;
 }
 
 /*============================================================*
  * Containing points
  *============================================================*/
-int face_Contains(const FACE *face, const POINT *where) {
+int face_Contains(const FACE *face, const VECTOR *where) {
     return face_GetBarycentricCoordinates(face, where, NULL) == SUCCESS;
 }
 
 /*============================================================*
  * Interpolation across the face
  *============================================================*/
-int face_GetNormalAt(const FACE *face, const POINT *where, VECTOR *normal) {
-
+int face_GetNormalAt(const FACE *face, const VECTOR *where, VECTOR *normal) {
     // If no vertex normals, just use face normal
     const VECTOR *n0, *n1, *n2;
     n0 = face_GetNormal(face, 0);
@@ -213,8 +227,9 @@ int face_GetNormalAt(const FACE *face, const POINT *where, VECTOR *normal) {
             eprintf("Unable to generate normal vector.\n");
             return FAILURE;
         }
-        vector_Cross(normal, &plane.u, &plane.v);
-        vector_Normalize(normal, normal);
+        *normal = plane.u;
+        vector_Cross(normal, &plane.v);
+        vector_Normalize(normal);
         return SUCCESS;
     }
     
@@ -229,22 +244,24 @@ int face_GetNormalAt(const FACE *face, const POINT *where, VECTOR *normal) {
     normal->x = normal->y = normal->z = 0.0;
     VECTOR temp;
     
-    vector_Multiply(&temp, n0, barycentric.x);
-    vector_Add(normal, normal, &temp);
+    temp = *n0;
+    vector_Multiply(&temp, barycentric.x);
+    vector_Add(normal, &temp);
     
-    vector_Multiply(&temp, n1, barycentric.y);
-    vector_Add(normal, normal, &temp);
+    temp = *n1;
+    vector_Multiply(&temp, barycentric.y);
+    vector_Add(normal, &temp);
     
-    vector_Multiply(&temp, n2, barycentric.z);
-    vector_Add(normal, normal, &temp);
+    temp = *n2;
+    vector_Multiply(&temp, barycentric.z);
+    vector_Add(normal, &temp);
     
     // Don't bloody forget this
-    vector_Normalize(normal, normal);
+    vector_Normalize(normal);
     return SUCCESS;
 }
 
-int face_GetTextureAt(const FACE *face, const POINT *where, TEXCOORD *tex) {
-    
+int face_GetTextureAt(const FACE *face, const VECTOR *where, TEXCOORD *tex) {
     // Check if the face even has texture
     if (face->mesh->ntextures == 0) {
         // No texture coordinate on this face.
@@ -272,14 +289,17 @@ int face_GetTextureAt(const FACE *face, const POINT *where, TEXCOORD *tex) {
     tex->x = tex->y = tex->z = 0.0;
     VECTOR temp;
     
-    vector_Multiply(&temp, t0, barycentric.x);
-    vector_Add(tex, tex, &temp);
+    temp = *t0;
+    vector_Multiply(&temp, barycentric.x);
+    vector_Add(tex, &temp);
     
-    vector_Multiply(&temp, t1, barycentric.y);
-    vector_Add(tex, tex, &temp);
+    temp = *t1;
+    vector_Multiply(&temp, barycentric.y);
+    vector_Add(tex, &temp);
     
-    vector_Multiply(&temp, t2, barycentric.z);
-    vector_Add(tex, tex, &temp);
+    temp = *t2;
+    vector_Multiply(&temp, barycentric.z);
+    vector_Add(tex, &temp);
     return SUCCESS;
 }
 

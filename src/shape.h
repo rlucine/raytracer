@@ -11,6 +11,7 @@
 #include "image.h"      // TEXTURE, TEXCOORD
 #include "vector.h"     // VECTOR
 #include "mesh.h"       // FACE
+#include "geometry.h"   // PLANE, LINE
 
 /**********************************************************//**
  * @enum SHAPE_TYPE
@@ -29,8 +30,8 @@ typedef enum {
  * @brief Struct for storing sphere data
  **************************************************************/
 typedef struct {
-    POINT center;   ///< The center of the sphere
-    double radius;  ///< The radius of the sphere
+    VECTOR center;   ///< The center of the sphere
+    float radius;  ///< The radius of the sphere
 } SPHERE;
 
 /**********************************************************//**
@@ -38,7 +39,7 @@ typedef struct {
  * @brief Struct for storing ellipsoid data
  **************************************************************/
 typedef struct {
-    POINT center;       ///< The center of the ellipsoid
+    VECTOR center;       ///< The center of the ellipsoid
     VECTOR dimension;   ///< The dimensions of the ellipsoid
 } ELLIPSOID;
 
@@ -49,13 +50,13 @@ typedef struct {
 typedef struct {
     COLOR color;            ///< The diffuse color of the object
     COLOR highlight;        ///< The specular color of the object
-    double ambient;         ///< The ambient reflectivity of the object
-    double diffuse;         ///< The diffuse reflectivity of the object
-    double specular;        ///< The specular reflectivity of the object
+    float ambient;         ///< The ambient reflectivity of the object
+    float diffuse;         ///< The diffuse reflectivity of the object
+    float specular;        ///< The specular reflectivity of the object
     int exponent;           ///< The size of the specular highlight
     const TEXTURE *texture; ///< The texture to apply to the shape
-    double opacity;         ///< The object's opacity
-    double refraction;      ///< The object's index of refraction
+    float opacity;         ///< The object's opacity
+    float refraction;      ///< The object's index of refraction
 } MATERIAL;
 
 /**********************************************************//**
@@ -89,7 +90,7 @@ typedef enum {
 typedef struct {
     COLLISION_TYPE how;         ///< How the collision occurred
     VECTOR where;               ///< Point of collision on the surface
-    double distance;            ///< How far away the point is
+    float distance;            ///< How far away the point is
     const MATERIAL *material;   ///< The material that was collided with
     VECTOR incident;            ///< Vector pointing towards the origin
     VECTOR normal;              ///< Normal vector at collision site

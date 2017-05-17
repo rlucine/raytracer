@@ -27,7 +27,7 @@
 /*============================================================*
  * Scene getters
  *============================================================*/
-const POINT *scene_GetEyePosition(const SCENE *scene) {
+const VECTOR *scene_GetEyePosition(const SCENE *scene) {
     return &scene->eye;
 }
 
@@ -39,7 +39,7 @@ const VECTOR *scene_GetUpDirection(const SCENE *scene) {
     return &scene->up;
 }
 
-double scene_GetFieldOfView(const SCENE *scene) {
+float scene_GetFieldOfView(const SCENE *scene) {
     return scene->fov;
 }
 

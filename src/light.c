@@ -21,10 +21,10 @@
 /*============================================================*
  * Creation
  *============================================================*/
-void light_CreatePoint(LIGHT *light, const POINT *where, const COLOR *color) {
+void light_CreatePoint(LIGHT *light, const VECTOR *where, const COLOR *color) {
     // Creates a point light
-    vector_Copy(&light->where, where);
-    vector_Copy(&light->color, color);
+    light->where = *where;
+    light->color = *color;
     light->type = LIGHT_POINT;
     light->angle = 0.0;
     vector_Set(&light->direction, 0, 0, 0);
@@ -32,18 +32,18 @@ void light_CreatePoint(LIGHT *light, const POINT *where, const COLOR *color) {
 
 void light_CreateDirected(LIGHT *light, const VECTOR *direction, const COLOR *color) {
     // Creates a directional light
-    vector_Copy(&light->direction, direction);
-    vector_Copy(&light->color, color);
+    light->direction = *direction;
+    light->color = *color;
     light->type = LIGHT_DIRECTED;
     light->angle = 0.0;
     vector_Set(&light->where, 0, 0, 0);
 }
 
-void light_CreateSpotlight(LIGHT *light, const POINT *where, const VECTOR *direction, double angle, const COLOR *color) {
+void light_CreateSpotlight(LIGHT *light, const VECTOR *where, const VECTOR *direction, float angle, const COLOR *color) {
     // Creates a spotlight
-    vector_Copy(&light->where, where);
-    vector_Copy(&light->direction, direction);
-    vector_Copy(&light->color, color);
+    light->where = *where;
+    light->direction = *direction;
+    light->color = *color;
     light->type = LIGHT_SPOT;
     light->angle = angle;
 }
@@ -51,22 +51,22 @@ void light_CreateSpotlight(LIGHT *light, const POINT *where, const VECTOR *direc
 /*============================================================*
  * Direction
  *============================================================*/
-int light_GetDirection(const LIGHT *light, const POINT *where, VECTOR *output, double *distance) {
+int light_GetDirection(const LIGHT *light, const VECTOR *where, VECTOR *output, float *distance) {
     switch (light->type) {
     case LIGHT_SPOT:
     case LIGHT_POINT:
         // Get direction to origin of light
-        vector_Subtract(output, &light->where, where);
-        
+        *output = light->where;
+        vector_Subtract(output, where);
         if (distance) {
-            *distance = vector_Magnitude(output);
+            *distance = vector_Length(output);
         }
         break;
     
     case LIGHT_DIRECTED:
         // The light is just a direction
-        vector_Negate(output, &light->direction);
-        
+        *output = light->direction;
+        vector_Negate(output);
         if (distance) {
             *distance = INFINITY;
         }
@@ -79,7 +79,7 @@ int light_GetDirection(const LIGHT *light, const POINT *where, VECTOR *output, d
     }
     
     // Return only unit vectors
-    vector_Normalize(output, output);
+    vector_Normalize(output);
     return SUCCESS;
 }
 
@@ -87,8 +87,6 @@ int light_GetDirection(const LIGHT *light, const POINT *where, VECTOR *output, d
  * Light shader
  *============================================================*/
 int light_BlinnPhongShade(const LIGHT *light, const COLLISION *collision, COLOR *color) {
-    // Shade the given collision with the light
-    
     // Get the vector pointing from the collision to the light
     VECTOR to_light;
     if (light_GetDirection(light, &collision->where, &to_light, NULL) != SUCCESS) {
@@ -98,9 +96,9 @@ int light_BlinnPhongShade(const LIGHT *light, const COLLISION *collision, COLOR 
     
     // Check spotlight radius
     if (light->type == LIGHT_SPOT) {
-        double radians = light->angle * M_PI / 180;
-        VECTOR temp;
-        vector_Negate(&temp, &to_light);
+        float radians = light->angle * M_PI / 180;
+        VECTOR temp = to_light;
+        vector_Negate(&temp);
         if (vector_Angle(&temp, &light->direction) > radians) {
             // Outside the spotlight!
             return FAILURE;
@@ -108,13 +106,12 @@ int light_BlinnPhongShade(const LIGHT *light, const COLLISION *collision, COLOR 
     }
     
     // Get the view vector
-    VECTOR view;
-    vector_Copy(&view, &collision->incident);
+    VECTOR view = collision->incident;
     
     // Get the halfway vector
-    VECTOR halfway;
-    vector_Add(&halfway, &to_light, &view);
-    vector_Normalize(&halfway, &halfway);
+    VECTOR halfway = to_light;
+    vector_Add(&halfway, &view);
+    vector_Normalize(&halfway);
     
     // Get the diffuse color
     COLOR object_color;
@@ -129,28 +126,30 @@ int light_BlinnPhongShade(const LIGHT *light, const COLLISION *collision, COLOR 
     vector_Set(color, 0, 0, 0);
     
     // Diffuse color components - clamp to positive
-    double diffuse = vector_Dot(&collision->normal, &to_light) * material->diffuse;
+    float diffuse = vector_Dot(&collision->normal, &to_light) * material->diffuse;
     if (diffuse > 0.0) {
-        vector_Multiply(&temp, &object_color, diffuse);
-        vector_Add(color, color, &temp);
+        temp = object_color;
+        vector_Multiply(&temp, diffuse);
+        vector_Add(color, &temp);
     }
     
     // Specular components
-    double dot = vector_Dot(&halfway, &collision->normal);
-    double specular = pow(dot, material->exponent) * material->specular;
+    float dot = vector_Dot(&halfway, &collision->normal);
+    float specular = pow(dot, material->exponent) * material->specular;
     if (specular > 0.0) {
-        vector_Multiply(&temp, &material->highlight, specular);
-        vector_Add(color, color, &temp);
+        temp = material->highlight;
+        vector_Multiply(&temp, specular);
+        vector_Add(color, &temp);
     }
     
 #ifdef DEBUG
-    eprintf("Normal is (%lf, %lf, %lf)\n", collision->normal.x, collision->normal.y, collision->normal.z);
-    eprintf("View is (%lf, %lf, %lf)\n", view.x, view.y, view.z);
-    eprintf("Halfway is (%lf, %lf, %lf)\n", halfway.x, halfway.y, halfway.z);
-    eprintf("Light is (%lf, %lf, %lf)\n", to_light.x, to_light.y, to_light.z);
-    eprintf("Diffuse coefficient is %lf\n", diffuse);
-    eprintf("Specular coefficient is %lf\n", specular);
-    eprintf("Dot is %lf and dot^%d is %lf\n", dot, material->exponent, pow(dot, material->exponent));
+    eprintf("Normal is (%f, %f, %f)\n", collision->normal.x, collision->normal.y, collision->normal.z);
+    eprintf("View is (%f, %f, %f)\n", view.x, view.y, view.z);
+    eprintf("Halfway is (%f, %f, %f)\n", halfway.x, halfway.y, halfway.z);
+    eprintf("Light is (%f, %f, %f)\n", to_light.x, to_light.y, to_light.z);
+    eprintf("Diffuse coefficient is %f\n", diffuse);
+    eprintf("Specular coefficient is %f\n", specular);
+    eprintf("Dot is %f and dot^%d is %f\n", dot, material->exponent, pow(dot, material->exponent));
 #endif
     
     // Scale by light's own color

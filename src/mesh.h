@@ -7,8 +7,9 @@
 #ifndef _MESH_H_
 #define _MESH_H_
 
-#include "vector.h"     // POINT
+#include "vector.h"     // VECTOR
 #include "image.h"      // TEXCOORD
+#include "geometry.h"   // PLANE, LINE
 
 /**********************************************************//**
  * @def N_VERTICES
@@ -36,7 +37,7 @@
  **************************************************************/
 typedef struct {
     int nvertices;      ///< Number of vertices
-    POINT *vertices;    ///< Actual vertex point data
+    VECTOR *vertices;    ///< Actual vertex point data
     int nnormals;       ///< Number of normals
     VECTOR *normals;    ///< Actual normal vector data
     int ntextures;      ///< Number of texture coordinates
@@ -48,7 +49,7 @@ typedef struct {
  * @brief Struct for indexing into a MESH
  **************************************************************/
 typedef struct {
-    int vertex;         ///< The index of the vertex POINT
+    int vertex;         ///< The index of the vertex VECTOR
     int normal;         ///< The index of the normal VECTOR
     int texture;        ///< The index of the texture TEXCOORD
 } VERTEX;
@@ -84,7 +85,7 @@ extern void mesh_Destroy(MESH *mesh);
  * @param index: A vertex identifier from 0 to N_VERTICES-1
  * @return Pointer to the vertex location or NULL.
  **************************************************************/
-extern const POINT *face_GetVertex(const FACE *face, int index);
+extern const VECTOR *face_GetVertex(const FACE *face, int index);
 
 /**********************************************************//**
  * @brief Get the given normal vector from the face.
@@ -115,7 +116,7 @@ extern int face_GetPlane(const FACE *face, PLANE *plane);
  * @param where: The point to check.
  * @return 1 if true else 0
  **************************************************************/
-extern int face_Contains(const FACE *face, const POINT *where);
+extern int face_Contains(const FACE *face, const VECTOR *where);
 
 /**********************************************************//**
  * @brief Interpolate the normal at the given point.
@@ -124,7 +125,7 @@ extern int face_Contains(const FACE *face, const POINT *where);
  * @param normal: The location to write the normal to.
  * @return SUCCESS or FAILURE
  **************************************************************/
-extern int face_GetNormalAt(const FACE *face, const POINT *where, VECTOR *normal);
+extern int face_GetNormalAt(const FACE *face, const VECTOR *where, VECTOR *normal);
 
 /**********************************************************//**
  * @brief Interpolate the texture at the given point.
@@ -133,7 +134,7 @@ extern int face_GetNormalAt(const FACE *face, const POINT *where, VECTOR *normal
  * @param texture: The place to write the texture coordinate.
  * @return SUCCESS or FAILURE
  **************************************************************/
-extern int face_GetTextureAt(const FACE *face, const POINT *where, TEXCOORD *texture);
+extern int face_GetTextureAt(const FACE *face, const VECTOR *where, TEXCOORD *texture);
 
 /*============================================================*/
 #endif // _MESH_H_

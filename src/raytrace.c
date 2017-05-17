@@ -17,6 +17,7 @@
 #include "image.h"      // IMAGE
 #include "vector.h"     // VECTOR
 #include "shape.h"      // SHAPE
+#include "geometry.h"   // PLANE, LINE
 #include "scene.h"      // SCENE
 #include "raytrace.h"   // SHADOW_THRESHOLD ...
 
@@ -27,60 +28,66 @@
  * Viewing plane
  *============================================================*/
 typedef struct {
-    POINT origin;   // Upper left corner
+    VECTOR origin;   // Upper left corner
     VECTOR u;       // Unit vector u
     VECTOR v;       // Unit vector v
-    double width;   // Real width of the viewing plane
-    double height;  // Real height of the viewing plane
-    POINT center;   // The center of the viewing plane
+    float width;   // Real width of the viewing plane
+    float height;  // Real height of the viewing plane
+    VECTOR center;   // The center of the viewing plane
 } VIEWPLANE;
 
 /*============================================================*
  * Get the viewing plane
  *============================================================*/
-static int raytrace_GetView(VIEWPLANE *view, double view_distance, const SCENE *scene) {
+static int raytrace_GetView(VIEWPLANE *view, float view_distance, const SCENE *scene) {
     
     // Get the aspect ratio
-    double aspect = (double)scene_GetWidth(scene) / (double)scene_GetHeight(scene);
+    float aspect = (float)scene_GetWidth(scene) / (float)scene_GetHeight(scene);
     
     // Get the fields of view and plane dimensions
-    double fov_vertical = M_PI * scene_GetFieldOfView(scene) / 180.0;
-    double height = 2.0*tan(fov_vertical / 2.0);
-    double width = height * aspect;
+    float fov_vertical = M_PI * scene_GetFieldOfView(scene) / 180.0;
+    float height = 2.0*tan(fov_vertical / 2.0);
+    float width = height * aspect;
     
     // Get the u basis vector
-    vector_Cross(&view->u, scene_GetViewDirection(scene), scene_GetUpDirection(scene));
-    vector_Normalize(&view->u, &view->u);
+    view->u = *scene_GetViewDirection(scene);
+    vector_Cross(&view->u, scene_GetUpDirection(scene));
+    vector_Normalize(&view->u);
     if (vector_IsZero(&view->u)) {
-        eprintf("Null u vector (%lf, %lf, %lf)\n", view->u.x, view->u.y, view->u.z);
+        eprintf("Null u vector (%f, %f, %f)\n", view->u.x, view->u.y, view->u.z);
         return FAILURE;
     }
     
     // Get the v basis vector
-    vector_Cross(&view->v, &view->u, scene_GetViewDirection(scene));
-    vector_Normalize(&view->v, &view->v);
+    view->v = view->u;
+    vector_Cross(&view->v, scene_GetViewDirection(scene));
+    vector_Normalize(&view->v);
     if (vector_IsZero(&view->v)) {
-        eprintf("Null v vector (%lf, %lf, %lf)\n", view->v.x, view->v.y, view->v.z);
+        eprintf("Null v vector (%f, %f, %f)\n", view->v.x, view->v.y, view->v.z);
         return FAILURE;
     }
     
     // Get the offset to the upper left
     VECTOR du, dv, distance;
-    vector_Multiply(&du, &view->u, width / -2.0);
-    vector_Multiply(&dv, &view->v, height / 2.0);
+    du = view->u;
+    vector_Multiply(&du, width / -2.0);
+    dv = view->v;
+    vector_Multiply(&dv, height / 2.0);
     
     // Get the distance to the viewing plane
-    vector_Normalize(&distance, scene_GetViewDirection(scene));
-    vector_Multiply(&distance, &distance, view_distance);
+    distance = *scene_GetViewDirection(scene);
+    vector_Normalize(&distance);
+    vector_Multiply(&distance, view_distance);
     
     // Get the center point of the viewing plane
-    vector_Add(&view->center, scene_GetEyePosition(scene), &distance);
+    view->center = *scene_GetEyePosition(scene);
+    vector_Add(&view->center, &distance);
     
     // Get the upper left corner
-    vector_Copy(&view->origin, scene_GetEyePosition(scene));
-    vector_Add(&view->origin, &view->origin, &distance);
-    vector_Add(&view->origin, &view->origin, &du);
-    vector_Add(&view->origin, &view->origin, &dv);
+    view->origin = *scene_GetEyePosition(scene);
+    vector_Add(&view->origin, &distance);
+    vector_Add(&view->origin, &du);
+    vector_Add(&view->origin, &dv);
     
     // Scale basis vectors
     view->width = width;
@@ -130,7 +137,7 @@ static int raytrace_Cast(COLLISION *closest, const LINE *ray, const SCENE *scene
 #ifdef DEBUG
     switch (closest->how) {
     case COLLISION_SURFACE:
-        fprintf(stderr, "raytrace_Cast: Collided with %d at (%lf, %lf, %lf)\n", who, closest->where.x, closest->where.y, closest->where.z);
+        fprintf(stderr, "raytrace_Cast: Collided with %d at (%f, %f, %f)\n", who, closest->where.x, closest->where.y, closest->where.z);
         break;
     
     case COLLISION_INSIDE:
@@ -158,12 +165,12 @@ static int raytrace_Cast(COLLISION *closest, const LINE *ray, const SCENE *scene
 /*============================================================*
  * Recursive ray tracing (shadows)
  *============================================================*/
-static double raytrace_Shadow(double *shadows, const COLLISION *collision, const LIGHT *light, const SCENE *scene) {
+static float raytrace_Shadow(float *shadows, const COLLISION *collision, const LIGHT *light, const SCENE *scene) {
     
     // Set up ray pointing to light
     LINE ray;
-    double distance;
-    memcpy(&ray.origin, &collision->where, sizeof(POINT));
+    float distance;
+    memcpy(&ray.origin, &collision->where, sizeof(VECTOR));
     if (light_GetDirection(light, &collision->where, &ray.direction, &distance) != SUCCESS) {
         eprintf("Invalid light\n");
         return FAILURE;
@@ -179,10 +186,10 @@ static double raytrace_Shadow(double *shadows, const COLLISION *collision, const
     // Check collisions
     if ((shadow.how != COLLISION_NONE) && (shadow.distance < distance) && (shadow.distance > COLLISION_THRESHOLD)) {
         // Something in between the light and us, and it isn't ourself!
-        double alpha = 1.0 - shadow.material->opacity;
+        float alpha = 1.0 - shadow.material->opacity;
         
         // Check for all other collisions
-        double rest;
+        float rest;
         if (raytrace_Shadow(&rest, &shadow, light, scene) != SUCCESS) {
             eprintf("Failed to shadow all objects in the scene");
             return FAILURE;
@@ -201,9 +208,9 @@ static double raytrace_Shadow(double *shadows, const COLLISION *collision, const
  *============================================================*/
 
 // Mutual recursion stuff
-static int raytrace_Shade(COLOR *, const COLLISION *, const SCENE *, double, int);
+static int raytrace_Shade(COLOR *, const COLLISION *, const SCENE *, float, int);
 
-static int raytrace_Reflection(COLOR *color, const COLLISION *collision, const SCENE *scene, double irefract, int depth) {
+static int raytrace_Reflection(COLOR *color, const COLLISION *collision, const SCENE *scene, float irefract, int depth) {
     
     // Stack overflow
     if (depth > RECURSION_DEPTH) {
@@ -215,21 +222,22 @@ static int raytrace_Reflection(COLOR *color, const COLLISION *collision, const S
     // vector so we do not have erroneous refraction / reflection
     VECTOR reflection_normal;
     if (vector_Dot(&collision->normal, &collision->incident) < 0) {
-        vector_Negate(&reflection_normal, &collision->normal);
+        reflection_normal = collision->normal;
+        vector_Negate(&reflection_normal);
     } else {
-        vector_Copy(&reflection_normal, &collision->normal);
+        reflection_normal = collision->normal;
     }
     
     // Efficient computation of Fresnel reflectance
     const MATERIAL *material = collision->material;
-    double cos_theta_i = vector_Dot(&reflection_normal, &collision->incident);
+    float cos_theta_i = vector_Dot(&reflection_normal, &collision->incident);
     assert(cos_theta_i >= 0);
-    double pow1 = 1 - cos_theta_i;
-    double pow2 = pow1 * pow1;
-    double pow5 = pow2 * (pow1 * pow2);
+    float pow1 = 1 - cos_theta_i;
+    float pow2 = pow1 * pow1;
+    float pow5 = pow2 * (pow1 * pow2);
     
     // Use the right value for fresnel_zero depending on opacity
-    double fresnel_zero;
+    float fresnel_zero;
     if (fabs(material->opacity - 1.0) < DBL_EPSILON) {
         fresnel_zero = (material->refraction - 1.0) / (material->refraction + 1.0);
     } else {
@@ -238,17 +246,18 @@ static int raytrace_Reflection(COLOR *color, const COLLISION *collision, const S
     fresnel_zero *= fresnel_zero;
     
     // Compute the fresnel reflectance
-    double fresnel = fresnel_zero + (1.0 - fresnel_zero)*pow5;
+    float fresnel = fresnel_zero + (1.0 - fresnel_zero)*pow5;
     assert(fresnel_zero <= fresnel);
     assert(fresnel <= 1);
     
     // Get the reflection ray's direction
     LINE reflection;
-    vector_Multiply(&reflection.direction, &reflection_normal, 2.0*vector_Dot(&reflection_normal, &collision->incident));
-    vector_Subtract(&reflection.direction, &reflection.direction, &collision->incident);
+    reflection.direction = reflection_normal;
+    vector_Multiply(&reflection.direction, 2.0*vector_Dot(&reflection_normal, &collision->incident));
+    vector_Subtract(&reflection.direction, &collision->incident);
     
     // The reflection ray's position is the current collision
-    vector_Copy(&reflection.origin, &collision->where);
+    reflection.origin = collision->where;
 
     // Shoot the reflection ray
     COLLISION reflection_collision;
@@ -265,7 +274,7 @@ static int raytrace_Reflection(COLOR *color, const COLLISION *collision, const S
         }
         
         // Scale component with reflectivity
-        vector_Multiply(color, color, fresnel);
+        vector_Multiply(color, fresnel);
         color_Clamp(color);
     } else {
         vector_Set(color, 0, 0, 0);
@@ -278,21 +287,22 @@ static int raytrace_Reflection(COLOR *color, const COLLISION *collision, const S
     
     // Set up the transparency ray direction
     LINE transparency;
-    double ratio = irefract / collision->material->refraction;
-    double tir_check = 1 - ((ratio*ratio)*(1 - cos_theta_i*cos_theta_i));
+    float ratio = irefract / collision->material->refraction;
+    float tir_check = 1 - ((ratio*ratio)*(1 - cos_theta_i*cos_theta_i));
     if (tir_check < 0) {
         // Early exit on total internal refraction
         return SUCCESS;
     }
-    vector_Multiply(&transparency.direction, &reflection_normal, -sqrt(tir_check));
-    VECTOR temp;
-    vector_Multiply(&temp, &reflection_normal, cos_theta_i);
-    vector_Subtract(&temp, &temp, &collision->incident);
-    vector_Multiply(&temp, &temp, ratio);
-    vector_Add(&transparency.direction, &transparency.direction, &temp);
+    transparency.direction = reflection_normal;
+    vector_Multiply(&transparency.direction, -sqrt(tir_check));
+    VECTOR temp = reflection_normal;
+    vector_Multiply(&temp, cos_theta_i);
+    vector_Subtract(&temp, &collision->incident);
+    vector_Multiply(&temp, ratio);
+    vector_Add(&transparency.direction, &temp);
     
     // The transparency ray's location is the current collision
-    vector_Copy(&transparency.origin, &collision->where);
+    transparency.origin = collision->where;
     
     // Shoot the transparency ray
     COLLISION transparency_collision;
@@ -309,12 +319,12 @@ static int raytrace_Reflection(COLOR *color, const COLLISION *collision, const S
     }
         
     // Scale component
-    double transparent_scale = (1 - fresnel)*(1 - material->opacity);
+    float transparent_scale = (1 - fresnel)*(1 - material->opacity);
     assert(0 <= transparent_scale);
     assert(transparent_scale <= 1);
-    vector_Multiply(&transparency_color, &transparency_color, transparent_scale);
+    vector_Multiply(&transparency_color, transparent_scale);
     color_Clamp(&transparency_color);
-    vector_Add(color, color, &transparency_color);
+    vector_Add(color, &transparency_color);
     color_Clamp(color);
     return SUCCESS;
 }
@@ -322,7 +332,7 @@ static int raytrace_Reflection(COLOR *color, const COLLISION *collision, const S
 /*============================================================*
  * Shader
  *============================================================*/
-static int raytrace_Shade(COLOR *color, const COLLISION *collision, const SCENE *scene, double irefract, int depth) {
+static int raytrace_Shade(COLOR *color, const COLLISION *collision, const SCENE *scene, float irefract, int depth) {
     
     // Error check
     if (collision->how == COLLISION_NONE) {
@@ -339,11 +349,12 @@ static int raytrace_Shade(COLOR *color, const COLLISION *collision, const SCENE 
     
     // Set the ambient color of the object
     const MATERIAL *material = collision->material;
-    vector_Multiply(color, &object_color, material->ambient);
+    *color = object_color;
+    vector_Multiply(color, material->ambient);
     
     // Shade color for all lights
     COLOR temp;
-    double shadows;
+    float shadows;
     const LIGHT *light;
     for (int i = 0; i < scene_GetNumberOfLights(scene); i++) {
         // Check for shadows
@@ -362,8 +373,8 @@ static int raytrace_Shade(COLOR *color, const COLLISION *collision, const SCENE 
         if (light_BlinnPhongShade(light, collision, &temp) != SUCCESS) {
             continue;
         }
-        vector_Multiply(&temp, &temp, shadows);
-        vector_Add(color, color, &temp);
+        vector_Multiply(&temp, shadows);
+        vector_Add(color, &temp);
     }
     color_Clamp(color);
 
@@ -377,7 +388,7 @@ static int raytrace_Shade(COLOR *color, const COLLISION *collision, const SCENE 
         }
         
         // Incorporate the reflected color into the result
-        vector_Add(color, color, &reflection_color);
+        vector_Add(color, &reflection_color);
         color_Clamp(color);
     }
 
@@ -391,7 +402,7 @@ int raytrace_Render(IMAGE *image, const SCENE *scene) {
     
     // Get the scene view
     VIEWPLANE view;
-    double distance = VIEW_DISTANCE;
+    float distance = VIEW_DISTANCE;
     if (scene->flags & PROJECT_PARALLEL) {
         distance = 0.0;
     }
@@ -401,10 +412,10 @@ int raytrace_Render(IMAGE *image, const SCENE *scene) {
     }
     
 #ifdef DEBUG
-    eprintf("Viewing plane origin is (%lf, %lf, %lf)\n", view.origin.x, view.origin.y, view.origin.z);
-    eprintf("Viewing plane u is (%lf, %lf, %lf)\n", view.u.x, view.u.y, view.u.z);
-    eprintf("Viewing plane v is (%lf, %lf, %lf)\n", view.v.x, view.v.y, view.v.z);
-    eprintf("Viewing plane size is %lf by %lf\n", view.width, view.height);
+    eprintf("Viewing plane origin is (%f, %f, %f)\n", view.origin.x, view.origin.y, view.origin.z);
+    eprintf("Viewing plane u is (%f, %f, %f)\n", view.u.x, view.u.y, view.u.z);
+    eprintf("Viewing plane v is (%f, %f, %f)\n", view.v.x, view.v.y, view.v.z);
+    eprintf("Viewing plane size is %f by %f\n", view.width, view.height);
 #endif
     
     // Get the image output
@@ -419,23 +430,23 @@ int raytrace_Render(IMAGE *image, const SCENE *scene) {
     
     // This is the ray to shoot
     LINE ray;
-    vector_Copy(&ray.origin, scene_GetEyePosition(scene));
+    ray.origin = *scene_GetEyePosition(scene);
     
     // What is the ray target
-    VECTOR target;
-    vector_Copy(&target, &view.origin);
+    VECTOR target = view.origin;
     
     // Establish the step
-    VECTOR dx, dy;
-    vector_Multiply(&dx, &view.u, view.width / (scene_GetWidth(scene) - 1));
+    VECTOR dx = view.u;
+    VECTOR dy = view.v;
+    vector_Multiply(&dx, view.width / (scene_GetWidth(scene) - 1));
     
     // Negate v as we are moving from upper left to lower right
-    vector_Multiply(&dy, &view.v, -view.height / (scene_GetHeight(scene) - 1));
+    vector_Multiply(&dy, -view.height / (scene_GetHeight(scene) - 1));
     
     // We buffer the step in Y separately because of floating point
     // error if we mathematically go backwards
     VECTOR ystep;
-    ystep.x = ystep.y = ystep.z = 0.0;
+    vector_Set(&ystep, 0, 0, 0);
     
     // Send rays
     COLLISION collision;
@@ -448,18 +459,20 @@ int raytrace_Render(IMAGE *image, const SCENE *scene) {
         while (x < width) {
             if (scene->flags & PROJECT_PARALLEL) {
                 // Parallel direction is always the same
-                vector_Copy(&ray.origin, &target);
-                vector_Normalize(&ray.direction, scene_GetViewDirection(scene));
+                ray.origin = target;
+                ray.direction = *scene_GetViewDirection(scene);
+                vector_Normalize(&ray.direction);
             } else {
                 // Perspective aimed at target
-                vector_Subtract(&ray.direction, &target, scene_GetEyePosition(scene));
-                vector_Normalize(&ray.direction, &ray.direction);
+                ray.direction = target;
+                vector_Subtract(&ray.direction, scene_GetEyePosition(scene));
+                vector_Normalize(&ray.direction);
             }
             
 #ifdef DEBUG
             eprintf("Ray (%d, %d)\n", x, y);
-            eprintf("Origin (%lf, %lf, %lf)\n", ray.origin.x, ray.origin.y, ray.origin.z);
-            eprintf("Direction (%lf, %lf, %lf)\n", ray.direction.x, ray.direction.y, ray.direction.z);
+            eprintf("Origin (%f, %f, %f)\n", ray.origin.x, ray.origin.y, ray.origin.z);
+            eprintf("Direction (%f, %f, %f)\n", ray.direction.x, ray.direction.y, ray.direction.z);
 #endif
             
             // Cast this ray
@@ -497,13 +510,14 @@ int raytrace_Render(IMAGE *image, const SCENE *scene) {
 #endif
             
             // Step forward in x
-            vector_Add(&target, &target, &dx);
+            vector_Add(&target, &dx);
             x++;
         }
         
         // Step forward in y
-        vector_Add(&ystep, &ystep, &dy);
-        vector_Add(&target, &view.origin, &ystep);
+        vector_Add(&ystep, &dy);
+        target = view.origin;
+        vector_Add(&target, &ystep);
         y++;
     }
     return SUCCESS;

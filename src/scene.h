@@ -47,10 +47,10 @@ typedef struct {
     int flags;      ///< Rendering flags
     
     // Required components
-    POINT eye;          ///< Position of the eye in the scene
+    VECTOR eye;          ///< Position of the eye in the scene
     VECTOR view;        ///< Direction the eye is pointing
     VECTOR up;          ///< Rotation of the camera
-    double fov;         ///< Field of view in degrees
+    float fov;         ///< Field of view in degrees
     int width;          ///< Width of the image plane
     int height;         ///< Height of the image plane
     COLOR background;   ///< The default background color
@@ -87,7 +87,7 @@ extern int scene_Decode(SCENE *scene, const char *filename);
  * @param scene: The scene to read
  * @return Pointer to the eye position
  **************************************************************/
-extern const POINT *scene_GetEyePosition(const SCENE *scene);
+extern const VECTOR *scene_GetEyePosition(const SCENE *scene);
 
 /**********************************************************//**
  * @brief Get the view direction in the scene
@@ -110,7 +110,7 @@ extern const VECTOR *scene_GetUpDirection(const SCENE *scene);
  * @param scene: The scene to read
  * @return The field of view in degrees
  **************************************************************/
-extern double scene_GetFieldOfView(const SCENE *scene);
+extern float scene_GetFieldOfView(const SCENE *scene);
 
 /**********************************************************//**
  * @brief Get the scene width in pixels

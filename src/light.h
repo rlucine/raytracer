@@ -43,10 +43,10 @@ typedef enum {
  **************************************************************/
 typedef struct {
     LIGHT_TYPE type;    ///< The type of light represented
-    POINT where;        ///< The location of the light
+    VECTOR where;        ///< The location of the light
     VECTOR direction;   ///< The direction the light points
     COLOR color;        ///< The color of the light
-    double angle;       ///< LIGHT_SPOT angle of spread
+    float angle;       ///< LIGHT_SPOT angle of spread
 } LIGHT;
 
 /**********************************************************//**
@@ -55,7 +55,7 @@ typedef struct {
  * @param where: The location of the light's center.
  * @param color: The color the light emits.
  **************************************************************/
-extern void light_CreatePoint(LIGHT *light, const POINT *where, const COLOR *color);
+extern void light_CreatePoint(LIGHT *light, const VECTOR *where, const COLOR *color);
 
 /**********************************************************//**
  * @brief Set up a new directional light.
@@ -74,7 +74,7 @@ extern void light_CreateDirected(LIGHT *light, const VECTOR *direction, const CO
  * of the direction parameter.
  * @param color: The color the light emits.
  **************************************************************/
-extern void light_CreateSpotlight(LIGHT *light, const POINT *point, const VECTOR *direction, double angle, const COLOR *color);
+extern void light_CreateSpotlight(LIGHT *light, const VECTOR *point, const VECTOR *direction, float angle, const COLOR *color);
 
 /**********************************************************//**
  * @brief Get the direction to the light.
@@ -86,7 +86,7 @@ extern void light_CreateSpotlight(LIGHT *light, const POINT *point, const VECTOR
  * location.
  * @return SUCCESS or FAILURE
  **************************************************************/
-extern int light_GetDirection(const LIGHT *light, const POINT *where, VECTOR *output, double *distance);
+extern int light_GetDirection(const LIGHT *light, const VECTOR *where, VECTOR *output, float *distance);
 
 /**********************************************************//**
  * @brief Calculate the Blinn-Phong shading for one light at the

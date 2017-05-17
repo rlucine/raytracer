@@ -14,8 +14,9 @@
 
 // This project
 #include "macro.h"      // SUCCESS, FAILURE
+#include "geometry.h"   // PLANE, LINE
 #include "image.h"      // IMAGE
-#include "vector.h"     // VECTOR, PLANE ...
+#include "vector.h"     // VECTOR
 #include "shape.h"      // SHAPE
 #include "mesh.h"       // MESH, FACE ...
 
@@ -159,16 +160,16 @@ static int sphere_Collide(const SPHERE *sphere, const LINE *ray, COLLISION *resu
     }
 
     // Solve for sphere intersection with line
-    VECTOR unit_direction;
-    vector_Normalize(&unit_direction, &ray->direction);
-    double a = 1.0;
-    VECTOR dis_center;
-    vector_Subtract(&dis_center, &ray->origin, &sphere->center);
-    double b = 2.0*vector_Dot(&unit_direction, &dis_center);
-    double c = vector_Dot(&dis_center, &dis_center) - (sphere->radius * sphere->radius);
+    VECTOR unit_direction = ray->direction;
+    vector_Normalize(&unit_direction);
+    float a = 1.0;
+    VECTOR dis_center = ray->origin;
+    vector_Subtract(&dis_center, &sphere->center);
+    float b = 2.0*vector_Dot(&unit_direction, &dis_center);
+    float c = vector_Dot(&dis_center, &dis_center) - (sphere->radius * sphere->radius);
 
     // Solve the quadratic att + bt + c = 0
-    double discriminant = b*b - 4.0*a*c;
+    float discriminant = b*b - 4.0*a*c;
     if (discriminant < 0.0) {
         // No solutions - missed the sphere
         result->how = COLLISION_NONE;
@@ -176,12 +177,12 @@ static int sphere_Collide(const SPHERE *sphere, const LINE *ray, COLLISION *resu
     }
 
     // Two or one solution
-    double t1, t2;
+    float t1, t2;
     t1 = (-b + sqrt(discriminant)) / (2.0 * a);
     t2 = (-b - sqrt(discriminant)) / (2.0 * a);
 
     // Determine closest collision
-    double tclosest = 0.0;
+    float tclosest = 0.0;
     if (t1 < t2 && t1 >= 0) {
         tclosest = t1;
     } else if (t2 >= 0) {
@@ -193,18 +194,20 @@ static int sphere_Collide(const SPHERE *sphere, const LINE *ray, COLLISION *resu
     }
 
     // Get location of closest collision
-    if (vector_Magnitude(&dis_center) <= sphere->radius) {
+    if (vector_Length(&dis_center) <= sphere->radius) {
         result->how = COLLISION_INSIDE;
     } else {
         result->how = COLLISION_SURFACE;
     }
     result->distance = tclosest;
-    vector_Multiply(&result->where, &unit_direction, tclosest);
-    vector_Add(&result->where, &result->where, &ray->origin);
+    result->where = unit_direction;
+    vector_Multiply(&result->where, tclosest);
+    vector_Add(&result->where, &ray->origin);
     
     // Get normal vector at collision
-    vector_Subtract(&result->normal, &result->where, &sphere->center);
-    vector_Normalize(&result->normal, &result->normal);
+    result->normal = result->where;
+    vector_Subtract(&result->normal, &sphere->center);
+    vector_Normalize(&result->normal);
     
     // Get the texture at the collision site
     result->texcoord.x = atan2(result->normal.x, result->normal.z) / (2*M_PI);
@@ -236,30 +239,30 @@ static int ellipsoid_Collide(const ELLIPSOID *ellipsoid, const LINE *ray, COLLIS
     }
 
     // Get the unit direction of the ray
-    VECTOR unit;
-    vector_Normalize(&unit, &ray->direction);
+    VECTOR unit = ray->direction;
+    vector_Normalize(&unit);
     
     // Get the distance to the center of the ellipsoid
-    VECTOR center;
-    vector_Subtract(&center, &ray->origin, &ellipsoid->center);
+    VECTOR center = ray->origin;
+    vector_Subtract(&center, &ellipsoid->center);
     
-    double a = 0.0;
+    float a = 0.0;
     a += unit.x*unit.x / (dimension->x * dimension->x);
     a += unit.y*unit.y / (dimension->y * dimension->y);
     a += unit.z*unit.z / (dimension->z * dimension->z);
     
-    double b = 0.0;
+    float b = 0.0;
     b += 2*(center.x * unit.x / (dimension->x * dimension->x));
     b += 2*(center.y * unit.y / (dimension->y * dimension->y));
     b += 2*(center.z * unit.z / (dimension->z * dimension->z));
     
-    double c = -1.0;
+    float c = -1.0;
     c += center.x*center.x / (dimension->x * dimension->x);
     c += center.y*center.y / (dimension->y * dimension->y);
     c += center.z*center.z / (dimension->z * dimension->z);
     
     // Solve the quadratic att + bt + c = 0
-    double discriminant = b*b - 4.0*a*c;
+    float discriminant = b*b - 4.0*a*c;
     if (discriminant < 0.0) {
         // No solutions - missed the sphere
         result->how = COLLISION_NONE;
@@ -267,12 +270,12 @@ static int ellipsoid_Collide(const ELLIPSOID *ellipsoid, const LINE *ray, COLLIS
     }
 
     // Two or one solution
-    double t1, t2;
+    float t1, t2;
     t1 = (-b + sqrt(discriminant)) / (2.0 * a);
     t2 = (-b - sqrt(discriminant)) / (2.0 * a);
 
     // Determine closest collision
-    double tclosest = 0.0;
+    float tclosest = 0.0;
     if (t1 < t2 && t1 >= 0) {
         tclosest = t1;
     } else if (t2 >= 0) {
@@ -287,15 +290,17 @@ static int ellipsoid_Collide(const ELLIPSOID *ellipsoid, const LINE *ray, COLLIS
     // This absorbs case when we collide immediately
     result->how = COLLISION_SURFACE;
     result->distance = tclosest;
-    vector_Multiply(&result->where, &unit, tclosest);
-    vector_Add(&result->where, &result->where, &ray->origin);
+    result->where = unit;
+    vector_Multiply(&result->where, tclosest);
+    vector_Add(&result->where, &ray->origin);
     
     // Get the normal vector at the collision site
-    vector_Subtract(&result->normal, &result->where, &ellipsoid->center);
+    result->normal = result->where;
+    vector_Subtract(&result->normal, &ellipsoid->center);
     result->normal.x *= 2.0 / (dimension->x * dimension->x);
     result->normal.y *= 2.0 / (dimension->y * dimension->y);
     result->normal.z *= 2.0 / (dimension->z * dimension->z);
-    vector_Normalize(&result->normal, &result->normal);
+    vector_Normalize(&result->normal);
     
     // TODO texture an ellipsoid!
     vector_Set(&result->texcoord, 0, 0, 0);
@@ -314,18 +319,18 @@ static int plane_Collide(const PLANE *plane, const LINE *ray, COLLISION *result)
     }
     
     // Get the unit direction of the ray
-    VECTOR unit;
-    vector_Normalize(&unit, &ray->direction);
+    VECTOR unit = ray->direction;
+    vector_Normalize(&unit);
     
     // Get the plane's normal vector
-    VECTOR normal;
-    vector_Cross(&normal, &plane->u, &plane->v);
-    vector_Normalize(&normal, &normal);
+    VECTOR normal = plane->u;
+    vector_Cross(&normal, &plane->v);
+    vector_Normalize(&normal);
     
     // Determine where the ray and plane intersect
-    VECTOR offset;
-    vector_Subtract(&offset, &plane->origin, &ray->origin);
-    double tclosest, numerator, denominator = vector_Dot(&normal, &unit);
+    VECTOR offset = plane->origin;
+    vector_Subtract(&offset, &ray->origin);
+    float tclosest, numerator, denominator = vector_Dot(&normal, &unit);
     if (fabs(denominator) <= DBL_EPSILON) {
         if (fabs(vector_Dot(&offset, &normal)) <= DBL_EPSILON) {
             // Inside plane
@@ -355,11 +360,12 @@ static int plane_Collide(const PLANE *plane, const LINE *ray, COLLISION *result)
     
     // Determine where the collision is
     result->distance = tclosest;
-    vector_Multiply(&result->where, &unit, tclosest);
-    vector_Add(&result->where, &result->where, &ray->origin);
+    result->where = unit;
+    vector_Multiply(&result->where, tclosest);
+    vector_Add(&result->where, &ray->origin);
     
     // Determine normal at collision site
-    vector_Copy(&result->normal, &normal);
+    result->normal = normal;
     
     // TODO Texture the plane!
     vector_Set(&result->texcoord, 0, 0, 0);
@@ -422,8 +428,9 @@ int shape_Collide(const SHAPE *shape, const LINE *ray, COLLISION *result) {
     result->texture = shape->material->texture;
     
     // Get incident direction
-    vector_Negate(&result->incident, &ray->direction);
-    vector_Normalize(&result->incident, &result->incident);
+    result->incident = ray->direction;
+    vector_Negate(&result->incident);
+    vector_Normalize(&result->incident);
 
     // Map to specific collision checking functions
     switch (shape->shape) {

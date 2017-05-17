@@ -19,7 +19,7 @@
 #include "vector.h"     // VECTOR
 #include "ppm.h"        // ppm_Decode
 #include "image.h"      // IMAGE, TEXCOORD
-#include "shape.h"      // SHAPE, shape_CreateSphere ...
+#include "shape.h"      // SHAPE, PLANE ...
 #include "scene.h"      // SCENE
 #include "arraylist.h"  // ARRAYLIST, arraylist_Compress ...
 #include "mesh.h"       // MESH, FACE, VERTEX ...
@@ -91,7 +91,7 @@ static int parser_Create(PARSER_DATA *data, SCENE *scene) {
     }
     
     // Mesh data arrays
-    if (arraylist_Create(&data->vertices, sizeof(POINT), 8) != SUCCESS) {
+    if (arraylist_Create(&data->vertices, sizeof(VECTOR), 8) != SUCCESS) {
         eprintf("Cannot allocate vertex table\n");
         return FAILURE;
     }
@@ -127,17 +127,17 @@ static int parser_Create(PARSER_DATA *data, SCENE *scene) {
 static const char *parse_Vector(const char *string, VECTOR *vector) {
     // Parse a vector from the string
     int delta;
-    if (sscanf(string, "%lf %lf %lf%n", &vector->x, &vector->y, &vector->z, &delta) == 3) {
+    if (sscanf(string, "%f %f %f%n", &vector->x, &vector->y, &vector->z, &delta) == 3) {
         // Successfully parsed every component
         return string + delta;
     }
     return NULL;
 }
 
-static const char *scanner_ParseDouble(const char *string, double *output) {
+static const char *scanner_ParseDouble(const char *string, float *output) {
     int delta;
-    if (sscanf(string, "%lf%n", output, &delta) == 1) {
-        // Successfully parsed the double out
+    if (sscanf(string, "%f%n", output, &delta) == 1) {
+        // Successfully parsed the float out
         return string + delta;
     }
     return NULL;
@@ -251,9 +251,9 @@ static const char *parse_Fov(PARSER_DATA *data, const char *string) {
         data->flags |= FLAG_FOV;
     }
     
-    double fov = data->scene->fov;
+    float fov = data->scene->fov;
     if (fov > MAX_FOV || fov < MIN_FOV) {
-        eprintf("Fov cannot be %lf\n", fov);
+        eprintf("Fov cannot be %f\n", fov);
         return NULL;
     }
     return result;
@@ -263,7 +263,7 @@ static const char *parse_Fov(PARSER_DATA *data, const char *string) {
  * Parsing image size
  *============================================================*/
 static const char *parse_Size(PARSER_DATA *data, const char *string) {
-    double temp;
+    float temp;
     const char *where = string;
     
     if ((where = scanner_ParseDouble(where, &temp)) != NULL) {
@@ -305,7 +305,7 @@ static const char *parse_Background(PARSER_DATA *data, const char *string) {
  *============================================================*/
 static const char *parse_Material(PARSER_DATA *data, const char *string) {
     const char *where = string;
-    double exponent;
+    float exponent;
     
     // Allocate new material
     MATERIAL *material = (MATERIAL *)malloc(sizeof(MATERIAL));
@@ -329,7 +329,7 @@ static const char *parse_Material(PARSER_DATA *data, const char *string) {
         return NULL;
     }
     
-    // Set up material texture (double to int)
+    // Set up material texture (float to int)
     material->exponent = (int)exponent;
     material->texture = last_Texture(data);
     
@@ -358,7 +358,7 @@ static const char *parse_Sphere(PARSER_DATA *data, const char *string) {
         return NULL;
     }
     if (sphere.radius < 0) {
-        eprintf("Invalid radius %lf\n", sphere.radius);
+        eprintf("Invalid radius %f\n", sphere.radius);
         return NULL;
     }
     
@@ -407,7 +407,7 @@ static const char *parse_Ellipsoid(PARSER_DATA *data, const char *string) {
         return NULL;
     }
     if (ellipsoid.dimension.x < 0 || ellipsoid.dimension.y < 0 || ellipsoid.dimension.z < 0) {
-        eprintf("Invalid dimensions (%lf, %lf, %lf)\n", ellipsoid.dimension.x, ellipsoid.dimension.y, ellipsoid.dimension.z);
+        eprintf("Invalid dimensions (%f, %f, %f)\n", ellipsoid.dimension.x, ellipsoid.dimension.y, ellipsoid.dimension.z);
         return NULL;
     }
     
@@ -447,7 +447,7 @@ static const char *parse_Ellipsoid(PARSER_DATA *data, const char *string) {
 static const char *parse_Light(PARSER_DATA *data, const char *string) {
     const char *where = string;
     VECTOR temp;
-    double directed;
+    float directed;
     
     // Set up light
     LIGHT *light = (LIGHT *)malloc(sizeof(LIGHT));
@@ -479,7 +479,7 @@ static const char *parse_Light(PARSER_DATA *data, const char *string) {
         memcpy(&light->where, &temp, sizeof(VECTOR));
         
     } else {
-        eprintf("Invalid homogeneous coordinate %lf\n", directed);
+        eprintf("Invalid homogeneous coordinate %f\n", directed);
         free(light);
         return NULL;
     }
@@ -524,7 +524,7 @@ static const char *parse_Spotlight(PARSER_DATA *data, const char *string) {
         return NULL;
     }
     if (light->angle > MAX_ANGLE || light->angle < MIN_ANGLE) {
-        eprintf("Invalid angle %lf\n", light->angle);
+        eprintf("Invalid angle %f\n", light->angle);
         free(light);
         return NULL;
     }
@@ -663,7 +663,7 @@ static const char *parse_Vertex(PARSER_DATA *data, const char *string) {
     const char *where = string;
     
     // Parse data
-    POINT vertex;
+    VECTOR vertex;
     if ((where = parse_Vector(where, &vertex)) == NULL) {
         return NULL;
     }
@@ -1065,7 +1065,7 @@ int scene_Decode(SCENE *scene, const char *filename) {
     
     // Place all mesh data into the mesh
     if ((scene->mesh.nvertices = arraylist_Length(&data.vertices)) > 0) {
-        scene->mesh.vertices = (POINT *)arraylist_GetData(&data.vertices);
+        scene->mesh.vertices = (VECTOR *)arraylist_GetData(&data.vertices);
     } else {
         arraylist_Destroy(&data.vertices);
         scene->mesh.vertices = NULL;
@@ -1085,12 +1085,12 @@ int scene_Decode(SCENE *scene, const char *filename) {
 
 #ifdef DEBUG
     // Echo all information in the scene
-    eprintf("Eye is (%lf, %lf, %lf)\n", scene->eye.x, scene->eye.y, scene->eye.z);
-    eprintf("View is (%lf, %lf, %lf)\n", scene->view.x, scene->view.y, scene->view.z);
-    eprintf("Up is (%lf, %lf, %lf)\n", scene->up.x, scene->up.y, scene->up.z);
-    eprintf("FovV is %lf\n", scene->fov);
+    eprintf("Eye is (%f, %f, %f)\n", scene->eye.x, scene->eye.y, scene->eye.z);
+    eprintf("View is (%f, %f, %f)\n", scene->view.x, scene->view.y, scene->view.z);
+    eprintf("Up is (%f, %f, %f)\n", scene->up.x, scene->up.y, scene->up.z);
+    eprintf("FovV is %f\n", scene->fov);
     eprintf("Image size is (%d, %d)\n", scene->width, scene->height);
-    eprintf("Background color is (%lf, %lf, %lf)\n", scene->background.x, scene->background.y, scene->background.z);
+    eprintf("Background color is (%f, %f, %f)\n", scene->background.x, scene->background.y, scene->background.z);
     if (scene->flags & PROJECT_PARALLEL) {
         eprintf("Parallel projection\n");
     } else {
@@ -1101,15 +1101,15 @@ int scene_Decode(SCENE *scene, const char *filename) {
     int m;
     eprintf("%d vertices\n", scene->mesh.nvertices);
     for (m = 0; m < scene->mesh.nvertices; m++) {
-        eprintf("Vertex %d is (%lf, %lf, %lf)\n", m+1, scene->mesh.vertices[m].x, scene->mesh.vertices[m].y, scene->mesh.vertices[m].z);
+        eprintf("Vertex %d is (%f, %f, %f)\n", m+1, scene->mesh.vertices[m].x, scene->mesh.vertices[m].y, scene->mesh.vertices[m].z);
     }
     eprintf("%d normals\n", scene->mesh.nnormals);
     for (m = 0; m < scene->mesh.nnormals; m++) {
-        eprintf("Normal %d is (%lf, %lf, %lf)\n", m+1, scene->mesh.normals[m].x, scene->mesh.normals[m].y, scene->mesh.normals[m].z);
+        eprintf("Normal %d is (%f, %f, %f)\n", m+1, scene->mesh.normals[m].x, scene->mesh.normals[m].y, scene->mesh.normals[m].z);
     }
     eprintf("%d texture coordinates\n", scene->mesh.ntextures);
     for (m = 0; m < scene->mesh.ntextures; m++) {
-        eprintf("Texture coordinate %d is (%lf, %lf)\n", m+1, scene->mesh.texture[m].x, scene->mesh.texture[m].y);
+        eprintf("Texture coordinate %d is (%f, %f)\n", m+1, scene->mesh.texture[m].x, scene->mesh.texture[m].y);
     }
     
     // Printing shapes
@@ -1127,23 +1127,23 @@ int scene_Decode(SCENE *scene, const char *filename) {
         case SHAPE_SPHERE:
             eprintf("Shape %d is a sphere\n", n);
             sphere = shape_GetSphere(shape);
-            eprintf("Radius is %lf\n", sphere->radius);
-            eprintf("Center is (%lf, %lf, %lf)\n", sphere->center.x, sphere->center.y, sphere->center.z);
+            eprintf("Radius is %f\n", sphere->radius);
+            eprintf("Center is (%f, %f, %f)\n", sphere->center.x, sphere->center.y, sphere->center.z);
             break;
         
         case SHAPE_ELLIPSOID:
             eprintf("Shape %d is an ellipsoid\n", n);
             ellipsoid = shape_GetEllipsoid(shape);
-            eprintf("Dimensions are (%lf, %lf, %lf)\n", ellipsoid->dimension.x, ellipsoid->dimension.y, ellipsoid->dimension.z);
-            eprintf("Center is (%lf, %lf, %lf)\n", ellipsoid->center.x, ellipsoid->center.y, ellipsoid->center.z);
+            eprintf("Dimensions are (%f, %f, %f)\n", ellipsoid->dimension.x, ellipsoid->dimension.y, ellipsoid->dimension.z);
+            eprintf("Center is (%f, %f, %f)\n", ellipsoid->center.x, ellipsoid->center.y, ellipsoid->center.z);
             break;
             
         case SHAPE_PLANE:
             eprintf("Shape %d is a plane\n", n);
             plane = shape_GetPlane(shape);
-            eprintf("Origin is (%lf, %lf, %lf)\n", plane->origin.x, plane->origin.y, plane->origin.z);
-            eprintf("Basis u is (%lf, %lf, %lf)\n", plane->u.x, plane->u.y, plane->u.z);
-            eprintf("Basis v is (%lf, %lf, %lf)\n", plane->v.x, plane->v.y, plane->v.z);
+            eprintf("Origin is (%f, %f, %f)\n", plane->origin.x, plane->origin.y, plane->origin.z);
+            eprintf("Basis u is (%f, %f, %f)\n", plane->u.x, plane->u.y, plane->u.z);
+            eprintf("Basis v is (%f, %f, %f)\n", plane->v.x, plane->v.y, plane->v.z);
             break;
             
         case SHAPE_FACE:
@@ -1162,11 +1162,11 @@ int scene_Decode(SCENE *scene, const char *filename) {
         
         // Print material properties
         material = shape_GetMaterial(shape);
-        eprintf("Color is (%lf, %lf, %lf)\n", material->color.x, material->color.y, material->color.z);
-        eprintf("Highlight is (%lf, %lf, %lf)\n", material->highlight.x, material->highlight.y, material->highlight.z);
-        eprintf("Ka=%lf, Kd=%lf, Ks=%lf, n=%d\n", material->ambient, material->diffuse, material->specular, material->exponent);
+        eprintf("Color is (%f, %f, %f)\n", material->color.x, material->color.y, material->color.z);
+        eprintf("Highlight is (%f, %f, %f)\n", material->highlight.x, material->highlight.y, material->highlight.z);
+        eprintf("Ka=%f, Kd=%f, Ks=%f, n=%d\n", material->ambient, material->diffuse, material->specular, material->exponent);
         eprintf("Texture is 0x%p\n", material->texture);
-        eprintf("Alpha is %lf, Refraction index is %lf\n", material->opacity, material->refraction);
+        eprintf("Alpha is %f, Refraction index is %f\n", material->opacity, material->refraction);
         n++;
     }
     
@@ -1179,21 +1179,21 @@ int scene_Decode(SCENE *scene, const char *filename) {
         switch (light->type) {
         case LIGHT_POINT:
             eprintf("Light %d is a point\n", n);
-            eprintf("Position is (%lf, %lf, %lf)\n", light->where.x, light->where.y, light->where.z);
-            eprintf("Color is (%lf, %lf, %lf)\n", light->color.x, light->color.y, light->color.z);
+            eprintf("Position is (%f, %f, %f)\n", light->where.x, light->where.y, light->where.z);
+            eprintf("Color is (%f, %f, %f)\n", light->color.x, light->color.y, light->color.z);
             break;
         
         case LIGHT_DIRECTED:
             eprintf("Light %d is a direction\n", n);
-            eprintf("Direction is (%lf, %lf, %lf)\n", light->direction.x, light->direction.y, light->direction.z);
-            eprintf("Color is (%lf, %lf, %lf)\n", light->color.x, light->color.y, light->color.z);
+            eprintf("Direction is (%f, %f, %f)\n", light->direction.x, light->direction.y, light->direction.z);
+            eprintf("Color is (%f, %f, %f)\n", light->color.x, light->color.y, light->color.z);
             break;
             
         case LIGHT_SPOT:
             eprintf("Light %d is a spotlight\n", n);
-            eprintf("Position is (%lf, %lf, %lf)\n", light->where.x, light->where.y, light->where.z);
-            eprintf("Direction is (%lf, %lf, %lf)\n", light->direction.x, light->direction.y, light->direction.z);
-            eprintf("Color is (%lf, %lf, %lf)\n", light->color.x, light->color.y, light->color.z);
+            eprintf("Position is (%f, %f, %f)\n", light->where.x, light->where.y, light->where.z);
+            eprintf("Direction is (%f, %f, %f)\n", light->direction.x, light->direction.y, light->direction.z);
+            eprintf("Color is (%f, %f, %f)\n", light->color.x, light->color.y, light->color.z);
             break;
         
         default:
