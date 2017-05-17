@@ -5,6 +5,7 @@
  **************************************************************/
 
 // Standard library
+#include <stdbool.h>    // bool
 #include <stdlib.h>     // malloc, free, size_t
 #include <stdio.h>      // fopen, fclose, fprintf, getline ...
 #include <limits.h>     // USHRT_MAX
@@ -13,7 +14,6 @@
 #include <assert.h>     // assert
 
 // This project
-#include "macro.h"      // SUCCESS, FAILURE
 #include "image.h"      // IMAGE
 #include "color.h"      // COLOR, RGB ...
 
@@ -23,35 +23,35 @@
 /*============================================================*
  * Allocating IMAGE
  *============================================================*/
-int image_Create(IMAGE *image, int width, int height) {
+bool image_Create(IMAGE *image, int width, int height) {
     
     // Error check the dimensions
     if (width <= 0 || width > MAX_DIMENSION) {
         eprintf("Invalid width %d\n", width);
-        return FAILURE;
+        return false;
 
     } else if (height <= 0 || height > MAX_DIMENSION) {
         eprintf("Invalid height %d\n", height);
-        return FAILURE;
+        return false;
     }
     
     // Allocate the image data chunk
     size_t size = sizeof(RGB)*width*height;
     if ((long)size < 0 || (long)size > INT_MAX) {
         eprintf("%d by %d image is too large\n", width, height);
-        return FAILURE;
+        return false;
     }
     RGB *data = (RGB *)malloc(size);
     if (!data) {
         eprintf("Out of heap space\n");
-        return FAILURE;
+        return false;
     }
     
     // Set up the struct
     image->width = width;
     image->height = height;
     image->data = data;
-    return SUCCESS;
+    return true;
 }
 
 /*============================================================*
@@ -76,16 +76,16 @@ const RGB *image_GetPixel(const IMAGE *image, int x, int y) {
 /*============================================================*
  * Modifying pixels
  *============================================================*/
-int image_SetPixel(IMAGE *image, int x, int y, const RGB *color) {
+bool image_SetPixel(IMAGE *image, int x, int y, const RGB *color) {
     
     // Error check the index
     if (x < 0 || x >= image->width) {
         eprintf("Invalid x coordinate\n");
-        return FAILURE;
+        return false;
     }
     if (y < 0 || y >= image->height) {
         eprintf("Invalid y coordinate\n");
-        return FAILURE;
+        return false;
     }
     
     // Set the color
@@ -96,13 +96,13 @@ int image_SetPixel(IMAGE *image, int x, int y, const RGB *color) {
     where->b = color->b;
     
     // Done
-    return SUCCESS;
+    return true;
 }
 
 /*============================================================*
  * Texturing
  *============================================================*/
-int image_GetTexture(const TEXTURE *texture, const TEXCOORD *coord, COLOR *color) {
+bool image_GetTexture(const TEXTURE *texture, const TEXCOORD *coord, COLOR *color) {
     
     // Mapping to pixels
     int x = (int)(coord->x * texture->width);
@@ -124,9 +124,9 @@ int image_GetTexture(const TEXTURE *texture, const TEXCOORD *coord, COLOR *color
     const RGB *rgb;
     if ((rgb = image_GetPixel(texture, x, y)) != NULL) {
         rgb_ToColor(color, rgb);
-        return SUCCESS;
+        return true;
     }
-    return FAILURE;
+    return false;
 }
 
 /*============================================================*

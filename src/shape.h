@@ -7,6 +7,9 @@
 #ifndef _SHAPE_H_
 #define _SHAPE_H_
 
+// Standard library
+#include <stdbool.h>    // bool
+
 // This project
 #include "image.h"      // TEXTURE, TEXCOORD
 #include "vector.h"     // VECTOR
@@ -107,9 +110,9 @@ typedef struct {
  * @param sphere: Pointer to SPHERE definition
  * @param material: Pointer to the material properties. The
  * data pointed to may be destroyed after calling this function.
- * @return SUCCESS or FAILURE
+ * @return Whether the creation succeeded.
  **************************************************************/
-extern int shape_CreateSphere(SHAPE *shape, const SPHERE *sphere, const MATERIAL *material);
+extern bool shape_CreateSphere(SHAPE *shape, const SPHERE *sphere, const MATERIAL *material);
 
 /**********************************************************//**
  * @brief Construct an ellipsoid shape of the given properties.
@@ -120,9 +123,9 @@ extern int shape_CreateSphere(SHAPE *shape, const SPHERE *sphere, const MATERIAL
  * @param ellipsoid: Pointer to ELLIPSOID definition
  * @param material: Pointer to the material properties. The
  * data pointed to may be destroyed after calling this function.
- * @return SUCCESS or FAILURE
+ * @return Whether the creation succeeded.
  **************************************************************/
-extern int shape_CreateEllipsoid(SHAPE *shape, const ELLIPSOID *ellipsoid, const MATERIAL *material);
+extern bool shape_CreateEllipsoid(SHAPE *shape, const ELLIPSOID *ellipsoid, const MATERIAL *material);
 
 /**********************************************************//**
  * @brief Construct a plane with the given properties.
@@ -133,9 +136,9 @@ extern int shape_CreateEllipsoid(SHAPE *shape, const ELLIPSOID *ellipsoid, const
  * @param plane: Pointer to a PLANE definition.
  * @param material: Pointer to the material properties. The
  * data pointed to may be destroyed after calling this function.
- * @return SUCCESS or FAILURE
+ * @return Whether the creation succeeded.
  **************************************************************/
-extern int shape_CreatePlane(SHAPE *shape, const PLANE *plane, const MATERIAL *material);
+extern bool shape_CreatePlane(SHAPE *shape, const PLANE *plane, const MATERIAL *material);
 
 /**********************************************************//**
  * @brief Construct a triangular face for a polygon.
@@ -146,9 +149,9 @@ extern int shape_CreatePlane(SHAPE *shape, const PLANE *plane, const MATERIAL *m
  * @param face: Pointer to a FACE definition.
  * @param material: Pointer to the material properties. The
  * data pointed to may be destroyed after calling this function.
- * @return SUCCESS or FAILURE
+ * @return Whether the creation succeeded.
  **************************************************************/
-extern int shape_CreateFace(SHAPE *shape, const FACE *face, const MATERIAL *material);
+extern bool shape_CreateFace(SHAPE *shape, const FACE *face, const MATERIAL *material);
 
 /**********************************************************//**
  * @brief Destroy a shape struct that has been initialized by
@@ -212,18 +215,18 @@ extern const FACE *shape_GetFace(const SHAPE *shape);
  * @param result: Output location for collision data. If the
  * collision type is COLLISION_NONE, no other data fields will
  * be valid. Otherwise, all data fields will be written to.
- * @return SUCCESS or FAILURE
+ * @return Whether the collision detection succeeded.
  **************************************************************/
-extern int shape_Collide(const SHAPE *shape, const LINE *ray, COLLISION *result);
+extern bool shape_Collide(const SHAPE *shape, const LINE *ray, COLLISION *result);
 
 /**********************************************************//**
  * @brief Get the true color of the shape at the given
  * collision.
  * @param collision: A collision with a shape.
  * @param color: Output location for the color.
- * @return SUCCESS or FAILURE
+ * @return Whether color was extracted successfully.
  **************************************************************/
-extern int shape_GetColorAt(const COLLISION *collision, COLOR *color);
+extern bool shape_GetColorAt(const COLLISION *collision, COLOR *color);
 
 /*============================================================*/
 #endif // _SHAPE_H_

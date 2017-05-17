@@ -7,6 +7,9 @@
 #ifndef _LIGHT_H_
 #define _LIGHT_H_
 
+// Standard library
+#include <stdbool.h>    // bool
+
 // This project
 #include "color.h"      // COLOR
 #include "vector.h"     // VECTOR
@@ -84,9 +87,9 @@ extern void light_CreateSpotlight(LIGHT *light, const VECTOR *point, const VECTO
  * @param distance: The distance to the light. This may be a
  * NULL pointer. Otherwise the distance is written to the
  * location.
- * @return SUCCESS or FAILURE
+ * @return Whether the access succeeded.
  **************************************************************/
-extern int light_GetDirection(const LIGHT *light, const VECTOR *where, VECTOR *output, float *distance);
+extern bool light_GetDirection(const LIGHT *light, const VECTOR *where, VECTOR *output, float *distance);
 
 /**********************************************************//**
  * @brief Calculate the Blinn-Phong shading for one light at the
@@ -94,9 +97,9 @@ extern int light_GetDirection(const LIGHT *light, const VECTOR *where, VECTOR *o
  * @param light: The light to calculate shading for
  * @param collision: The point of collision to check.
  * @param color: Output location for the color
- * @return SUCCESS or FAILURE
+ * @return Whether the shading succeeded.
  **************************************************************/
-extern int light_BlinnPhongShade(const LIGHT *light, const COLLISION *collision, COLOR *color);
+extern bool light_BlinnPhongShade(const LIGHT *light, const COLLISION *collision, COLOR *color);
 
 /*============================================================*/
 #endif // _LIGHT_H_

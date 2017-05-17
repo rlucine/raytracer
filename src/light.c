@@ -5,15 +5,15 @@
  **************************************************************/
 
 // Standard library
-#include <math.h>   // pow, INFINITY, M_PI
-#include <stdio.h>  // stderr, fprintf
+#include <stdbool.h>    // bool
+#include <math.h>       // pow, INFINITY, M_PI
+#include <stdio.h>      // stderr, fprintf
 
 // This project
-#include "macro.h"  // SUCCESS, FAILURE
-#include "light.h"  // LIGHT
-#include "color.h"  // COLOR, color_Clamp ...
-#include "vector.h" // VECTOR
-#include "shape.h"  // SHAPE
+#include "light.h"      // LIGHT
+#include "color.h"      // COLOR, color_Clamp ...
+#include "vector.h"     // VECTOR
+#include "shape.h"      // SHAPE
 
 // Debugging libraries
 #include "debug.h"
@@ -51,7 +51,7 @@ void light_CreateSpotlight(LIGHT *light, const VECTOR *where, const VECTOR *dire
 /*============================================================*
  * Direction
  *============================================================*/
-int light_GetDirection(const LIGHT *light, const VECTOR *where, VECTOR *output, float *distance) {
+bool light_GetDirection(const LIGHT *light, const VECTOR *where, VECTOR *output, float *distance) {
     switch (light->type) {
     case LIGHT_SPOT:
     case LIGHT_POINT:
@@ -75,23 +75,23 @@ int light_GetDirection(const LIGHT *light, const VECTOR *where, VECTOR *output, 
     case LIGHT_NONE:
     default:
         eprintf("Light type undefined\n");
-        return FAILURE;
+        return false;
     }
     
     // Return only unit vectors
     vector_Normalize(output);
-    return SUCCESS;
+    return true;
 }
 
 /*============================================================*
  * Light shader
  *============================================================*/
-int light_BlinnPhongShade(const LIGHT *light, const COLLISION *collision, COLOR *color) {
+bool light_BlinnPhongShade(const LIGHT *light, const COLLISION *collision, COLOR *color) {
     // Get the vector pointing from the collision to the light
     VECTOR to_light;
-    if (light_GetDirection(light, &collision->where, &to_light, NULL) != SUCCESS) {
+    if (light_GetDirection(light, &collision->where, &to_light, NULL) != true) {
         eprintf("Cannot get direction to light\n");
-        return FAILURE;
+        return false;
     }
     
     // Check spotlight radius
@@ -101,7 +101,7 @@ int light_BlinnPhongShade(const LIGHT *light, const COLLISION *collision, COLOR 
         vector_Negate(&temp);
         if (vector_Angle(&temp, &light->direction) > radians) {
             // Outside the spotlight!
-            return FAILURE;
+            return false;
         }
     }
     
@@ -115,9 +115,9 @@ int light_BlinnPhongShade(const LIGHT *light, const COLLISION *collision, COLOR 
     
     // Get the diffuse color
     COLOR object_color;
-    if (shape_GetColorAt(collision, &object_color) != SUCCESS) {
+    if (shape_GetColorAt(collision, &object_color) != true) {
         eprintf("Failed to get object color\n");
-        return FAILURE;
+        return false;
     }
     
     // Don't factor in ambient color at all
@@ -159,7 +159,7 @@ int light_BlinnPhongShade(const LIGHT *light, const COLLISION *collision, COLOR 
     color->z *= light->color.z;
     
     // Done with color
-    return SUCCESS;
+    return true;
 }
 
 /*============================================================*/

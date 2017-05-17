@@ -78,9 +78,9 @@ typedef struct {
  * not need to use scene_Destroy.
  * @param scene: An uninitialized SCENE to read data into
  * @param filename: The file to read data from
- * @return SUCCESS or FAILURE
+ * @return Whether the decode worked.
  **************************************************************/
-extern int scene_Decode(SCENE *scene, const char *filename);
+extern bool scene_Decode(SCENE *scene, const char *filename);
 
 /**********************************************************//**
  * @brief Get the eye position in the scene

@@ -12,7 +12,6 @@
 #include <assert.h>     // assert
 
 // This project
-#include "macro.h"
 #include "image.h"
 #include "ppm.h"
 #include "scene.h"
@@ -49,14 +48,14 @@ int main(int argc, char **argv) {
 
     // Get the scene
     SCENE scene;
-    if (scene_Decode(&scene, filename) != SUCCESS) {
+    if (scene_Decode(&scene, filename) != true) {
         printf("Failed to decode the scene file \"%s\"\n", filename);
         return -1;
     }
     
     // Render the image
     IMAGE image;
-    if (raytrace_Render(&image, &scene) != SUCCESS) {
+    if (raytrace_Render(&image, &scene) != true) {
         printf("Failed to render the image\n");
         scene_Destroy(&scene);
         return -1;
@@ -84,10 +83,10 @@ int main(int argc, char **argv) {
     strcpy(&buf[index], EXTENSION);
     
     // Encode the image
-    if (ppm_Encode(&image, buf) != SUCCESS) {
+    if (ppm_Encode(&image, buf) != true) {
         // Try to preserve the data
         printf("Failed to encode image at \"%s\"\n", buf);
-        if (ppm_Encode(&image, "temp") != SUCCESS) {
+        if (ppm_Encode(&image, "temp") != true) {
             printf("Failed to buffer the image in a temp file\n");
         } else {
             printf("Successfully buffered image in a temporary file\n");

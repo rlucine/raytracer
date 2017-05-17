@@ -7,6 +7,9 @@
 #ifndef _PPM_H_
 #define _PPM_H_
 
+// Standard library
+#include <stdbool.h>    // bool
+
 // This project
 #include "image.h"  // IMAGE
 
@@ -27,9 +30,9 @@
  * the given filename.
  * @param ppm: The initialized PPM data to encode
  * @param filename: The target filename
- * @return SUCCESS or FAILURE
+ * @return Whether the image could be encoded.
  **************************************************************/
-extern int ppm_Encode(const IMAGE *ppm, const char *filename);
+extern bool ppm_Encode(const IMAGE *ppm, const char *filename);
 
 /**********************************************************//**
  * @brief Load a PPM image from a file
@@ -38,9 +41,9 @@ extern int ppm_Encode(const IMAGE *ppm, const char *filename);
  * successful. Don't pass a ppm which has already been
  * initialized.
  * @param filename: The file to read.
- * @return SUCCESS or FAILURE
+ * @return Whether the image could be decoded.
  **************************************************************/
-extern int ppm_Decode(IMAGE *ppm, const char *filename);
+extern bool ppm_Decode(IMAGE *ppm, const char *filename);
 
 /*============================================================*/
 #endif // _PPM_H_

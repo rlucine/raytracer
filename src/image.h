@@ -8,6 +8,7 @@
 #define _IMAGE_H_
 
 // Standard library
+#include <stdbool.h>    // bool
 #include <limits.h> // USHRT_MAX
 
 // This project
@@ -50,9 +51,9 @@ typedef VECTOR TEXCOORD;
  * initialized because a memory leak wil occur.
  * @param width: The width of the image
  * @param height: The height of the image
- * @return SUCCESS or FAILURE
+ * @return Whether the creation succeeded.
  **************************************************************/
-extern int image_Create(IMAGE *image, int width, int height);
+extern bool image_Create(IMAGE *image, int width, int height);
 
 /**********************************************************//**
  * @brief Get the RGB color located at the given coordinate
@@ -70,9 +71,9 @@ extern const RGB *image_GetPixel(const IMAGE *image, int x, int y);
  * @param x: The x coordinate from 0 to image->width - 1
  * @param y: The y coordinate from 0 to image->height - 1
  * @param color: The RGB color to set
- * @return SUCCESS or FAILURE
+ * @return Whether the access succeeded.
  **************************************************************/
-extern int image_SetPixel(IMAGE *image, int x, int y, const RGB *color);
+extern bool image_SetPixel(IMAGE *image, int x, int y, const RGB *color);
 
 /**********************************************************//**
  * @brief Treating the image as a texture, get the texture
@@ -80,9 +81,9 @@ extern int image_SetPixel(IMAGE *image, int x, int y, const RGB *color);
  * @param texture: The image data to read
  * @param coord: The texture coordinate to look up.
  * @param color: Pointer to buffer to write the color in.
- * @return SUCCESS or FAILURE
+ * @return Whether the access succeeded.
  **************************************************************/
-extern int image_GetTexture(const TEXTURE *texture, const TEXCOORD *coord, COLOR *color);
+extern bool image_GetTexture(const TEXTURE *texture, const TEXCOORD *coord, COLOR *color);
 
 /**********************************************************//**
  * @brief Get the width of the image data

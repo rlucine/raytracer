@@ -5,13 +5,13 @@
  **************************************************************/
 
 // Standard library
+#include <stdbool.h>    // bool
 #include <stdlib.h>     // malloc, free, realloc, size_t ...
 #include <stdio.h>      // fprintf, stderr, fopen, fclose ...
 #include <string.h>     // strcmp
 #include <ctype.h>      // isspace
 
 // This project
-#include "macro.h"      // SUCCESS, FAILURE
 #include "image.h"      // IMAGE
 #include "vector.h"     // VECTOR
 #include "shape.h"      // SHAPE

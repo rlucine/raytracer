@@ -5,6 +5,7 @@
  **************************************************************/
 
 // Standard library
+#include <stdbool.h>    // bool
 #include <stdlib.h>     // malloc, free, size_t
 #include <stdio.h>      // fopen, fclose, fprintf, getline ...
 #include <limits.h>     // USHRT_MAX
@@ -12,7 +13,6 @@
 #include <assert.h>     // assert
 
 // This project
-#include "macro.h"      // SUCCESS, FAILURE
 #include "image.h"      // IMAGE
 #include "ppm.h"        // PPM_MAX_COLOR ...
 
@@ -22,13 +22,13 @@
 /*============================================================*
  * Encoding PPM
  *============================================================*/
-int ppm_Encode(const IMAGE *ppm, const char *filename) {
+bool ppm_Encode(const IMAGE *ppm, const char *filename) {
     
     // Open the output file
     FILE *file = fopen(filename, "w");
     if (!file) {
         eprintf("Cannot open file %s\n", filename);
-        return FAILURE;
+        return false;
     }
     
     // Encode the PPM header
@@ -47,13 +47,13 @@ int ppm_Encode(const IMAGE *ppm, const char *filename) {
     // Done encoding
     fflush(file);
     fclose(file);
-    return SUCCESS;
+    return true;
 }
 
 /*============================================================*
  * Decoding PPM
  *============================================================*/
-int ppm_Parse(FILE *file, int *output) {
+bool ppm_Parse(FILE *file, int *output) {
     // Get the next integer from the PPM stream
     char current;
     int in_comment = 0;
@@ -77,20 +77,20 @@ int ppm_Parse(FILE *file, int *output) {
         
         // Numeric characters
         default:
-            // Due to arbitrary definitions of SUCCESS or FAILURE we need this
+            // Due to arbitrary definitions of true or false we need this
             if (!in_comment && ungetc(current, file) != EOF && fscanf(file, "%d", output) == 1) {
-                return SUCCESS;
+                return true;
             } else {
                 // Fails because found unparseable things
-                return FAILURE;
+                return false;
             }
             break;
         }
     }
-    return FAILURE;
+    return false;
 }
 
-int ppm_Decode(IMAGE *ppm, const char *filename) {
+bool ppm_Decode(IMAGE *ppm, const char *filename) {
     
 #ifdef DEBUG
     fprintf(stderr, "ppm_Decode: Decoding %s\n", filename);
@@ -100,7 +100,7 @@ int ppm_Decode(IMAGE *ppm, const char *filename) {
     FILE *file = fopen(filename, "r");
     if (!file) {
         eprintf("Failed to open file\n");
-        return FAILURE;
+        return false;
     }
     
     // Read the header (always the first two bytes)
@@ -108,13 +108,13 @@ int ppm_Decode(IMAGE *ppm, const char *filename) {
     if (fscanf(file, "%2c", header) != 1) {
         eprintf("Failed to read header information\n");
         fclose(file);
-        return FAILURE;
+        return false;
     }
     header[2] = '\0';
     if (header[0] != 'P' || header[1] != '3') {
         eprintf("Corrupt header '%s'\n", header);
         fclose(file);
-        return FAILURE;
+        return false;
     }
     
 #ifdef DEBUG
@@ -126,13 +126,13 @@ int ppm_Decode(IMAGE *ppm, const char *filename) {
     int height;
     int maxsize;
     int failure = 0;
-    failure = failure || (ppm_Parse(file, &width) != SUCCESS);
-    failure = failure || (ppm_Parse(file, &height) != SUCCESS);
-    failure = failure || (ppm_Parse(file, &maxsize) != SUCCESS);
+    failure = failure || (ppm_Parse(file, &width) != true);
+    failure = failure || (ppm_Parse(file, &height) != true);
+    failure = failure || (ppm_Parse(file, &maxsize) != true);
     if (failure) {
         eprintf("Failed to parse header information\n");
         fclose(file);
-        return FAILURE;
+        return false;
     }
     
 #ifdef DEBUG
@@ -142,10 +142,10 @@ int ppm_Decode(IMAGE *ppm, const char *filename) {
     
     // Read color information
     RGB rgb;
-    if (image_Create(ppm, width, height) != SUCCESS) {
+    if (image_Create(ppm, width, height) != true) {
         eprintf("Failed to parse header information\n");
         fclose(file);
-        return FAILURE;
+        return false;
     }
     
     // Read all information
@@ -153,30 +153,30 @@ int ppm_Decode(IMAGE *ppm, const char *filename) {
     for (y = 0; y < height; y++) {
         for (x = 0; x < width; x++) {
             failure = 0;
-            failure = failure || (ppm_Parse(file, &red) != SUCCESS);
-            failure = failure || (ppm_Parse(file, &green) != SUCCESS);
-            failure = failure || (ppm_Parse(file, &blue) != SUCCESS);
+            failure = failure || (ppm_Parse(file, &red) != true);
+            failure = failure || (ppm_Parse(file, &green) != true);
+            failure = failure || (ppm_Parse(file, &blue) != true);
             if (failure) {
                 eprintf("Parse error\n");
                 fclose(file);
-                return FAILURE;
+                return false;
             }
             
             // Load color
             rgb.r = red * PPM_MAX_COLOR / maxsize;
             rgb.g = green * PPM_MAX_COLOR / maxsize;
             rgb.b = blue * PPM_MAX_COLOR / maxsize;
-            if (image_SetPixel(ppm, x, y, &rgb) != SUCCESS) {
+            if (image_SetPixel(ppm, x, y, &rgb) != true) {
                 eprintf("Failed to place colors in image\n");
                 fclose(file);
-                return FAILURE;
+                return false;
             }
             
 #ifdef DEBUG
             const RGB *test = image_GetPixel(ppm, x, y);
             if (test->r != rgb.r || test->g != rgb.g || test->b != rgb.b) {
                 fprintf(stderr, "ppm_Decode failed: Decode error detected\n");
-                return FAILURE;
+                return false;
             }
 #endif
         }
@@ -184,7 +184,7 @@ int ppm_Decode(IMAGE *ppm, const char *filename) {
     fclose(file);
     
     // Done, read all color information
-    return SUCCESS;
+    return true;
 }
 
 /*============================================================*/

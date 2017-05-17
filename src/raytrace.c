@@ -5,6 +5,7 @@
  **************************************************************/
 
 // Standard library
+#include <stdbool.h>    // bool
 #include <stdlib.h>     // rand, RAND_MAX
 #include <string.h>     // memcpy
 #include <math.h>       // pow, tan, atan, INFINITY ...
@@ -13,7 +14,6 @@
 #include <float.h>      // DBL_EPSILON
 
 // This project
-#include "macro.h"      // SUCCESS, FAILURE
 #include "image.h"      // IMAGE
 #include "vector.h"     // VECTOR
 #include "shape.h"      // SHAPE
@@ -39,7 +39,7 @@ typedef struct {
 /*============================================================*
  * Get the viewing plane
  *============================================================*/
-static int raytrace_GetView(VIEWPLANE *view, float view_distance, const SCENE *scene) {
+static bool raytrace_GetView(VIEWPLANE *view, float view_distance, const SCENE *scene) {
     
     // Get the aspect ratio
     float aspect = (float)scene_GetWidth(scene) / (float)scene_GetHeight(scene);
@@ -55,7 +55,7 @@ static int raytrace_GetView(VIEWPLANE *view, float view_distance, const SCENE *s
     vector_Normalize(&view->u);
     if (vector_IsZero(&view->u)) {
         eprintf("Null u vector (%f, %f, %f)\n", view->u.x, view->u.y, view->u.z);
-        return FAILURE;
+        return false;
     }
     
     // Get the v basis vector
@@ -64,7 +64,7 @@ static int raytrace_GetView(VIEWPLANE *view, float view_distance, const SCENE *s
     vector_Normalize(&view->v);
     if (vector_IsZero(&view->v)) {
         eprintf("Null v vector (%f, %f, %f)\n", view->v.x, view->v.y, view->v.z);
-        return FAILURE;
+        return false;
     }
     
     // Get the offset to the upper left
@@ -92,13 +92,13 @@ static int raytrace_GetView(VIEWPLANE *view, float view_distance, const SCENE *s
     // Scale basis vectors
     view->width = width;
     view->height = height;
-    return SUCCESS;
+    return true;
 }
 
 /*============================================================*
  * Cast one ray
  *============================================================*/
-static int raytrace_Cast(COLLISION *closest, const LINE *ray, const SCENE *scene) {
+static bool raytrace_Cast(COLLISION *closest, const LINE *ray, const SCENE *scene) {
     
     // Collision detectors
     COLLISION current;
@@ -116,13 +116,13 @@ static int raytrace_Cast(COLLISION *closest, const LINE *ray, const SCENE *scene
         shape = scene_GetShape(scene, n);
         if (!shape) {
             eprintf("No shape with identifier %d\n", n);
-            return FAILURE;
+            return false;
         }
         
         // Collide with this shape
-        if (shape_Collide(shape, ray, &current) != SUCCESS) {
+        if (shape_Collide(shape, ray, &current) != true) {
             eprintf("Collision with shape %d failed\n", n);
-            return FAILURE;
+            return false;
         }
         
         // Check distance - closest is either first shape or the current shape
@@ -159,7 +159,7 @@ static int raytrace_Cast(COLLISION *closest, const LINE *ray, const SCENE *scene
     }
 
     // Checked all shapes - valid!
-    return SUCCESS;
+    return true;
 }
 
 /*============================================================*
@@ -171,16 +171,16 @@ static float raytrace_Shadow(float *shadows, const COLLISION *collision, const L
     LINE ray;
     float distance;
     memcpy(&ray.origin, &collision->where, sizeof(VECTOR));
-    if (light_GetDirection(light, &collision->where, &ray.direction, &distance) != SUCCESS) {
+    if (light_GetDirection(light, &collision->where, &ray.direction, &distance) != true) {
         eprintf("Invalid light\n");
-        return FAILURE;
+        return false;
     }
     
     // Fire the shadow ray
     COLLISION shadow;
-    if (raytrace_Cast(&shadow, &ray, scene) != SUCCESS) {
+    if (raytrace_Cast(&shadow, &ray, scene) != true) {
         eprintf("Failed to shoot shadow ray\n");
-        return FAILURE;
+        return false;
     }
     
     // Check collisions
@@ -190,9 +190,9 @@ static float raytrace_Shadow(float *shadows, const COLLISION *collision, const L
         
         // Check for all other collisions
         float rest;
-        if (raytrace_Shadow(&rest, &shadow, light, scene) != SUCCESS) {
+        if (raytrace_Shadow(&rest, &shadow, light, scene) != true) {
             eprintf("Failed to shadow all objects in the scene");
-            return FAILURE;
+            return false;
         }
         
         // Take product of all alpha values in the way
@@ -200,7 +200,7 @@ static float raytrace_Shadow(float *shadows, const COLLISION *collision, const L
     } else {
         *shadows = 1.0;
     }
-    return SUCCESS;
+    return true;
 }
 
 /*============================================================*
@@ -208,14 +208,14 @@ static float raytrace_Shadow(float *shadows, const COLLISION *collision, const L
  *============================================================*/
 
 // Mutual recursion stuff
-static int raytrace_Shade(COLOR *, const COLLISION *, const SCENE *, float, int);
+static bool raytrace_Shade(COLOR *, const COLLISION *, const SCENE *, float, int);
 
-static int raytrace_Reflection(COLOR *color, const COLLISION *collision, const SCENE *scene, float irefract, int depth) {
+static bool raytrace_Reflection(COLOR *color, const COLLISION *collision, const SCENE *scene, float irefract, int depth) {
     
     // Stack overflow
     if (depth > RECURSION_DEPTH) {
         vector_Set(color, 0, 0, 0);
-        return SUCCESS;
+        return true;
     }
     
     // Get the normal which is in the same direction as the incident
@@ -261,16 +261,16 @@ static int raytrace_Reflection(COLOR *color, const COLLISION *collision, const S
 
     // Shoot the reflection ray
     COLLISION reflection_collision;
-    if (raytrace_Cast(&reflection_collision, &reflection, scene) != SUCCESS) {
+    if (raytrace_Cast(&reflection_collision, &reflection, scene) != true) {
         eprintf("Failed to shoot reflection ray\n");
-        return FAILURE;
+        return false;
     }
 
     // Recursively shade the reflection color
     if (reflection_collision.how != COLLISION_NONE) {
-        if (raytrace_Shade(color, &reflection_collision, scene, irefract, depth+1) != SUCCESS) {
+        if (raytrace_Shade(color, &reflection_collision, scene, irefract, depth+1) != true) {
             eprintf("Failed to shade the reflection ray\n");
-            return FAILURE;
+            return false;
         }
         
         // Scale component with reflectivity
@@ -282,7 +282,7 @@ static int raytrace_Reflection(COLOR *color, const COLLISION *collision, const S
     
     // Early exit if no transparency
     if (fabs(material->opacity - 1.0) < DBL_EPSILON) {
-        return SUCCESS;
+        return true;
     }
     
     // Set up the transparency ray direction
@@ -291,7 +291,7 @@ static int raytrace_Reflection(COLOR *color, const COLLISION *collision, const S
     float tir_check = 1 - ((ratio*ratio)*(1 - cos_theta_i*cos_theta_i));
     if (tir_check < 0) {
         // Early exit on total internal refraction
-        return SUCCESS;
+        return true;
     }
     transparency.direction = reflection_normal;
     vector_Multiply(&transparency.direction, -sqrt(tir_check));
@@ -306,16 +306,16 @@ static int raytrace_Reflection(COLOR *color, const COLLISION *collision, const S
     
     // Shoot the transparency ray
     COLLISION transparency_collision;
-    if (raytrace_Cast(&transparency_collision, &transparency, scene) != SUCCESS) {
+    if (raytrace_Cast(&transparency_collision, &transparency, scene) != true) {
         eprintf("Failed to shoot transparency ray\n");
-        return FAILURE;
+        return false;
     }
     
     // Recursively shade transparency color
     COLOR transparency_color;
-    if (raytrace_Shade(&transparency_color, &transparency_collision, scene, material->refraction, depth+1) != SUCCESS) {
+    if (raytrace_Shade(&transparency_color, &transparency_collision, scene, material->refraction, depth+1) != true) {
         eprintf("Failed to shade the transparency ray\n");
-        return FAILURE;
+        return false;
     }
         
     // Scale component
@@ -326,25 +326,25 @@ static int raytrace_Reflection(COLOR *color, const COLLISION *collision, const S
     color_Clamp(&transparency_color);
     vector_Add(color, &transparency_color);
     color_Clamp(color);
-    return SUCCESS;
+    return true;
 }
 
 /*============================================================*
  * Shader
  *============================================================*/
-static int raytrace_Shade(COLOR *color, const COLLISION *collision, const SCENE *scene, float irefract, int depth) {
+static bool raytrace_Shade(COLOR *color, const COLLISION *collision, const SCENE *scene, float irefract, int depth) {
     
     // Error check
     if (collision->how == COLLISION_NONE) {
         memcpy(color, &scene->background, sizeof(COLOR));
-        return SUCCESS;
+        return true;
     }
     
     // Get the diffuse color
     COLOR object_color;
-    if (shape_GetColorAt(collision, &object_color) != SUCCESS) {
+    if (shape_GetColorAt(collision, &object_color) != true) {
         eprintf("Failed to get object color\n");
-        return FAILURE;
+        return false;
     }
     
     // Set the ambient color of the object
@@ -361,16 +361,16 @@ static int raytrace_Shade(COLOR *color, const COLLISION *collision, const SCENE 
         light = scene_GetLight(scene, i);
         
         // Get shadows and check float 
-        if (raytrace_Shadow(&shadows, collision, light, scene) != SUCCESS) {
+        if (raytrace_Shadow(&shadows, collision, light, scene) != true) {
             eprintf("Failed to check shadows\n");
-            return FAILURE;
+            return false;
         }
         if (shadows < SHADOW_THRESHOLD) {
             continue;
         }
         
         // Get shading for this light
-        if (light_BlinnPhongShade(light, collision, &temp) != SUCCESS) {
+        if (light_BlinnPhongShade(light, collision, &temp) != true) {
             continue;
         }
         vector_Multiply(&temp, shadows);
@@ -382,9 +382,9 @@ static int raytrace_Shade(COLOR *color, const COLLISION *collision, const SCENE 
     if (depth < RECURSION_DEPTH) {
         // Determine any reflections
         COLOR reflection_color;
-        if (raytrace_Reflection(&reflection_color, collision, scene, irefract, depth) != SUCCESS) {
+        if (raytrace_Reflection(&reflection_color, collision, scene, irefract, depth) != true) {
             eprintf("Failed to get reflection color\n");
-            return FAILURE;
+            return false;
         }
         
         // Incorporate the reflected color into the result
@@ -392,13 +392,13 @@ static int raytrace_Shade(COLOR *color, const COLLISION *collision, const SCENE 
         color_Clamp(color);
     }
 
-    return SUCCESS;
+    return true;
 }
 
 /*============================================================*
  * Generate an image
  *============================================================*/
-int raytrace_Render(IMAGE *image, const SCENE *scene) {
+bool raytrace_Render(IMAGE *image, const SCENE *scene) {
     
     // Get the scene view
     VIEWPLANE view;
@@ -406,9 +406,9 @@ int raytrace_Render(IMAGE *image, const SCENE *scene) {
     if (scene->flags & PROJECT_PARALLEL) {
         distance = 0.0;
     }
-    if (raytrace_GetView(&view, distance, scene) != SUCCESS) {
+    if (raytrace_GetView(&view, distance, scene) != true) {
         eprintf("Failed to generate viewing plane\n");
-        return FAILURE;
+        return false;
     }
     
 #ifdef DEBUG
@@ -419,9 +419,9 @@ int raytrace_Render(IMAGE *image, const SCENE *scene) {
 #endif
     
     // Get the image output
-    if (image_Create(image, scene_GetWidth(scene), scene_GetHeight(scene)) != SUCCESS) {
+    if (image_Create(image, scene_GetWidth(scene), scene_GetHeight(scene)) != true) {
         eprintf("Failed to create output image\n");
-        return FAILURE;
+        return false;
     }
     
     // Image pixel size
@@ -476,17 +476,17 @@ int raytrace_Render(IMAGE *image, const SCENE *scene) {
 #endif
             
             // Cast this ray
-            if (raytrace_Cast(&collision, &ray, scene) != SUCCESS) {
+            if (raytrace_Cast(&collision, &ray, scene) != true) {
                 eprintf("Failed to cast ray (%d, %d)\n", x, y);
-                return FAILURE;
+                return false;
             }
             
             // Determine color
             if (collision.how != COLLISION_NONE) {
                 // Collided with the surface of the shape
-                if (raytrace_Shade(&color, &collision, scene, INITIAL_REFRACTION, 0) != SUCCESS) {
+                if (raytrace_Shade(&color, &collision, scene, INITIAL_REFRACTION, 0) != true) {
                     eprintf("Shader failed\n");
-                    return FAILURE;
+                    return false;
                 }
                 
                 // Get the RGB color
@@ -498,9 +498,9 @@ int raytrace_Render(IMAGE *image, const SCENE *scene) {
             }
             
             // Put the color
-            if (image_SetPixel(image, x, y, &rgb) != SUCCESS) {
+            if (image_SetPixel(image, x, y, &rgb) != true) {
                 eprintf("Failed to set color at (%d, %d)\n", x, y);
-                return FAILURE;
+                return false;
             }
 #ifdef DEBUG
             const RGB *what = image_GetPixel(image, x, y);
@@ -520,7 +520,7 @@ int raytrace_Render(IMAGE *image, const SCENE *scene) {
         vector_Add(&target, &ystep);
         y++;
     }
-    return SUCCESS;
+    return true;
 }
 
 /*============================================================*/

@@ -7,6 +7,9 @@
 #ifndef _RAYTRACE_H_
 #define _RAYTRACE_H_
 
+// Standard library
+#include <stdbool.h>    // bool
+
 // This project
 #include "image.h"  // IMAGE
 #include "scene.h"  // SCENE
@@ -51,9 +54,9 @@
  * @brief Render the SCENE using a raytracing algorithm
  * @param image: The image to write to
  * @param scene: The scene to render
- * @return SUCCESS or FAILURE
+ * @return Whether the image was rendered successfully.
  **************************************************************/
-extern int raytrace_Render(IMAGE *image, const SCENE *scene);
+extern bool raytrace_Render(IMAGE *image, const SCENE *scene);
 
 /*============================================================*/
 #endif // _RAYTRACE_H_
