@@ -126,6 +126,7 @@ $(DOC_DIR): $(DOXFILES) $(CFILES) $(IFILES) $(HFILES) $(MCFILES)
 .PHONY: clean
 clean:
 	-rm -rf $(BUILD_DIR) $(EXECUTABLES) $(TESTS)
+	$(MAKE) -C $(LIBWES64_DIR) clean
 	
 #============= Archive =============#
 # Package all the files into a tar.
