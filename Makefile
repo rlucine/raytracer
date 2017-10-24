@@ -58,12 +58,12 @@ ALL_EXECUTABLES := $(MCFILES:$(MAIN_DIR)/%.c=%.exe)
 TESTS := $(filter test_%.exe,$(ALL_EXECUTABLES))
 EXECUTABLES := $(filter-out test_%.exe,$(ALL_EXECUTABLES))
 
-#========== libwes64 Setup =========#
+#========== libshared Setup =========#
 LIB_DIR := lib
-LIBWES64_DIR := $(LIB_DIR)/libwes64
-INCLUDE += -I$(LIBWES64_DIR)/include
-LIBRARY += -L$(LIBWES64_DIR)/bin -lwes64
-IMPORTANT += $(LIBWES64_DIR)
+LIBSHARED_DIR := $(LIB_DIR)/libshared
+INCLUDE += -I$(LIBSHARED_DIR)/include
+LIBRARY += -L$(LIBSHARED_DIR)/bin -lshared
+IMPORTANT += $(LIBSHARED_DIR)
 
 #========== Documentation ==========#
 # Doxygen documentation setup
@@ -75,7 +75,7 @@ IMPORTANT += $(DOXYFILE) $(DOXFILES)
 #============== Rules ==============#
 # Default: just make executables
 .PHONY: default
-default: $(BUILD_DIR) libwes64 $(OFILES) $(EXECUTABLES)
+default: $(BUILD_DIR) libshared $(OFILES) $(EXECUTABLES)
 
 # Make just the tests
 .PHONY: tests
@@ -85,10 +85,10 @@ tests: $(BUILD_DIR) $(OFILES) $(TESTS)
 .PHONY: all
 all: default tests
 
-# Make libwes64
-.PHONY: libwes64
-libwes64:
-	$(MAKE) -C $(LIBWES64_DIR) default
+# Make libshared
+.PHONY: libshared
+libshared:
+	$(MAKE) -C $(LIBSHARED_DIR) default
 
 # Put all the .o files in the build directory
 $(BUILD_DIR):
@@ -126,7 +126,7 @@ $(DOC_DIR): $(DOXFILES) $(CFILES) $(IFILES) $(HFILES) $(MCFILES)
 .PHONY: clean
 clean:
 	-rm -rf $(BUILD_DIR) $(EXECUTABLES) $(TESTS)
-	$(MAKE) -C $(LIBWES64_DIR) clean
+	$(MAKE) -C $(LIBSHARED_DIR) clean
 	
 #============= Archive =============#
 # Package all the files into a tar.
