@@ -1,7 +1,7 @@
 /**********************************************************//**
  * @file shape.h
  * @brief Header file for 3D shape geometry and storage
- * @author Alec Shinomiya
+ * @author Rena Shinomiya
  **************************************************************/
 
 #ifndef _SHAPE_H_

@@ -1,7 +1,7 @@
 /**********************************************************//**
  * @file ppm.h
  * @brief Header file for P3 PPM file parsing
- * @author Alec Shinomiya
+ * @author Rena Shinomiya
  **************************************************************/
 
 #ifndef _PPM_H_

@@ -1,7 +1,7 @@
 /**********************************************************//**
  * @file test_scene.c
  * @brief Test suite for all SCENE functions
- * @author Alec Shinomiya
+ * @author Rena Shinomiya
  **************************************************************/
 
 // Standard library

@@ -1,7 +1,7 @@
 /**********************************************************//**
  * @file raytrace.c
  * @brief Implementation of raytracer implementation
- * @author Alec Shinomiya
+ * @author Rena Shinomiya
  **************************************************************/
 
 // Standard library

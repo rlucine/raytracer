@@ -1,7 +1,7 @@
 /**********************************************************//**
  * @file color.h
  * @brief Header file for color definitions
- * @author Alec Shinomiya
+ * @author Rena Shinomiya
  **************************************************************/
 
 #ifndef _COLOR_H_

@@ -1,7 +1,7 @@
 /**********************************************************//**
  * @file light.h
  * @brief Implementation of lighting
- * @author Alec Shinomiya
+ * @author Rena Shinomiya
  **************************************************************/
 
 // Standard library

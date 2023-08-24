@@ -1,7 +1,7 @@
 /**********************************************************//**
  * @file color.c
  * @brief Implementation of color definitions
- * @author Alec Shinomiya
+ * @author Rena Shinomiya
  **************************************************************/
 
 // This project

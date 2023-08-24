@@ -1,7 +1,7 @@
 /**********************************************************//**
  * @file image.c
  * @brief Implementation file for image data
- * @author Alec Shinomiya
+ * @author Rena Shinomiya
  **************************************************************/
 
 // Standard library

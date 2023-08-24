@@ -1,7 +1,7 @@
 /**********************************************************//**
  * @file test_mesh.c
  * @brief Test suite for Mesh functions
- * @author Alec Shinomiya
+ * @author Rena Shinomiya
  **************************************************************/
 
 // Standard library

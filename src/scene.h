@@ -1,7 +1,7 @@
 /**********************************************************//**
  * @file scene.h
  * @brief Header file for raytracer scenes
- * @author Alec Shinomiya
+ * @author Rena Shinomiya
  **************************************************************/
 
 #ifndef _SCENE_H_

@@ -1,7 +1,7 @@
 /**********************************************************//**
  * @file shape.c
  * @brief Implementation of 3D shape geometry
- * @author Alec Shinomiya
+ * @author Rena Shinomiya
  **************************************************************/
 
 // Standard library

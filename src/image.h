@@ -1,7 +1,7 @@
 /**********************************************************//**
  * @file image.h
  * @brief Header file for image buffers
- * @author Alec Shinomiya
+ * @author Rena Shinomiya
  **************************************************************/
 
 #ifndef _IMAGE_H_

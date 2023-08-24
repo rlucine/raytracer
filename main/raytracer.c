@@ -1,7 +1,7 @@
 /**********************************************************//**
  * @file raytracer.c
  * @brief Main module for raytracer
- * @author Alec Shinomiya
+ * @author Rena Shinomiya
  **************************************************************/
 
 // Standard library

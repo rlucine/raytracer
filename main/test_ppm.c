@@ -1,7 +1,7 @@
 /**********************************************************//**
  * @file test_ppm.c
  * @brief Test suite for all PPM functions
- * @author Alec Shinomiya
+ * @author Rena Shinomiya
  **************************************************************/
 
 // Standard library

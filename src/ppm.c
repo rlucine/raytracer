@@ -1,7 +1,7 @@
 /**********************************************************//**
  * @file ppm.c
  * @brief Implementation file for P3 PPM file parsing
- * @author Alec Shinomiya
+ * @author Rena Shinomiya
  **************************************************************/
 
 // Standard library

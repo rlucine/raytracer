@@ -1,7 +1,7 @@
 /**********************************************************//**
  * @file mesh.h
  * @brief Header file for 3D triangle meshes
- * @author Alec Shinomiya
+ * @author Rena Shinomiya
  **************************************************************/
 
 #ifndef _MESH_H_

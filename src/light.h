@@ -1,7 +1,7 @@
 /**********************************************************//**
  * @file light.h
  * @brief Header file for light definitions
- * @author Alec Shinomiya
+ * @author Rena Shinomiya
  **************************************************************/
 
 #ifndef _LIGHT_H_

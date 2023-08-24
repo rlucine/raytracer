@@ -1,7 +1,7 @@
 /**********************************************************//**
  * @file scene.c
  * @brief Implementation file for raytracer scenes
- * @author Alec Shinomiya
+ * @author Rena Shinomiya
  **************************************************************/
 
 // Standard library

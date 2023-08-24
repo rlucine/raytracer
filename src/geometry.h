@@ -1,7 +1,7 @@
 /**********************************************************//**
  * @file geometry.h
  * @brief Header file for basic vector geometry.
- * @author Alec Shinomiya
+ * @author Rena Shinomiya
  **************************************************************/
 
 #ifndef _GEOMETRY_H_

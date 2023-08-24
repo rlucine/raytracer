@@ -1,7 +1,7 @@
 /**********************************************************//**
  * @file raytrace.h
  * @brief Header file for raytracer implementation
- * @author Alec Shinomiya
+ * @author Rena Shinomiya
  **************************************************************/
 
 #ifndef _RAYTRACE_H_

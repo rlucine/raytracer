@@ -1,7 +1,7 @@
 /**********************************************************//**
  * @file mesh.c
  * @brief Implementation of 3D triangle meshes
- * @author Alec Shinomiya
+ * @author Rena Shinomiya
  **************************************************************/
 
 // Standard library

@@ -1,7 +1,7 @@
 /**********************************************************//**
  * @file parser.inc
  * @brief Implementation of scene file parser
- * @author Alec Shinomiya
+ * @author Rena Shinomiya
  **************************************************************/
 
 #ifndef _PARSER_INC_
